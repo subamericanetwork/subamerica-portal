@@ -85,7 +85,7 @@ const PortPreview = () => {
               </Button>
               <Button size="lg" variant="outline">
                 <Users className="h-4 w-4 mr-2" />
-                Join Fan Club
+                Join Subclub
               </Button>
             </div>
           </div>
