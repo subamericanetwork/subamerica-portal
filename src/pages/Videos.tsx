@@ -28,6 +28,12 @@ const Videos = () => {
     e.preventDefault();
     if (!artist) return;
 
+    // Check video limit
+    if (videos.length >= 10) {
+      toast.error("Maximum of 10 videos allowed per artist");
+      return;
+    }
+
     if (!videoFile) {
       toast.error("Please select a video file");
       return;
@@ -244,6 +250,7 @@ const Videos = () => {
         <Card className="border-primary/20">
           <CardContent className="p-6">
             <div className="text-sm text-muted-foreground space-y-1">
+              <p>• You can store up to 10 videos ({videos.length}/10 used)</p>
               <p>• Featured video must have captions for accessibility</p>
               <p>• Only one video can be featured at a time</p>
               <p>• Featured video appears at the top of your Port</p>
