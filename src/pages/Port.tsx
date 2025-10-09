@@ -66,9 +66,9 @@ const Port = () => {
           .from("port_settings")
           .select("publish_status")
           .eq("artist_id", artistData.id)
-          .single();
+          .maybeSingle();
 
-        if (settingsData?.publish_status !== 'published') {
+        if (!settingsData || settingsData?.publish_status !== 'published') {
           setLoading(false);
           return;
         }
