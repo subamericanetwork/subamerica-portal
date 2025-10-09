@@ -191,7 +191,7 @@ const Merch = () => {
                 Add Product
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingProduct ? "Edit Product" : "Add Product"}</DialogTitle>
                 <DialogDescription>
