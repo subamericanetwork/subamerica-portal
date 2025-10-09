@@ -99,6 +99,7 @@ export type Database = {
         Row: {
           artist_id: string
           created_at: string | null
+          description: string | null
           duration: number | null
           geo: Json | null
           id: string
@@ -113,6 +114,7 @@ export type Database = {
         Insert: {
           artist_id: string
           created_at?: string | null
+          description?: string | null
           duration?: number | null
           geo?: Json | null
           id?: string
@@ -127,6 +129,7 @@ export type Database = {
         Update: {
           artist_id?: string
           created_at?: string | null
+          description?: string | null
           duration?: number | null
           geo?: Json | null
           id?: string

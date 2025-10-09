@@ -29,6 +29,8 @@ interface Event {
   starts_at: string;
   venue: string | null;
   ticket_url: string | null;
+  description: string | null;
+  poster_url: string | null;
 }
 
 interface Product {

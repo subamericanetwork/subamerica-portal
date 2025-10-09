@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, MapPin, Calendar as CalendarIcon, ExternalLink, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, MapPin, Calendar as CalendarIcon, ExternalLink, Trash2, ImageIcon } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,11 +20,13 @@ const Events = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     venue: "",
     ticket_url: "",
     time: "20:00",
+    description: "",
   });
 
   const handleCreateEvent = async (e: React.FormEvent) => {
@@ -35,29 +38,66 @@ const Events = () => {
 
     setIsSubmitting(true);
 
-    // Combine date and time
-    const [hours, minutes] = formData.time.split(':');
-    const eventDate = new Date(selectedDate);
-    eventDate.setHours(parseInt(hours), parseInt(minutes));
+    try {
+      // Upload image if provided
+      let posterUrl = null;
+      if (imageFile) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          toast.error("User not authenticated");
+          setIsSubmitting(false);
+          return;
+        }
 
-    const { error } = await supabase
-      .from("events")
-      .insert({
-        artist_id: artist.id,
-        title: formData.title,
-        venue: formData.venue,
-        ticket_url: formData.ticket_url || null,
-        starts_at: eventDate.toISOString(),
-      });
+        const fileExt = imageFile.name.split('.').pop();
+        const filePath = `${userData.user.id}/${crypto.randomUUID()}.${fileExt}`;
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Event added successfully!");
-      setFormData({ title: "", venue: "", ticket_url: "", time: "20:00" });
-      setSelectedDate(undefined);
-      setIsDialogOpen(false);
-      window.location.reload();
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(filePath, imageFile);
+
+        if (uploadError) {
+          toast.error(`Image upload failed: ${uploadError.message}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(filePath);
+
+        posterUrl = publicUrl;
+      }
+
+      // Combine date and time
+      const [hours, minutes] = formData.time.split(':');
+      const eventDate = new Date(selectedDate);
+      eventDate.setHours(parseInt(hours), parseInt(minutes));
+
+      const { error } = await supabase
+        .from("events")
+        .insert({
+          artist_id: artist.id,
+          title: formData.title,
+          venue: formData.venue,
+          ticket_url: formData.ticket_url || null,
+          description: formData.description || null,
+          poster_url: posterUrl,
+          starts_at: eventDate.toISOString(),
+        });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Event added successfully!");
+        setFormData({ title: "", venue: "", ticket_url: "", time: "20:00", description: "" });
+        setSelectedDate(undefined);
+        setImageFile(null);
+        setIsDialogOpen(false);
+        window.location.reload();
+      }
+    } catch (error) {
+      toast.error("Failed to create event");
     }
 
     setIsSubmitting(false);
@@ -180,6 +220,25 @@ const Events = () => {
                     placeholder="https://tickets.example.com"
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description (optional)</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Event description and details..."
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="image">Event Image (optional)</Label>
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  />
+                </div>
                 <div className="pt-4">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting ? "Adding..." : "Add Event"}
@@ -208,8 +267,16 @@ const Events = () => {
               <Card key={event.id} className="gradient-card hover:border-primary/30 transition-smooth">
                 <CardContent className="p-6">
                   <div className="flex gap-6">
-                    <div className="w-32 h-32 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center">
-                      <CalendarIcon className="h-12 w-12 text-muted-foreground" />
+                    <div className="w-32 h-32 bg-muted rounded-lg flex-shrink-0 overflow-hidden flex items-center justify-center">
+                      {event.poster_url ? (
+                        <img 
+                          src={event.poster_url} 
+                          alt={event.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ImageIcon className="h-12 w-12 text-muted-foreground" />
+                      )}
                     </div>
 
                     <div className="flex-1 space-y-3">
@@ -228,6 +295,11 @@ const Events = () => {
                             </div>
                           )}
                         </div>
+                        {event.description && (
+                          <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
