@@ -146,7 +146,7 @@ const Events = () => {
                 Add Event
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Add Event</DialogTitle>
                 <DialogDescription>
