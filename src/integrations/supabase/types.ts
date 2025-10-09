@@ -198,6 +198,7 @@ export type Database = {
           publish_status: Database["public"]["Enums"]["publish_status"] | null
           seo: Json | null
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           artist_id: string
@@ -210,6 +211,7 @@ export type Database = {
           publish_status?: Database["public"]["Enums"]["publish_status"] | null
           seo?: Json | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           artist_id?: string
@@ -222,6 +224,7 @@ export type Database = {
           publish_status?: Database["public"]["Enums"]["publish_status"] | null
           seo?: Json | null
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
