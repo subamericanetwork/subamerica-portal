@@ -14,7 +14,390 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      artists: {
+        Row: {
+          bio_long: string | null
+          bio_short: string | null
+          brand: Json | null
+          created_at: string | null
+          display_name: string
+          email: string
+          id: string
+          pronouns: string | null
+          scene: string | null
+          slug: string
+          socials: Json | null
+          tz: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bio_long?: string | null
+          bio_short?: string | null
+          brand?: Json | null
+          created_at?: string | null
+          display_name: string
+          email: string
+          id?: string
+          pronouns?: string | null
+          scene?: string | null
+          slug: string
+          socials?: Json | null
+          tz?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bio_long?: string | null
+          bio_short?: string | null
+          brand?: Json | null
+          created_at?: string | null
+          display_name?: string
+          email?: string
+          id?: string
+          pronouns?: string | null
+          scene?: string | null
+          slug?: string
+          socials?: Json | null
+          tz?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit: {
+        Row: {
+          action: string | null
+          actor_id: string | null
+          created_at: string | null
+          diff: Json | null
+          entity: string | null
+          entity_id: string | null
+          id: string
+        }
+        Insert: {
+          action?: string | null
+          actor_id?: string | null
+          created_at?: string | null
+          diff?: Json | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+        }
+        Update: {
+          action?: string | null
+          actor_id?: string | null
+          created_at?: string | null
+          diff?: Json | null
+          entity?: string | null
+          entity_id?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          duration: number | null
+          geo: Json | null
+          id: string
+          livestream_source: string | null
+          poster_url: string | null
+          starts_at: string
+          ticket_url: string | null
+          title: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          duration?: number | null
+          geo?: Json | null
+          id?: string
+          livestream_source?: string | null
+          poster_url?: string | null
+          starts_at: string
+          ticket_url?: string | null
+          title: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          duration?: number | null
+          geo?: Json | null
+          id?: string
+          livestream_source?: string | null
+          poster_url?: string | null
+          starts_at?: string
+          ticket_url?: string | null
+          title?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          heartland_link: string | null
+          id: string
+          mode: Database["public"]["Enums"]["pay_mode"] | null
+          paypal_link: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          heartland_link?: string | null
+          id?: string
+          mode?: Database["public"]["Enums"]["pay_mode"] | null
+          paypal_link?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          heartland_link?: string | null
+          id?: string
+          mode?: Database["public"]["Enums"]["pay_mode"] | null
+          paypal_link?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      port_settings: {
+        Row: {
+          artist_id: string
+          commenting: string | null
+          created_at: string | null
+          go_live_at: string | null
+          id: string
+          max_products: number | null
+          pixels: Json | null
+          publish_status: Database["public"]["Enums"]["publish_status"] | null
+          seo: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          commenting?: string | null
+          created_at?: string | null
+          go_live_at?: string | null
+          id?: string
+          max_products?: number | null
+          pixels?: Json | null
+          publish_status?: Database["public"]["Enums"]["publish_status"] | null
+          seo?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          commenting?: string | null
+          created_at?: string | null
+          go_live_at?: string | null
+          id?: string
+          max_products?: number | null
+          pixels?: Json | null
+          publish_status?: Database["public"]["Enums"]["publish_status"] | null
+          seo?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "port_settings_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          fulfillment: string | null
+          id: string
+          images: Json | null
+          inventory: string | null
+          is_surface: boolean | null
+          pitch: string | null
+          price: number | null
+          sku: string | null
+          title: string
+          type: string
+          updated_at: string | null
+          variants: Json | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          fulfillment?: string | null
+          id?: string
+          images?: Json | null
+          inventory?: string | null
+          is_surface?: boolean | null
+          pitch?: string | null
+          price?: number | null
+          sku?: string | null
+          title: string
+          type: string
+          updated_at?: string | null
+          variants?: Json | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          fulfillment?: string | null
+          id?: string
+          images?: Json | null
+          inventory?: string | null
+          is_surface?: boolean | null
+          pitch?: string | null
+          price?: number | null
+          sku?: string | null
+          title?: string
+          type?: string
+          updated_at?: string | null
+          variants?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qr_settings: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          default_action: string | null
+          fallback_action: string | null
+          id: string
+          updated_at: string | null
+          utm_template: string | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          default_action?: string | null
+          fallback_action?: string | null
+          id?: string
+          updated_at?: string | null
+          utm_template?: string | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          default_action?: string | null
+          fallback_action?: string | null
+          id?: string
+          updated_at?: string | null
+          utm_template?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_settings_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      videos: {
+        Row: {
+          artist_id: string
+          captions_url: string | null
+          created_at: string | null
+          duration: number | null
+          explicit: boolean | null
+          id: string
+          is_featured: boolean | null
+          kind: Database["public"]["Enums"]["video_kind"]
+          provider: string | null
+          provider_id: string | null
+          published_at: string | null
+          source: string | null
+          status: Database["public"]["Enums"]["video_status"] | null
+          tags: string[] | null
+          thumb_url: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          captions_url?: string | null
+          created_at?: string | null
+          duration?: number | null
+          explicit?: boolean | null
+          id?: string
+          is_featured?: boolean | null
+          kind: Database["public"]["Enums"]["video_kind"]
+          provider?: string | null
+          provider_id?: string | null
+          published_at?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["video_status"] | null
+          tags?: string[] | null
+          thumb_url?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          captions_url?: string | null
+          created_at?: string | null
+          duration?: number | null
+          explicit?: boolean | null
+          id?: string
+          is_featured?: boolean | null
+          kind?: Database["public"]["Enums"]["video_kind"]
+          provider?: string | null
+          provider_id?: string | null
+          published_at?: string | null
+          source?: string | null
+          status?: Database["public"]["Enums"]["video_status"] | null
+          tags?: string[] | null
+          thumb_url?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "videos_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +406,15 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      pay_mode: "heartland_hosted" | "woo_heartland"
+      publish_status: "draft" | "pending" | "scheduled" | "published"
+      video_kind:
+        | "music_video"
+        | "performance_clip"
+        | "poem"
+        | "short_film"
+        | "audio_only"
+      video_status: "uploading" | "processing" | "ready" | "failed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +541,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      pay_mode: ["heartland_hosted", "woo_heartland"],
+      publish_status: ["draft", "pending", "scheduled", "published"],
+      video_kind: [
+        "music_video",
+        "performance_clip",
+        "poem",
+        "short_film",
+        "audio_only",
+      ],
+      video_status: ["uploading", "processing", "ready", "failed"],
+    },
   },
 } as const

@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/subamerica-logo-small.jpg";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -20,6 +21,7 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
+  const { signOut } = useAuth();
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -71,7 +73,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <Settings className="h-4 w-4 mr-3" />
             Settings
           </Button>
-          <Button variant="ghost" className="w-full justify-start" size="sm">
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start" 
+            size="sm"
+            onClick={signOut}
+          >
             <LogOut className="h-4 w-4 mr-3" />
             Sign Out
           </Button>
