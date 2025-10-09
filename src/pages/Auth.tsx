@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
+import logo from "@/assets/subamerica-logo.jpg";
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -22,11 +23,16 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
-      <div className="w-full max-width-md space-y-8">
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-            Subamerica Creator Portal
-          </h1>
+      <div className="w-full max-w-md space-y-8">
+        <div className="text-center space-y-4">
+          <img 
+            src={logo} 
+            alt="Subamerica Logo" 
+            className="h-32 mx-auto"
+          />
+          <p className="text-primary text-2xl font-semibold">
+            Creator Portal
+          </p>
           <p className="text-muted-foreground text-lg">
             Stream fearless art, sound, and stories 24/7
           </p>
