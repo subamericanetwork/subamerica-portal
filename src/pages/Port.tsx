@@ -52,9 +52,9 @@ const Port = () => {
       if (!slug) return;
 
       try {
-        // Fetch artist by slug
+        // Fetch artist by slug using secure public view (excludes email)
         const { data: artistData, error: artistError } = await supabase
-          .from("artists")
+          .from("artists_public")
           .select("id, display_name, bio_short, scene, socials")
           .eq("slug", slug)
           .single();
