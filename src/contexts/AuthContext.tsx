@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -98,10 +100,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    // Check for active lockout
+    if (lockoutUntil && Date.now() < lockoutUntil) {
+      const waitTime = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      return { error: { message: `Too many login attempts. Please try again in ${waitTime} seconds.` } };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+
+    // Handle failed login attempts with exponential backoff
+    if (error) {
+      const newAttempts = failedAttempts + 1;
+      setFailedAttempts(newAttempts);
+      
+      // Apply lockout after 5 failed attempts with exponential backoff
+      if (newAttempts >= 5) {
+        const lockoutDuration = Math.pow(2, newAttempts - 4) * 1000; // 2s, 4s, 8s, 16s, etc.
+        setLockoutUntil(Date.now() + lockoutDuration);
+      }
+    } else {
+      // Reset on successful login
+      setFailedAttempts(0);
+      setLockoutUntil(null);
+    }
+
     return { error };
   };
 
