@@ -115,7 +115,7 @@ const Videos = () => {
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
+              <Button type="button">
                 <Upload className="h-4 w-4 mr-2" />
                 Add Video
               </Button>
