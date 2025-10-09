@@ -62,13 +62,16 @@ const Port = () => {
         if (artistError) throw artistError;
         
         // Check if port is published
-        const { data: settingsData } = await supabase
+        const { data: settingsData, error: settingsError } = await supabase
           .from("port_settings")
           .select("publish_status")
           .eq("artist_id", artistData.id)
           .maybeSingle();
 
+        console.log("Port settings check:", { settingsData, settingsError, artistId: artistData.id });
+
         if (!settingsData || settingsData?.publish_status !== 'published') {
+          console.log("Port not published or settings missing");
           setLoading(false);
           return;
         }
