@@ -165,7 +165,7 @@ const Videos = () => {
               </DialogHeader>
               <form onSubmit={handleCreateVideo} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="video">Video File (Max 5MB)</Label>
+                  <Label htmlFor="video">Video File (Max 50MB)</Label>
                   <Input
                     id="video"
                     type="file"
@@ -173,8 +173,8 @@ const Videos = () => {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        if (file.size > 5242880) {
-                          toast.error("File size must be less than 5MB");
+                        if (file.size > 52428800) {
+                          toast.error("File size must be less than 50MB");
                           e.target.value = '';
                           return;
                         }
