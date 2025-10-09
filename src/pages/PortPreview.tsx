@@ -38,7 +38,7 @@ const PortPreview = () => {
   }
 
   const handleOpenInNewTab = () => {
-    window.open(`/${artist.slug}`, '_blank');
+    window.open(`${window.location.origin}/${artist.slug}`, '_blank');
   };
 
   const handlePublish = async () => {
