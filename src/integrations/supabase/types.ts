@@ -507,7 +507,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      is_artist_owner: {
+        Args: { _artist_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       pay_mode: "heartland_hosted" | "woo_heartland"
