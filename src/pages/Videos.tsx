@@ -36,9 +36,17 @@ const Videos = () => {
     setIsSubmitting(true);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not authenticated");
+        setIsSubmitting(false);
+        return;
+      }
+
       // Upload video file to Supabase Storage
       const fileExt = videoFile.name.split('.').pop();
-      const fileName = `${artist.id}/${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('videos')
