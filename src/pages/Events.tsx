@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, MapPin, Calendar as CalendarIcon, ExternalLink, Trash2, ImageIcon } from "lucide-react";
+import { Plus, MapPin, Calendar as CalendarIcon, ExternalLink, Trash2, ImageIcon, Pencil } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +21,7 @@ const Events = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [editingEvent, setEditingEvent] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: "",
     venue: "",
@@ -29,7 +30,28 @@ const Events = () => {
     description: "",
   });
 
-  const handleCreateEvent = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({ title: "", venue: "", ticket_url: "", time: "20:00", description: "" });
+    setSelectedDate(undefined);
+    setImageFile(null);
+    setEditingEvent(null);
+  };
+
+  const handleEdit = (event: any) => {
+    const eventDate = new Date(event.starts_at);
+    setEditingEvent(event);
+    setFormData({
+      title: event.title,
+      venue: event.venue || "",
+      ticket_url: event.ticket_url || "",
+      time: eventDate.toTimeString().slice(0, 5),
+      description: event.description || "",
+    });
+    setSelectedDate(eventDate);
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmitEvent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!artist || !selectedDate) {
       toast.error("Please select a date");
@@ -40,7 +62,7 @@ const Events = () => {
 
     try {
       // Upload image if provided
-      let posterUrl = null;
+      let posterUrl = editingEvent?.poster_url || null;
       if (imageFile) {
         const { data: userData } = await supabase.auth.getUser();
         if (!userData.user) {
@@ -74,30 +96,40 @@ const Events = () => {
       const eventDate = new Date(selectedDate);
       eventDate.setHours(parseInt(hours), parseInt(minutes));
 
-      const { error } = await supabase
-        .from("events")
-        .insert({
-          artist_id: artist.id,
-          title: formData.title,
-          venue: formData.venue,
-          ticket_url: formData.ticket_url || null,
-          description: formData.description || null,
-          poster_url: posterUrl,
-          starts_at: eventDate.toISOString(),
-        });
+      const eventData = {
+        artist_id: artist.id,
+        title: formData.title,
+        venue: formData.venue,
+        ticket_url: formData.ticket_url || null,
+        description: formData.description || null,
+        poster_url: posterUrl,
+        starts_at: eventDate.toISOString(),
+      };
+
+      let error;
+      if (editingEvent) {
+        const result = await supabase
+          .from("events")
+          .update(eventData)
+          .eq("id", editingEvent.id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from("events")
+          .insert(eventData);
+        error = result.error;
+      }
 
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Event added successfully!");
-        setFormData({ title: "", venue: "", ticket_url: "", time: "20:00", description: "" });
-        setSelectedDate(undefined);
-        setImageFile(null);
+        toast.success(editingEvent ? "Event updated successfully!" : "Event added successfully!");
+        resetForm();
         setIsDialogOpen(false);
         window.location.reload();
       }
     } catch (error) {
-      toast.error("Failed to create event");
+      toast.error(editingEvent ? "Failed to update event" : "Failed to create event");
     }
 
     setIsSubmitting(false);
@@ -139,7 +171,10 @@ const Events = () => {
               Manage your upcoming shows and livestreams
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -148,12 +183,12 @@ const Events = () => {
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add Event</DialogTitle>
+                <DialogTitle>{editingEvent ? "Edit Event" : "Add Event"}</DialogTitle>
                 <DialogDescription>
-                  Create a new event for your Port
+                  {editingEvent ? "Update event details" : "Create a new event for your Port"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleCreateEvent} className="space-y-4">
+              <form onSubmit={handleSubmitEvent} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Event Title</Label>
                   <Input
@@ -242,7 +277,10 @@ const Events = () => {
                 </div>
                 <div className="pt-4">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Adding..." : "Add Event"}
+                    {isSubmitting 
+                      ? (editingEvent ? "Updating..." : "Adding...") 
+                      : (editingEvent ? "Update Event" : "Add Event")
+                    }
                   </Button>
                 </div>
               </form>
@@ -312,6 +350,14 @@ const Events = () => {
                             </a>
                           </Button>
                         )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(event)}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"

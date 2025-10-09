@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plus, Eye, EyeOff, ShoppingBag, Trash2 } from "lucide-react";
+import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,6 +15,7 @@ const Merch = () => {
   const { artist, products, surfaceProducts, loading } = useArtistData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "",
@@ -22,28 +23,56 @@ const Merch = () => {
     pitch: "",
   });
 
-  const handleCreateProduct = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({ title: "", type: "", price: "", pitch: "" });
+    setEditingProduct(null);
+  };
+
+  const handleEdit = (product: any) => {
+    setEditingProduct(product);
+    setFormData({
+      title: product.title,
+      type: product.type,
+      price: product.price?.toString() || "",
+      pitch: product.pitch || "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmitProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!artist) return;
 
     setIsSubmitting(true);
 
-    const { error } = await supabase
-      .from("products")
-      .insert({
-        artist_id: artist.id,
-        title: formData.title,
-        type: formData.type,
-        price: parseFloat(formData.price),
-        pitch: formData.pitch,
-        is_surface: false,
-      });
+    const productData = {
+      artist_id: artist.id,
+      title: formData.title,
+      type: formData.type,
+      price: parseFloat(formData.price),
+      pitch: formData.pitch || null,
+      is_surface: editingProduct?.is_surface || false,
+    };
+
+    let error;
+    if (editingProduct) {
+      const result = await supabase
+        .from("products")
+        .update(productData)
+        .eq("id", editingProduct.id);
+      error = result.error;
+    } else {
+      const result = await supabase
+        .from("products")
+        .insert(productData);
+      error = result.error;
+    }
 
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Product added successfully!");
-      setFormData({ title: "", type: "", price: "", pitch: "" });
+      toast.success(editingProduct ? "Product updated successfully!" : "Product added successfully!");
+      resetForm();
       setIsDialogOpen(false);
       window.location.reload();
     }
@@ -108,7 +137,10 @@ const Merch = () => {
               Select up to 6 items to surface on your Port
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
@@ -117,12 +149,12 @@ const Merch = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Product</DialogTitle>
+                <DialogTitle>{editingProduct ? "Edit Product" : "Add Product"}</DialogTitle>
                 <DialogDescription>
-                  Add a new merch item to your catalog
+                  {editingProduct ? "Update product details" : "Add a new merch item to your catalog"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleCreateProduct} className="space-y-4">
+              <form onSubmit={handleSubmitProduct} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="title">Product Name</Label>
                   <Input
@@ -166,7 +198,10 @@ const Merch = () => {
                 </div>
                 <div className="pt-4">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Adding..." : "Add Product"}
+                    {isSubmitting 
+                      ? (editingProduct ? "Updating..." : "Adding...") 
+                      : (editingProduct ? "Update Product" : "Add Product")
+                    }
                   </Button>
                 </div>
               </form>
@@ -246,6 +281,13 @@ const Merch = () => {
                         <Eye className="h-4 w-4" />
                       </Button>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(product)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"

@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Star, Clock, CheckCircle, PlayCircle, Trash2 } from "lucide-react";
+import { Upload, Star, Clock, CheckCircle, PlayCircle, Trash2, Pencil } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ const Videos = () => {
   const { artist, videos, loading } = useArtistData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<any>(null);
   const [formData, setFormData] = useState({
     title: "",
     kind: "music_video",
@@ -24,17 +25,34 @@ const Videos = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  const handleCreateVideo = async (e: React.FormEvent) => {
+  const resetForm = () => {
+    setFormData({ title: "", kind: "music_video", tags: "" });
+    setVideoFile(null);
+    setUploadProgress(0);
+    setEditingVideo(null);
+  };
+
+  const handleEdit = (video: any) => {
+    setEditingVideo(video);
+    setFormData({
+      title: video.title,
+      kind: video.kind,
+      tags: video.tags?.join(', ') || "",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmitVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!artist) return;
 
-    // Check video limit
-    if (videos.length >= 10) {
+    // Check video limit for new videos
+    if (!editingVideo && videos.length >= 10) {
       toast.error("Maximum of 10 videos allowed per artist");
       return;
     }
 
-    if (!videoFile) {
+    if (!editingVideo && !videoFile) {
       toast.error("Please select a video file");
       return;
     }
@@ -42,61 +60,75 @@ const Videos = () => {
     setIsSubmitting(true);
 
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error("User not authenticated");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Upload video file to Supabase Storage
-      const fileExt = videoFile.name.split('.').pop();
-      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      let videoUrl = editingVideo?.video_url;
       
-      const { error: uploadError } = await supabase.storage
-        .from('videos')
-        .upload(fileName, videoFile, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      // Only upload if there's a new file
+      if (videoFile) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          toast.error("User not authenticated");
+          setIsSubmitting(false);
+          return;
+        }
 
-      if (uploadError) {
-        toast.error(`Upload failed: ${uploadError.message}`);
-        setIsSubmitting(false);
-        return;
+        const fileExt = videoFile.name.split('.').pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, videoFile, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (uploadError) {
+          toast.error(`Upload failed: ${uploadError.message}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(fileName);
+
+        videoUrl = publicUrl;
       }
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('videos')
-        .getPublicUrl(fileName);
 
       const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
 
-      const { error } = await supabase
-        .from("videos")
-        .insert({
-          artist_id: artist.id,
-          title: formData.title,
-          kind: formData.kind as any,
-          tags,
-          status: "ready" as any,
-          video_url: publicUrl,
-        });
+      const videoData = {
+        artist_id: artist.id,
+        title: formData.title,
+        kind: formData.kind as any,
+        tags,
+        status: "ready" as any,
+        video_url: videoUrl,
+      };
+
+      let error;
+      if (editingVideo) {
+        const result = await supabase
+          .from("videos")
+          .update(videoData)
+          .eq("id", editingVideo.id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from("videos")
+          .insert(videoData);
+        error = result.error;
+      }
 
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Video uploaded successfully!");
-        setFormData({ title: "", kind: "music_video", tags: "" });
-        setVideoFile(null);
-        setUploadProgress(0);
+        toast.success(editingVideo ? "Video updated successfully!" : "Video uploaded successfully!");
+        resetForm();
         setIsDialogOpen(false);
         window.location.reload();
       }
     } catch (err) {
-      toast.error("An error occurred during upload");
+      toast.error(editingVideo ? "An error occurred during update" : "An error occurred during upload");
     }
 
     setIsSubmitting(false);
@@ -163,7 +195,10 @@ const Videos = () => {
               Manage your videos and set your featured content
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
             <DialogTrigger asChild>
               <Button type="button">
                 <Upload className="h-4 w-4 mr-2" />
@@ -172,14 +207,14 @@ const Videos = () => {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Add Video</DialogTitle>
+                <DialogTitle>{editingVideo ? "Edit Video" : "Add Video"}</DialogTitle>
                 <DialogDescription>
-                  Add a new video to your library
+                  {editingVideo ? "Update video details" : "Add a new video to your library"}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleCreateVideo} className="space-y-4">
+              <form onSubmit={handleSubmitVideo} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="video">Video File (Max 50MB)</Label>
+                  <Label htmlFor="video">Video File (Max 50MB) {editingVideo && "(optional - leave blank to keep current)"}</Label>
                   <Input
                     id="video"
                     type="file"
@@ -195,7 +230,7 @@ const Videos = () => {
                         setVideoFile(file);
                       }
                     }}
-                    required
+                    required={!editingVideo}
                   />
                   {videoFile && (
                     <p className="text-sm text-muted-foreground">
@@ -239,7 +274,10 @@ const Videos = () => {
                 </div>
                 <div className="pt-4">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
-                    {isSubmitting ? "Adding..." : "Add Video"}
+                    {isSubmitting 
+                      ? (editingVideo ? "Updating..." : "Adding...") 
+                      : (editingVideo ? "Update Video" : "Add Video")
+                    }
                   </Button>
                 </div>
               </form>
@@ -331,6 +369,14 @@ const Videos = () => {
                             Remove Featured
                           </Button>
                         )}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEdit(video)}
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Edit
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
