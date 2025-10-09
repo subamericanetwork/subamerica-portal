@@ -149,6 +149,13 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "events_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       payments: {
@@ -185,6 +192,13 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: true
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
         ]
@@ -235,6 +249,13 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: true
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "port_settings_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
         ]
@@ -302,6 +323,13 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "products_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       qr_settings: {
@@ -338,6 +366,13 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: true
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_settings_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
         ]
@@ -411,11 +446,65 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "videos_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      artists_public: {
+        Row: {
+          bio_long: string | null
+          bio_short: string | null
+          brand: Json | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          pronouns: string | null
+          scene: string | null
+          slug: string | null
+          socials: Json | null
+          tz: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio_long?: string | null
+          bio_short?: string | null
+          brand?: Json | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          pronouns?: string | null
+          scene?: string | null
+          slug?: string | null
+          socials?: Json | null
+          tz?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio_long?: string | null
+          bio_short?: string | null
+          brand?: Json | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          pronouns?: string | null
+          scene?: string | null
+          slug?: string | null
+          socials?: Json | null
+          tz?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
