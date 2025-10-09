@@ -21,32 +21,68 @@ const Videos = () => {
     kind: "music_video",
     tags: "",
   });
+  const [videoFile, setVideoFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const handleCreateVideo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!artist) return;
 
+    if (!videoFile) {
+      toast.error("Please select a video file");
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+    try {
+      // Upload video file to Supabase Storage
+      const fileExt = videoFile.name.split('.').pop();
+      const fileName = `${artist.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('videos')
+        .upload(fileName, videoFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    const { error } = await supabase
-      .from("videos")
-      .insert({
-        artist_id: artist.id,
-        title: formData.title,
-        kind: formData.kind as any,
-        tags,
-        status: "ready" as any,
-      });
+      if (uploadError) {
+        toast.error(`Upload failed: ${uploadError.message}`);
+        setIsSubmitting(false);
+        return;
+      }
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success("Video added successfully!");
-      setFormData({ title: "", kind: "music_video", tags: "" });
-      setIsDialogOpen(false);
-      window.location.reload();
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('videos')
+        .getPublicUrl(fileName);
+
+      const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+
+      const { error } = await supabase
+        .from("videos")
+        .insert({
+          artist_id: artist.id,
+          title: formData.title,
+          kind: formData.kind as any,
+          tags,
+          status: "ready" as any,
+          video_url: publicUrl,
+        });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Video uploaded successfully!");
+        setFormData({ title: "", kind: "music_video", tags: "" });
+        setVideoFile(null);
+        setUploadProgress(0);
+        setIsDialogOpen(false);
+        window.location.reload();
+      }
+    } catch (err) {
+      toast.error("An error occurred during upload");
     }
 
     setIsSubmitting(false);
@@ -128,6 +164,31 @@ const Videos = () => {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleCreateVideo} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="video">Video File (Max 5MB)</Label>
+                  <Input
+                    id="video"
+                    type="file"
+                    accept="video/mp4,video/quicktime,video/x-msvideo,video/webm"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        if (file.size > 5242880) {
+                          toast.error("File size must be less than 5MB");
+                          e.target.value = '';
+                          return;
+                        }
+                        setVideoFile(file);
+                      }
+                    }}
+                    required
+                  />
+                  {videoFile && (
+                    <p className="text-sm text-muted-foreground">
+                      Selected: {videoFile.name} ({(videoFile.size / 1024 / 1024).toFixed(2)}MB)
+                    </p>
+                  )}
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="title">Video Title</Label>
                   <Input
