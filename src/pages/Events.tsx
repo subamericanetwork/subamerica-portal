@@ -235,9 +235,10 @@ const Events = () => {
                   <Input
                     id="image"
                     type="file"
-                    accept="image/*"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
                     onChange={(e) => setImageFile(e.target.files?.[0] || null)}
                   />
+                  <p className="text-xs text-muted-foreground">Accepts PNG, JPEG, WebP, and GIF</p>
                 </div>
                 <div className="pt-4">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
