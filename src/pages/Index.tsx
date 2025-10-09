@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Video, Users, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/subamerica-logo.jpg";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -10,10 +11,12 @@ const Index = () => {
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto text-center space-y-8">
           <div className="space-y-4">
-            <h1 className="text-6xl md:text-7xl font-bold bg-gradient-to-r from-primary via-purple-400 to-primary bg-clip-text text-transparent">
-              Subamerica
-            </h1>
-            <p className="text-2xl md:text-3xl text-foreground/90">
+            <img 
+              src={logo} 
+              alt="Subamerica" 
+              className="h-48 mx-auto"
+            />
+            <p className="text-2xl md:text-3xl text-primary font-semibold">
               Creator Portal
             </p>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
