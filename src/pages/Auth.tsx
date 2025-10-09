@@ -5,9 +5,16 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { z } from "zod";
 import logo from "@/assets/subamerica-logo.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+
+// Input validation schemas
+const emailSchema = z.string().trim().email("Invalid email address").max(255, "Email too long");
+const passwordSchema = z.string().min(8, "Password must be at least 8 characters").max(100, "Password too long");
+const displayNameSchema = z.string().trim().min(1, "Artist name required").max(100, "Name too long");
+const slugSchema = z.string().trim().min(1, "Port URL required").max(50, "Slug too long").regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed");
 
 const Auth = () => {
   const [email, setEmail] = useState("");
@@ -21,6 +28,18 @@ const Auth = () => {
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    // Validate inputs
+    try {
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+        setIsLoading(false);
+        return;
+      }
+    }
     
     const { error } = await signIn(email, password);
     
@@ -36,6 +55,20 @@ const Auth = () => {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    
+    // Validate inputs
+    try {
+      emailSchema.parse(email);
+      passwordSchema.parse(password);
+      displayNameSchema.parse(displayName);
+      slugSchema.parse(slug);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+        setIsLoading(false);
+        return;
+      }
+    }
     
     const { error } = await signUp(email, password, displayName, slug);
     
