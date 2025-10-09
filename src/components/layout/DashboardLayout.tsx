@@ -12,6 +12,7 @@ import {
   LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/subamerica-logo-small.jpg";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -36,9 +37,11 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       {/* Sidebar */}
       <aside className="w-64 border-r border-border bg-card flex flex-col">
         <div className="p-6 border-b border-border">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-purple-400 bg-clip-text text-transparent">
-            Subamerica
-          </h1>
+          <img 
+            src={logo} 
+            alt="Subamerica" 
+            className="h-12 w-auto"
+          />
           <p className="text-xs text-muted-foreground mt-1">Creator Portal</p>
         </div>
 
