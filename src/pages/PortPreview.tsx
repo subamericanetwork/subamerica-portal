@@ -1,12 +1,16 @@
+import { useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2 } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const PortPreview = () => {
-  const { artist, videos, events, surfaceProducts, featuredVideo, loading } = useArtistData();
+  const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings } = useArtistData();
+  const [isPublishing, setIsPublishing] = useState(false);
 
   if (loading) {
     return (
@@ -37,6 +41,32 @@ const PortPreview = () => {
     window.open(`/${artist.slug}`, '_blank');
   };
 
+  const handlePublish = async () => {
+    if (!artist) return;
+    
+    setIsPublishing(true);
+    try {
+      const newStatus = portSettings?.publish_status === 'published' ? 'draft' : 'published';
+      
+      const { error } = await supabase
+        .from('port_settings')
+        .upsert({
+          artist_id: artist.id,
+          publish_status: newStatus
+        });
+
+      if (error) throw error;
+
+      toast.success(newStatus === 'published' ? 'Port published!' : 'Port unpublished');
+      window.location.reload();
+    } catch (error) {
+      console.error('Error toggling publish status:', error);
+      toast.error('Failed to update publish status');
+    } finally {
+      setIsPublishing(false);
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="p-8 space-y-6">
@@ -52,7 +82,9 @@ const PortPreview = () => {
               <ExternalLink className="h-4 w-4 mr-2" />
               Open in New Tab
             </Button>
-            <Button>Request Publish</Button>
+            <Button onClick={handlePublish} disabled={isPublishing}>
+              {portSettings?.publish_status === 'published' ? 'Unpublish' : 'Publish'}
+            </Button>
           </div>
         </div>
 
