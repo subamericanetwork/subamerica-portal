@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,46 +12,49 @@ import { useNavigate } from "react-router-dom";
 const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [slug, setSlug] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn, signUp, user } = useAuth();
+  const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (user) {
-      navigate("/dashboard");
-    }
-  }, [user, navigate]);
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Please enter email and password");
-      return;
-    }
     setIsLoading(true);
     
     const { error } = await signIn(email, password);
     
     if (error) {
       toast.error(error.message);
+    } else {
+      toast.success("Welcome back!");
     }
+    
     setIsLoading(false);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) {
-      toast.error("Please enter email and password");
-      return;
-    }
     setIsLoading(true);
     
-    const { error } = await signUp(email, password);
+    const { error } = await signUp(email, password, displayName, slug);
     
     if (error) {
       toast.error(error.message);
+    } else {
+      toast.success("Account created! Welcome to Subamerica.");
+      navigate("/dashboard");
     }
+    
     setIsLoading(false);
+  };
+
+  const generateSlug = (name: string) => {
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    setSlug(slug);
   };
 
   return (
@@ -75,12 +78,12 @@ const Auth = () => {
           <CardHeader>
             <CardTitle>Access Your Port</CardTitle>
             <CardDescription>
-              Sign in or create an account to manage your artist profile
+              Sign in or create your artist account
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="signin">Sign In</TabsTrigger>
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
@@ -88,9 +91,9 @@ const Auth = () => {
               <TabsContent value="signin">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signin-email">Email</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
-                      id="signin-email"
+                      id="email"
                       type="email"
                       placeholder="artist@example.com"
                       value={email}
@@ -100,9 +103,9 @@ const Auth = () => {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <Label htmlFor="password">Password</Label>
                     <Input
-                      id="signin-password"
+                      id="password"
                       type="password"
                       placeholder="••••••••"
                       value={password}
@@ -123,6 +126,37 @@ const Auth = () => {
 
               <TabsContent value="signup">
                 <form onSubmit={handleSignUp} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="displayName">Artist/Band Name</Label>
+                    <Input
+                      id="displayName"
+                      type="text"
+                      placeholder="Starry Schemes"
+                      value={displayName}
+                      onChange={(e) => {
+                        setDisplayName(e.target.value);
+                        generateSlug(e.target.value);
+                      }}
+                      required
+                      className="bg-background/50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="slug">Port URL Slug</Label>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">subamerica.net/port/</span>
+                      <Input
+                        id="slug"
+                        type="text"
+                        placeholder="your-slug"
+                        value={slug}
+                        onChange={(e) => setSlug(e.target.value)}
+                        required
+                        pattern="[a-z0-9-]+"
+                        className="bg-background/50 flex-1"
+                      />
+                    </div>
+                  </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
                     <Input

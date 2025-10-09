@@ -2,12 +2,11 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, displayName: string, slug: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -22,16 +21,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Set up auth state listener FIRST
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      (event, session) => {
+        console.log("Auth state changed:", event, session);
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
+        
+        if (event === 'SIGNED_IN' && session) {
+          navigate("/dashboard");
+        }
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -39,24 +42,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [navigate]);
 
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/dashboard`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
+  const signUp = async (email: string, password: string, displayName: string, slug: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            display_name: displayName,
+            slug: slug,
+          }
+        }
+      });
+
+      if (error) return { error };
+      if (!data.user) return { error: { message: "Signup failed" } };
+
+      // Create artist profile
+      const { error: profileError } = await supabase
+        .from("artists")
+        .insert({
+          user_id: data.user.id,
+          slug: slug,
+          display_name: displayName,
+          email: email,
+        });
+
+      if (profileError) {
+        console.error("Profile creation error:", profileError);
+        return { error: profileError };
       }
-    });
 
-    if (!error) {
-      toast.success("Account created! Redirecting to setup...");
+      // Create default settings
+      const artistData = await supabase
+        .from("artists")
+        .select("id")
+        .eq("user_id", data.user.id)
+        .single();
+
+      if (artistData.data) {
+        await Promise.all([
+          supabase.from("port_settings").insert({ artist_id: artistData.data.id }),
+          supabase.from("qr_settings").insert({ artist_id: artistData.data.id }),
+          supabase.from("payments").insert({ artist_id: artistData.data.id }),
+        ]);
+      }
+
+      return { error: null };
+    } catch (error: any) {
+      return { error };
     }
-
-    return { error };
   };
 
   const signIn = async (email: string, password: string) => {
@@ -64,21 +102,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       email,
       password,
     });
-
-    if (!error) {
-      toast.success("Signed in successfully!");
-      navigate("/dashboard");
-    }
-
     return { error };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
-    setUser(null);
-    setSession(null);
     navigate("/auth");
-    toast.success("Signed out successfully");
   };
 
   return (
@@ -90,8 +119,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
   }
   return context;
 };
