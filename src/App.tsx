@@ -13,6 +13,7 @@ import Events from "./pages/Events";
 import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
 import PortPreview from "./pages/PortPreview";
+import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +34,7 @@ const App = () => (
           <Route path="/merch" element={<ProtectedRoute><Merch /></ProtectedRoute>} />
           <Route path="/monetization" element={<ProtectedRoute><Monetization /></ProtectedRoute>} />
           <Route path="/preview" element={<ProtectedRoute><PortPreview /></ProtectedRoute>} />
+          <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         </AuthProvider>

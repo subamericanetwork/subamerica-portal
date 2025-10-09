@@ -21,6 +21,8 @@ interface Video {
   status: string;
   is_featured: boolean;
   captions_url: string | null;
+  video_url: string | null;
+  thumb_url: string | null;
 }
 
 interface Event {

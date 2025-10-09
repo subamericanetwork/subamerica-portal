@@ -91,14 +91,19 @@ const PortPreview = () => {
           </div>
 
           {/* Featured Video */}
-          {featuredVideo && (
+          {featuredVideo && featuredVideo.video_url && (
             <Card className="overflow-hidden gradient-card">
-              <div className="aspect-video bg-muted flex items-center justify-center">
-                <div className="text-center">
-                  <PlayCircle className="h-16 w-16 mx-auto text-primary mb-2" />
-                  <p className="text-sm text-muted-foreground">{featuredVideo.title}</p>
-                </div>
-              </div>
+              <video 
+                controls 
+                className="w-full aspect-video"
+                poster={featuredVideo.thumb_url || undefined}
+              >
+                <source src={featuredVideo.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <CardContent className="p-4">
+                <h3 className="font-semibold">{featuredVideo.title}</h3>
+              </CardContent>
             </Card>
           )}
 
@@ -109,8 +114,8 @@ const PortPreview = () => {
               <div className="grid gap-4">
                 {events.map((event) => (
                   <Card key={event.id} className="gradient-card">
-                    <CardContent className="p-4 flex gap-4">
-                      <div className="w-20 h-20 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  <CardContent className="p-4 flex gap-4">
+                      <div className="w-24 h-24 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                         {event.poster_url ? (
                           <img 
                             src={event.poster_url} 
@@ -121,16 +126,31 @@ const PortPreview = () => {
                           <Calendar className="h-8 w-8 text-muted-foreground" />
                         )}
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold">{event.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(event.starts_at).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric' 
-                          })}
-                          {event.venue && ` • ${event.venue}`}
-                        </p>
+                      <div className="flex-1 space-y-2">
+                        <h3 className="font-semibold text-lg">{event.title}</h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span>
+                            {new Date(event.starts_at).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        {event.venue && (
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <MapPin className="h-4 w-4" />
+                            <span>{event.venue}</span>
+                          </div>
+                        )}
+                        {event.description && (
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {event.description}
+                          </p>
+                        )}
                         {event.ticket_url && (
                           <Button size="sm" className="mt-2" asChild>
                             <a href={event.ticket_url} target="_blank" rel="noopener noreferrer">
@@ -164,15 +184,18 @@ const PortPreview = () => {
                         <ShoppingBag className="h-12 w-12 text-muted-foreground" />
                       )}
                     </div>
-                    <CardContent className="p-3">
+                  <CardContent className="p-3 space-y-2">
                       <h3 className="font-semibold text-sm">{product.title}</h3>
+                      {product.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+                      )}
                       {product.price && (
-                        <p className="text-sm text-primary font-bold mt-1">${product.price}</p>
+                        <p className="text-sm text-primary font-bold">${product.price}</p>
                       )}
                       {product.link && (
-                        <Button size="sm" variant="outline" className="w-full mt-2" asChild>
+                        <Button size="sm" variant="outline" className="w-full" asChild>
                           <a href={product.link} target="_blank" rel="noopener noreferrer">
-                            View
+                            View Product
                           </a>
                         </Button>
                       )}
