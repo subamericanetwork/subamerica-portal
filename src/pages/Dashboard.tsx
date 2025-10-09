@@ -74,18 +74,42 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Your Port URL</p>
-                <p className="text-lg font-mono text-primary">
-                  subamerica.net/port/{artist.slug}
-                </p>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground mb-2">Status</p>
+                <Badge variant="outline" className={isPublished ? "border-primary/50" : "border-yellow-500/50"}>
+                  {isPublished ? (
+                    <>
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Published - Live
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Draft - Not Public
+                    </>
+                  )}
+                </Badge>
               </div>
-              <Button variant="outline" size="sm" onClick={() => {
-                navigator.clipboard.writeText(`subamerica.net/port/${artist.slug}`);
-              }}>
-                Copy Link
+              <Button onClick={() => navigate("/preview")}>
+                {isPublished ? 'Manage Port' : 'Publish Port'}
               </Button>
             </div>
+            
+            {isPublished && (
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div>
+                  <p className="text-sm text-muted-foreground">Your Port URL</p>
+                  <p className="text-lg font-mono text-primary">
+                    subamerica.net/port/{artist.slug}
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => {
+                  navigator.clipboard.writeText(`subamerica.net/port/${artist.slug}`);
+                }}>
+                  Copy Link
+                </Button>
+              </div>
+            )}
             
             <div className="grid grid-cols-3 gap-4 pt-4">
               <div className="space-y-1">
