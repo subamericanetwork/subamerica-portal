@@ -243,11 +243,13 @@ export type Database = {
         Row: {
           artist_id: string
           created_at: string | null
+          description: string | null
           fulfillment: string | null
           id: string
           images: Json | null
           inventory: string | null
           is_surface: boolean | null
+          link: string
           pitch: string | null
           price: number | null
           sku: string | null
@@ -259,11 +261,13 @@ export type Database = {
         Insert: {
           artist_id: string
           created_at?: string | null
+          description?: string | null
           fulfillment?: string | null
           id?: string
           images?: Json | null
           inventory?: string | null
           is_surface?: boolean | null
+          link?: string
           pitch?: string | null
           price?: number | null
           sku?: string | null
@@ -275,11 +279,13 @@ export type Database = {
         Update: {
           artist_id?: string
           created_at?: string | null
+          description?: string | null
           fulfillment?: string | null
           id?: string
           images?: Json | null
           inventory?: string | null
           is_surface?: boolean | null
+          link?: string
           pitch?: string | null
           price?: number | null
           sku?: string | null

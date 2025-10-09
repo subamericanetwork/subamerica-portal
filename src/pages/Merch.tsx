@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil } from "lucide-react";
+import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil, ImageIcon } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,15 +17,19 @@ const Merch = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "",
     price: "",
     pitch: "",
+    description: "",
+    link: "",
   });
 
   const resetForm = () => {
-    setFormData({ title: "", type: "", price: "", pitch: "" });
+    setFormData({ title: "", type: "", price: "", pitch: "", description: "", link: "" });
+    setImageFile(null);
     setEditingProduct(null);
   };
 
@@ -35,6 +40,8 @@ const Merch = () => {
       type: product.type,
       price: product.price?.toString() || "",
       pitch: product.pitch || "",
+      description: product.description || "",
+      link: product.link || "",
     });
     setIsDialogOpen(true);
   };
@@ -45,36 +52,73 @@ const Merch = () => {
 
     setIsSubmitting(true);
 
-    const productData = {
-      artist_id: artist.id,
-      title: formData.title,
-      type: formData.type,
-      price: parseFloat(formData.price),
-      pitch: formData.pitch || null,
-      is_surface: editingProduct?.is_surface || false,
-    };
+    try {
+      // Upload image if provided
+      let imageUrl = editingProduct?.images?.[0] || null;
+      if (imageFile) {
+        const { data: userData } = await supabase.auth.getUser();
+        if (!userData.user) {
+          toast.error("User not authenticated");
+          setIsSubmitting(false);
+          return;
+        }
 
-    let error;
-    if (editingProduct) {
-      const result = await supabase
-        .from("products")
-        .update(productData)
-        .eq("id", editingProduct.id);
-      error = result.error;
-    } else {
-      const result = await supabase
-        .from("products")
-        .insert(productData);
-      error = result.error;
-    }
+        const fileExt = imageFile.name.split('.').pop();
+        const filePath = `${userData.user.id}/products/${crypto.randomUUID()}.${fileExt}`;
 
-    if (error) {
-      toast.error(error.message);
-    } else {
-      toast.success(editingProduct ? "Product updated successfully!" : "Product added successfully!");
-      resetForm();
-      setIsDialogOpen(false);
-      window.location.reload();
+        const { error: uploadError } = await supabase.storage
+          .from('videos')
+          .upload(filePath, imageFile);
+
+        if (uploadError) {
+          toast.error(`Image upload failed: ${uploadError.message}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('videos')
+          .getPublicUrl(filePath);
+
+        imageUrl = publicUrl;
+      }
+
+      const productData = {
+        artist_id: artist.id,
+        title: formData.title,
+        type: formData.type,
+        price: parseFloat(formData.price),
+        pitch: formData.pitch || null,
+        description: formData.description || null,
+        link: formData.link,
+        images: imageUrl ? [imageUrl] : null,
+        is_surface: editingProduct?.is_surface || false,
+      };
+
+      let error;
+      if (editingProduct) {
+        const result = await supabase
+          .from("products")
+          .update(productData)
+          .eq("id", editingProduct.id);
+        error = result.error;
+      } else {
+        const result = await supabase
+          .from("products")
+          .insert(productData);
+        error = result.error;
+      }
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success(editingProduct ? "Product updated successfully!" : "Product added successfully!");
+        resetForm();
+        setIsDialogOpen(false);
+        window.location.reload();
+      }
+    } catch (error) {
+      toast.error(editingProduct ? "Failed to update product" : "Failed to create product");
     }
 
     setIsSubmitting(false);
@@ -156,6 +200,16 @@ const Merch = () => {
               </DialogHeader>
               <form onSubmit={handleSubmitProduct} className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="image">Product Image {editingProduct && "(optional - leave blank to keep current)"}</Label>
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
+                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                  />
+                  <p className="text-xs text-muted-foreground">Accepts PNG, JPEG, WebP, and GIF</p>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="title">Product Name</Label>
                   <Input
                     id="title"
@@ -186,6 +240,28 @@ const Merch = () => {
                     placeholder="28.00"
                     required
                   />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description (optional)</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Describe your product..."
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="link">Product Link</Label>
+                  <Input
+                    id="link"
+                    type="url"
+                    value={formData.link}
+                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                    placeholder="https://your-store.com/product"
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">Where customers can purchase this product</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pitch">Pitch (optional)</Label>
@@ -241,8 +317,16 @@ const Merch = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {products.map((product) => (
               <Card key={product.id} className="gradient-card overflow-hidden">
-                <div className="aspect-square bg-muted flex items-center justify-center">
-                  <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+                <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                  {product.images && product.images.length > 0 ? (
+                    <img 
+                      src={product.images[0]} 
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <ShoppingBag className="h-12 w-12 text-muted-foreground" />
+                  )}
                 </div>
                 <CardContent className="p-4 space-y-3">
                   <div>
@@ -260,6 +344,11 @@ const Merch = () => {
                       <span>•</span>
                       <span className="font-semibold text-foreground">${product.price}</span>
                     </div>
+                    {product.description && (
+                      <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                        {product.description}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex gap-2">

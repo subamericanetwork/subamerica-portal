@@ -39,6 +39,10 @@ interface Product {
   type: string;
   price: number | null;
   is_surface: boolean;
+  pitch: string | null;
+  description: string | null;
+  link: string | null;
+  images: string[] | null;
 }
 
 interface PortSettings {
@@ -97,7 +101,10 @@ export const useArtistData = () => {
           .eq("artist_id", artistData.id)
           .order("created_at", { ascending: false });
 
-        setProducts(productsData || []);
+        setProducts((productsData || []).map(p => ({
+          ...p,
+          images: Array.isArray(p.images) ? p.images as string[] : null
+        })));
 
         // Fetch port settings
         const { data: settingsData } = await supabase
