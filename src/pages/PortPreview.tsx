@@ -165,39 +165,6 @@ const PortPreview = () => {
               )}
             </div>
 
-            {/* Social Links Bar */}
-            {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
-              <div className="flex items-center justify-center gap-4 py-2">
-                {Object.entries(artist.socials).map(([platform, url]) => {
-                  const getSocialIcon = () => {
-                    switch(platform.toLowerCase()) {
-                      case 'instagram': return <Instagram className="h-4 w-4" />;
-                      case 'facebook': return <Facebook className="h-4 w-4" />;
-                      case 'twitter': case 'x': return <Twitter className="h-4 w-4" />;
-                      case 'youtube': return <Youtube className="h-4 w-4" />;
-                      case 'linkedin': return <Linkedin className="h-4 w-4" />;
-                      case 'spotify': case 'soundcloud': case 'apple music': return <Music2 className="h-4 w-4" />;
-                      case 'website': return <Globe className="h-4 w-4" />;
-                      default: return <ExternalLink className="h-4 w-4" />;
-                    }
-                  };
-                  
-                  return url && (
-                    <a 
-                      key={platform}
-                      href={url as string} 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
-                    >
-                      {getSocialIcon()}
-                      <span>{platform}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            )}
-
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <Button size="lg" className="glow-primary">
                 <Heart className="h-4 w-4 mr-2" />
@@ -389,6 +356,44 @@ const PortPreview = () => {
               </div>
             </div>
           )}
+
+          {/* Footer with Social Links */}
+          <footer className="border-t border-border pt-8 mt-16">
+            <div className="text-center space-y-4">
+              {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
+                <div className="flex items-center justify-center gap-4 py-2">
+                  {Object.entries(artist.socials).map(([platform, url]) => {
+                    const getSocialIcon = () => {
+                      switch(platform.toLowerCase()) {
+                        case 'instagram': return <Instagram className="h-4 w-4" />;
+                        case 'facebook': return <Facebook className="h-4 w-4" />;
+                        case 'twitter': case 'x': return <Twitter className="h-4 w-4" />;
+                        case 'youtube': return <Youtube className="h-4 w-4" />;
+                        case 'linkedin': return <Linkedin className="h-4 w-4" />;
+                        case 'spotify': case 'soundcloud': case 'apple music': return <Music2 className="h-4 w-4" />;
+                        case 'website': return <Globe className="h-4 w-4" />;
+                        default: return <ExternalLink className="h-4 w-4" />;
+                      }
+                    };
+                    
+                    return url && (
+                      <a 
+                        key={platform}
+                        href={url as string} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
+                      >
+                        {getSocialIcon()}
+                        <span>{platform}</span>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} {artist.display_name}</p>
+            </div>
+          </footer>
 
         </div>
       </div>
