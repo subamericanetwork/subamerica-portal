@@ -79,7 +79,7 @@ const Port = () => {
         }
 
         setArtist(artistData);
-
+        console.log("Artist data loaded:", { artistData, images: artistData?.brand && typeof artistData.brand === 'object' ? (artistData.brand as any).images : null });
         // Fetch featured video
         const { data: videoData } = await supabase
           .from("videos")
@@ -100,6 +100,7 @@ const Port = () => {
           .order("starts_at", { ascending: true });
 
         setEvents(eventsData || []);
+        console.log("Events loaded:", eventsData);
 
         // Fetch surface products
         const { data: productsData } = await supabase
@@ -113,6 +114,7 @@ const Port = () => {
           ...p,
           images: Array.isArray(p.images) ? p.images as string[] : null
         })));
+        console.log("Products loaded:", productsData);
 
       } catch (error) {
         console.error("Error fetching port data:", error);
