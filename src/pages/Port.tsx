@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle } from "lucide-react";
+import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2 } from "lucide-react";
 
 interface Artist {
   id: string;
@@ -216,6 +216,10 @@ const Port = () => {
               <ShoppingBag className="h-4 w-4 mr-2" />
               Merch
             </Button>
+            <Button size="lg" variant="outline" onClick={() => document.getElementById('footer')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Share2 className="h-4 w-4 mr-2" />
+              Socials
+            </Button>
           </div>
         </div>
 
@@ -384,7 +388,7 @@ const Port = () => {
         )}
 
         {/* Footer with Social Links */}
-        <footer className="border-t border-border pt-8 mt-16">
+        <footer id="footer" className="border-t border-border pt-8 mt-16">
           <div className="text-center space-y-4">
             {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
               <div className="flex items-center justify-center gap-4 py-2">

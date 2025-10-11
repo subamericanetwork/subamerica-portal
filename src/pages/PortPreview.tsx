@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe } from "lucide-react";
+import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2 } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -190,6 +190,10 @@ const PortPreview = () => {
                 <ShoppingBag className="h-4 w-4 mr-2" />
                 Merch
               </Button>
+              <Button size="lg" variant="outline" onClick={() => document.getElementById('footer')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Socials
+              </Button>
             </div>
           </div>
 
@@ -358,7 +362,7 @@ const PortPreview = () => {
           )}
 
           {/* Footer with Social Links */}
-          <footer className="border-t border-border pt-8 mt-16">
+          <footer id="footer" className="border-t border-border pt-8 mt-16">
             <div className="text-center space-y-4">
               {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
                 <div className="flex items-center justify-center gap-4 py-2">
