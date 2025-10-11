@@ -56,8 +56,11 @@ const Profile = () => {
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${artist.id}/profile.${fileExt}`;
+      const fileName = `${user.id}/profile.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('profile-images')
@@ -92,8 +95,11 @@ const Profile = () => {
 
     setUploading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const fileExt = file.name.split('.').pop();
-      const fileName = `${artist.id}/image-${Date.now()}.${fileExt}`;
+      const fileName = `${user.id}/image-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('profile-images')
