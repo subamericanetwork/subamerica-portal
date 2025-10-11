@@ -2,11 +2,13 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Star, Clock, CheckCircle, PlayCircle, Trash2, Pencil } from "lucide-react";
+import { Upload, Star, Clock, CheckCircle, PlayCircle, Trash2, Pencil, Info } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -187,6 +189,7 @@ const Videos = () => {
 
   return (
     <DashboardLayout>
+      <TooltipProvider>
       <div className="p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -209,7 +212,7 @@ const Videos = () => {
               <DialogHeader>
                 <DialogTitle>{editingVideo ? "Edit Video" : "Add Video"}</DialogTitle>
                 <DialogDescription>
-                  {editingVideo ? "Update video details" : "Add a new video to your library"}
+                  {editingVideo ? "Update video details" : "Upload a video (max 50MB). Supported formats: MP4, MOV, AVI, WebM"}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmitVideo} className="space-y-4">
@@ -285,16 +288,16 @@ const Videos = () => {
           </Dialog>
         </div>
 
-        <Card className="border-primary/20">
-          <CardContent className="p-6">
-            <div className="text-sm text-muted-foreground space-y-1">
-              <p>• You can store up to 10 videos ({videos.length}/10 used)</p>
-              <p>• Featured video must have captions for accessibility</p>
-              <p>• Only one video can be featured at a time</p>
-              <p>• Featured video appears at the top of your Port</p>
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-1">
+              <p><strong>Featured Video:</strong> Your featured video appears prominently at the top of your Port. Only 1 video can be featured, and it must have captions for accessibility.</p>
+              <p><strong>Video Limit:</strong> Store up to 10 videos ({videos.length}/10 used). Choose quality content that best represents your work.</p>
+              <p><strong>File Guidelines:</strong> Max 50MB per video. Recommended formats: MP4, MOV.</p>
             </div>
-          </CardContent>
-        </Card>
+          </AlertDescription>
+        </Alert>
 
         {videos.length === 0 ? (
           <Card className="gradient-card">
@@ -395,6 +398,7 @@ const Videos = () => {
           </div>
         )}
       </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 };

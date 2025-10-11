@@ -1,11 +1,12 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, MapPin, Calendar as CalendarIcon, ExternalLink, Trash2, ImageIcon, Pencil } from "lucide-react";
+import { Plus, MapPin, Calendar as CalendarIcon, ExternalLink, Trash2, ImageIcon, Pencil, Info } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -287,6 +288,13 @@ const Events = () => {
             </DialogContent>
           </Dialog>
         </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <p><strong>Promote Your Shows:</strong> Add event images, ticket links, and descriptions to make your events stand out. All upcoming events automatically appear on your Port.</p>
+          </AlertDescription>
+        </Alert>
 
         {events.length === 0 ? (
           <Card className="gradient-card">

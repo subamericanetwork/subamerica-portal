@@ -2,11 +2,13 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil, ImageIcon } from "lucide-react";
+import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil, ImageIcon, Info } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -173,6 +175,7 @@ const Merch = () => {
 
   return (
     <DashboardLayout>
+      <TooltipProvider>
       <div className="p-8 space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -285,13 +288,24 @@ const Merch = () => {
           </Dialog>
         </div>
 
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-1">
+              <p><strong>What is "Surface"?</strong> Only products marked as "Surface" appear on your Port. You can add unlimited products but only 6 can be surfaced at once.</p>
+              <p><strong>Why 6 items?</strong> This limit ensures your Port stays focused on your best merchandise without overwhelming visitors.</p>
+              <p><strong>Tips:</strong> Add clear product images and descriptions. Link to your store for purchases. Toggle the eye icon to surface/unsurface items.</p>
+            </div>
+          </AlertDescription>
+        </Alert>
+
         <Card className="border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-semibold">Surface Limit</h3>
+                <h3 className="font-semibold">Currently Surfaced</h3>
                 <p className="text-sm text-muted-foreground">
-                  Only items marked as "Surface" will appear on your Port page
+                  Items visible on your public Port page
                 </p>
               </div>
               <Badge variant={surfaceCount >= 6 ? "destructive" : "outline"}>
@@ -353,22 +367,36 @@ const Merch = () => {
 
                   <div className="flex gap-2">
                     {product.is_surface ? (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleSurface(product.id, product.is_surface!)}
-                      >
-                        <EyeOff className="h-4 w-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleToggleSurface(product.id, product.is_surface!)}
+                          >
+                            <EyeOff className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Remove from Port</p>
+                        </TooltipContent>
+                      </Tooltip>
                     ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={surfaceCount >= 6}
-                        onClick={() => handleToggleSurface(product.id, product.is_surface!)}
-                      >
-                        <Eye className="h-4 w-4" />
-                      </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            disabled={surfaceCount >= 6}
+                            onClick={() => handleToggleSurface(product.id, product.is_surface!)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>{surfaceCount >= 6 ? "Maximum 6 items can be surfaced" : "Add to Port"}</p>
+                        </TooltipContent>
+                      </Tooltip>
                     )}
                     <Button
                       variant="ghost"
@@ -392,6 +420,7 @@ const Merch = () => {
           </div>
         )}
       </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 };

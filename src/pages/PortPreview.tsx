@@ -3,7 +3,8 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -67,6 +68,9 @@ const PortPreview = () => {
     }
   };
 
+  const isPublished = portSettings?.publish_status === 'published';
+  const hasContent = videos.length > 0 || events.length > 0 || surfaceProducts.length > 0;
+
   return (
     <DashboardLayout>
       <div className="p-8 space-y-6">
@@ -77,16 +81,44 @@ const PortPreview = () => {
               Preview how your Port appears to fans
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-3">
+            <Badge variant={isPublished ? "default" : "outline"} className={isPublished ? "bg-green-500/20 text-green-500 border-green-500/30" : ""}>
+              {isPublished ? (
+                <>
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  Published
+                </>
+              ) : (
+                <>
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  Draft
+                </>
+              )}
+            </Badge>
             <Button variant="outline" onClick={handleOpenInNewTab}>
               <ExternalLink className="h-4 w-4 mr-2" />
               Open in New Tab
             </Button>
             <Button onClick={handlePublish} disabled={isPublishing}>
-              {portSettings?.publish_status === 'published' ? 'Unpublish' : 'Publish'}
+              {isPublished ? 'Unpublish' : 'Publish Port'}
             </Button>
           </div>
         </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            {isPublished ? (
+              <p><strong>Your Port is live!</strong> It's publicly accessible at subamerica.net/port/{artist.slug}. Any changes you make will appear immediately.</p>
+            ) : (
+              <div className="space-y-1">
+                <p><strong>Preview Mode:</strong> Your Port is currently in draft mode and not visible to the public.</p>
+                {!hasContent && <p className="text-yellow-500">⚠️ Add at least one video, event, or merch item before publishing.</p>}
+                {hasContent && <p className="text-green-500">✓ Ready to publish! Click "Publish Port" when you're ready to go live.</p>}
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
 
         {/* Port Preview */}
         <div className="max-w-5xl mx-auto space-y-8 p-8 border border-primary/20 rounded-lg bg-gradient-to-b from-card to-background">

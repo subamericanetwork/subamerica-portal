@@ -2,7 +2,9 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Video, Calendar, ShoppingBag, Eye, CheckCircle, AlertCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Video, Calendar, ShoppingBag, Eye, CheckCircle, AlertCircle, Info } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useNavigate } from "react-router-dom";
 
@@ -39,7 +41,18 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout>
+      <TooltipProvider>
       <div className="p-8 space-y-8">
+        {/* Welcome Banner for First-Time Users */}
+        {videos.length === 0 && events.length === 0 && products.length === 0 && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Welcome to your Creator Portal! Get started by adding videos, events, or merch. Once you're ready, preview and publish your Port to make it live.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -69,8 +82,20 @@ const Dashboard = () => {
         {/* Port Status */}
         <Card className="border-primary/20 bg-gradient-card">
           <CardHeader>
-            <CardTitle>Port Status</CardTitle>
-            <CardDescription>Your public artist page</CardDescription>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>Port Status</CardTitle>
+                <CardDescription>Your public artist page</CardDescription>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Your Port is your public page. Draft mode keeps it private until you're ready to publish.</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
@@ -171,7 +196,17 @@ const Dashboard = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Port Health</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-sm font-medium">Port Health</CardTitle>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">Measures your Port's completeness based on accessibility requirements like video captions.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Eye className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -234,6 +269,7 @@ const Dashboard = () => {
           </CardContent>
         </Card>
       </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 };

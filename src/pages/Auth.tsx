@@ -5,8 +5,10 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Info } from "lucide-react";
 import logo from "@/assets/subamerica-logo.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -105,7 +107,7 @@ const Auth = () => {
             Creator Portal
           </p>
           <p className="text-muted-foreground text-lg">
-            Stream fearless art, sound, and stories 24/7
+            Manage your artist profile, share your content, and connect with your audience
           </p>
         </div>
 
@@ -159,6 +161,12 @@ const Auth = () => {
               </TabsContent>
 
               <TabsContent value="signup">
+                <Alert className="mb-4">
+                  <Info className="h-4 w-4" />
+                  <AlertDescription>
+                    Create your Port to showcase videos, events, and merch. Your Port URL will be your unique web address.
+                  </AlertDescription>
+                </Alert>
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="displayName">Artist/Band Name</Label>
@@ -177,19 +185,19 @@ const Auth = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="slug">Port URL Slug</Label>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">subamerica.net/port/</span>
-                      <Input
-                        id="slug"
-                        type="text"
-                        placeholder="your-slug"
-                        value={slug}
-                        onChange={(e) => setSlug(e.target.value)}
-                        required
-                        pattern="[a-z0-9-]+"
-                        className="bg-background/50 flex-1"
-                      />
-                    </div>
+                    <Input
+                      id="slug"
+                      type="text"
+                      placeholder="your-slug"
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value)}
+                      required
+                      pattern="[a-z0-9-]+"
+                      className="bg-background/50"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your Port will be: <span className="font-mono text-primary">subamerica.net/port/{slug || "your-slug"}</span>
+                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -214,6 +222,9 @@ const Auth = () => {
                       minLength={6}
                       className="bg-background/50"
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Must be at least 8 characters long
+                    </p>
                   </div>
                   <Button 
                     type="submit" 

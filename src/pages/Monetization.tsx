@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { QrCode, DollarSign, CheckCircle, ExternalLink } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { QrCode, DollarSign, CheckCircle, ExternalLink, Info } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState, useEffect } from "react";
@@ -149,6 +151,7 @@ const Monetization = () => {
 
   return (
     <DashboardLayout>
+      <TooltipProvider>
       <div className="p-8 space-y-6">
         <div>
           <h1 className="text-3xl font-bold">Monetization</h1>
@@ -156,6 +159,16 @@ const Monetization = () => {
             Configure payment links and QR code defaults
           </p>
         </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <div className="space-y-1">
+              <p><strong>Payment Flow:</strong> Heartland is your primary payment link (used for tips and purchases). PayPal serves as a fallback option for fans.</p>
+              <p><strong>QR Codes:</strong> Generate trackable QR codes for TV/broadcasts. Choose what action happens when fans scan (tip, tickets, merch, etc.). UTM parameters help track QR scans.</p>
+            </div>
+          </AlertDescription>
+        </Alert>
 
         {/* Payment Links */}
         <Card className="border-primary/20">
@@ -241,7 +254,17 @@ const Monetization = () => {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="qr-action">Default QR Action</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="qr-action">Default QR Action</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">This determines what page or action fans are directed to when they scan your QR code from TV or live broadcasts.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Select 
                 value={qrData.default_action}
                 onValueChange={(value) => setQrData({ ...qrData, default_action: value })}
@@ -262,7 +285,17 @@ const Monetization = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="utm-template">UTM Template</Label>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="utm-template">UTM Template</Label>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="h-3 w-3 text-muted-foreground cursor-help" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">UTM parameters help track where QR scans come from (e.g., TV, print ads, etc.). They're automatically added to your QR code URLs.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
               <Input
                 id="utm-template"
                 value={qrData.utm_template}
@@ -270,7 +303,7 @@ const Monetization = () => {
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Use {'{slug}'} as a placeholder for your artist slug
+                Use {'{slug}'} as a placeholder for your artist slug. Example use: Track QR scans from TV vs. flyers.
               </p>
             </div>
 
@@ -336,6 +369,7 @@ const Monetization = () => {
           </Card>
         )}
       </div>
+      </TooltipProvider>
     </DashboardLayout>
   );
 };
