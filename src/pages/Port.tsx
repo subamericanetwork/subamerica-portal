@@ -54,9 +54,9 @@ const Port = () => {
       if (!slug) return;
 
       try {
-        // Fetch artist by slug using secure public view (excludes email)
+        // Fetch artist by slug - using main artists table which has public RLS policy
         const { data: artistData, error: artistError } = await supabase
-          .from("artists_public")
+          .from("artists")
           .select("id, display_name, bio_short, scene, socials, brand")
           .eq("slug", slug)
           .single();
