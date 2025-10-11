@@ -66,7 +66,7 @@ const Monetization = () => {
       }
     } catch (error) {
       if (import.meta.env.DEV) {
-        console.error("Error fetching monetization data:", error);
+        if (import.meta.env.DEV) console.error("Error fetching monetization data:", error);
       }
     }
   };

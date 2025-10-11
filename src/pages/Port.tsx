@@ -70,22 +70,16 @@ const Port = () => {
           .eq("artist_id", artistData.id)
           .maybeSingle();
 
-        if (import.meta.env.DEV) {
-          console.log("Port settings check:", { settingsData, settingsError, artistId: artistData.id });
-        }
+        if (import.meta.env.DEV) console.log("Port settings check:", { settingsData, settingsError, artistId: artistData.id });
 
         if (!settingsData || settingsData?.publish_status !== 'published') {
-          if (import.meta.env.DEV) {
-            console.log("Port not published or settings missing");
-          }
+          if (import.meta.env.DEV) console.log("Port not published or settings missing");
           setLoading(false);
           return;
         }
 
         setArtist(artistData);
-        if (import.meta.env.DEV) {
-          console.log("Artist data loaded:", { artistData, images: artistData?.brand && typeof artistData.brand === 'object' ? (artistData.brand as any).images : null });
-        }
+        if (import.meta.env.DEV) console.log("Artist data loaded:", { artistData, images: artistData?.brand && typeof artistData.brand === 'object' ? (artistData.brand as any).images : null });
 
         // Fetch featured video
         const { data: videoData } = await supabase
@@ -107,9 +101,7 @@ const Port = () => {
           .order("starts_at", { ascending: true });
 
         setEvents(eventsData || []);
-        if (import.meta.env.DEV) {
-          console.log("Events loaded:", eventsData);
-        }
+        if (import.meta.env.DEV) console.log("Events loaded:", eventsData);
 
         // Fetch surface products
         const { data: productsData } = await supabase
@@ -124,7 +116,7 @@ const Port = () => {
           images: Array.isArray(p.images) ? p.images as string[] : null
         })));
         if (import.meta.env.DEV) {
-          console.log("Products loaded:", productsData);
+          if (import.meta.env.DEV) console.log("Products loaded:", productsData);
         }
 
       } catch (error) {
