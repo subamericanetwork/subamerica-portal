@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink } from "lucide-react";
 
 interface Artist {
   id: string;
@@ -191,19 +191,33 @@ const Port = () => {
           {/* Social Links Bar */}
           {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
             <div className="flex items-center justify-center gap-4 py-2">
-              {Object.entries(artist.socials).map(([platform, url]) => (
-                url && (
+              {Object.entries(artist.socials).map(([platform, url]) => {
+                const getSocialIcon = () => {
+                  switch(platform.toLowerCase()) {
+                    case 'instagram': return <Instagram className="h-4 w-4" />;
+                    case 'facebook': return <Facebook className="h-4 w-4" />;
+                    case 'twitter': case 'x': return <Twitter className="h-4 w-4" />;
+                    case 'youtube': return <Youtube className="h-4 w-4" />;
+                    case 'linkedin': return <Linkedin className="h-4 w-4" />;
+                    case 'spotify': case 'soundcloud': case 'apple music': return <Music2 className="h-4 w-4" />;
+                    case 'website': return <Globe className="h-4 w-4" />;
+                    default: return <ExternalLink className="h-4 w-4" />;
+                  }
+                };
+                
+                return url && (
                   <a 
                     key={platform}
                     href={url as string} 
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
+                    className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
                   >
-                    {platform}
+                    {getSocialIcon()}
+                    <span>{platform}</span>
                   </a>
-                )
-              ))}
+                );
+              })}
             </div>
           )}
 
