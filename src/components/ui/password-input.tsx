@@ -1,9 +1,8 @@
 import * as React from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "./button";
 
-export interface PasswordInputProps extends React.ComponentProps<"input"> {
+export interface PasswordInputProps extends Omit<React.ComponentProps<"input">, "type"> {
   className?: string;
 }
 
@@ -22,11 +21,9 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           ref={ref}
           {...props}
         />
-        <Button
+        <button
           type="button"
-          variant="ghost"
-          size="icon"
-          className="absolute right-0 top-0 h-10 w-10 hover:bg-transparent"
+          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 flex items-center justify-center hover:bg-accent rounded-md transition-colors"
           onClick={() => setShowPassword(!showPassword)}
           tabIndex={-1}
         >
@@ -35,7 +32,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(
           ) : (
             <Eye className="h-4 w-4 text-muted-foreground" />
           )}
-        </Button>
+        </button>
       </div>
     );
   },
