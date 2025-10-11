@@ -117,7 +117,9 @@ export const useArtistData = () => {
 
         setPortSettings(settingsData);
       } catch (error) {
+      if (import.meta.env.DEV) {
         console.error("Error fetching artist data:", error);
+      }
       } finally {
         setLoading(false);
       }
