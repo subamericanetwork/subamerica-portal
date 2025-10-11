@@ -212,11 +212,18 @@ export type Database = {
           commenting: string | null
           created_at: string | null
           go_live_at: string | null
+          h1_color: string | null
+          h2_color: string | null
+          h3_color: string | null
+          h4_color: string | null
           id: string
           max_products: number | null
           pixels: Json | null
           publish_status: Database["public"]["Enums"]["publish_status"] | null
           seo: Json | null
+          text_lg_color: string | null
+          text_md_color: string | null
+          text_sm_color: string | null
           updated_at: string | null
           user_id: string | null
         }
@@ -228,11 +235,18 @@ export type Database = {
           commenting?: string | null
           created_at?: string | null
           go_live_at?: string | null
+          h1_color?: string | null
+          h2_color?: string | null
+          h3_color?: string | null
+          h4_color?: string | null
           id?: string
           max_products?: number | null
           pixels?: Json | null
           publish_status?: Database["public"]["Enums"]["publish_status"] | null
           seo?: Json | null
+          text_lg_color?: string | null
+          text_md_color?: string | null
+          text_sm_color?: string | null
           updated_at?: string | null
           user_id?: string | null
         }
@@ -244,11 +258,18 @@ export type Database = {
           commenting?: string | null
           created_at?: string | null
           go_live_at?: string | null
+          h1_color?: string | null
+          h2_color?: string | null
+          h3_color?: string | null
+          h4_color?: string | null
           id?: string
           max_products?: number | null
           pixels?: Json | null
           publish_status?: Database["public"]["Enums"]["publish_status"] | null
           seo?: Json | null
+          text_lg_color?: string | null
+          text_md_color?: string | null
+          text_sm_color?: string | null
           updated_at?: string | null
           user_id?: string | null
         }

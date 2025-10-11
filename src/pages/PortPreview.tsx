@@ -177,6 +177,15 @@ const PortPreview = () => {
 
         {/* Port Preview */}
         <div className="max-w-5xl mx-auto space-y-8 p-8 border border-primary/20 rounded-lg relative overflow-hidden" style={getBackgroundStyles()}>
+          <style>{`
+            h1 { color: ${portSettings?.h1_color || '#ffffff'} !important; }
+            h2 { color: ${portSettings?.h2_color || '#ffffff'} !important; }
+            h3 { color: ${portSettings?.h3_color || '#ffffff'} !important; }
+            h4 { color: ${portSettings?.h4_color || '#ffffff'} !important; }
+            .text-sm { color: ${portSettings?.text_sm_color || '#ffffff'} !important; }
+            .text-base { color: ${portSettings?.text_md_color || '#ffffff'} !important; }
+            .text-lg { color: ${portSettings?.text_lg_color || '#ffffff'} !important; }
+          `}</style>
           {/* Background Video */}
           {backgroundType === "video" && backgroundVideoUrl && (
             <>

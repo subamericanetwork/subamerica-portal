@@ -21,6 +21,13 @@ interface BackgroundSettingsProps {
   initialType?: string;
   initialValue?: string;
   initialVideoUrl?: string;
+  initialH1Color?: string;
+  initialH2Color?: string;
+  initialH3Color?: string;
+  initialH4Color?: string;
+  initialTextSmColor?: string;
+  initialTextMdColor?: string;
+  initialTextLgColor?: string;
   onSave: () => void;
 }
 
@@ -30,6 +37,13 @@ export const BackgroundSettings = ({
   initialType = "color",
   initialValue = "#000000",
   initialVideoUrl = "",
+  initialH1Color = "#ffffff",
+  initialH2Color = "#ffffff",
+  initialH3Color = "#ffffff",
+  initialH4Color = "#ffffff",
+  initialTextSmColor = "#ffffff",
+  initialTextMdColor = "#ffffff",
+  initialTextLgColor = "#ffffff",
   onSave,
 }: BackgroundSettingsProps) => {
   const [backgroundType, setBackgroundType] = useState(initialType);
@@ -43,6 +57,13 @@ export const BackgroundSettings = ({
   const [videoPreview, setVideoPreview] = useState<string | null>(
     initialVideoUrl ? initialVideoUrl : null
   );
+  const [h1Color, setH1Color] = useState(initialH1Color);
+  const [h2Color, setH2Color] = useState(initialH2Color);
+  const [h3Color, setH3Color] = useState(initialH3Color);
+  const [h4Color, setH4Color] = useState(initialH4Color);
+  const [textSmColor, setTextSmColor] = useState(initialTextSmColor);
+  const [textMdColor, setTextMdColor] = useState(initialTextMdColor);
+  const [textLgColor, setTextLgColor] = useState(initialTextLgColor);
   const { toast } = useToast();
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -172,10 +193,24 @@ export const BackgroundSettings = ({
       background_type: string;
       background_value: string;
       background_video_url: string | null;
+      h1_color: string;
+      h2_color: string;
+      h3_color: string;
+      h4_color: string;
+      text_sm_color: string;
+      text_md_color: string;
+      text_lg_color: string;
     } = {
       background_type: backgroundType,
       background_value: backgroundColor,
       background_video_url: null,
+      h1_color: h1Color,
+      h2_color: h2Color,
+      h3_color: h3Color,
+      h4_color: h4Color,
+      text_sm_color: textSmColor,
+      text_md_color: textMdColor,
+      text_lg_color: textLgColor,
     };
 
     if (backgroundType === "image") {
@@ -359,6 +394,152 @@ export const BackgroundSettings = ({
             )}
           </div>
         )}
+
+        <div className="space-y-4 border-t pt-6 mt-6">
+          <h3 className="text-lg font-semibold">Text Colors</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="h1-color">H1 Heading Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="h1-color"
+                  type="color"
+                  value={h1Color}
+                  onChange={(e) => setH1Color(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={h1Color}
+                  onChange={(e) => setH1Color(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="h2-color">H2 Heading Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="h2-color"
+                  type="color"
+                  value={h2Color}
+                  onChange={(e) => setH2Color(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={h2Color}
+                  onChange={(e) => setH2Color(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="h3-color">H3 Heading Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="h3-color"
+                  type="color"
+                  value={h3Color}
+                  onChange={(e) => setH3Color(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={h3Color}
+                  onChange={(e) => setH3Color(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="h4-color">H4 Heading Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="h4-color"
+                  type="color"
+                  value={h4Color}
+                  onChange={(e) => setH4Color(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={h4Color}
+                  onChange={(e) => setH4Color(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="text-sm-color">Small Text Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="text-sm-color"
+                  type="color"
+                  value={textSmColor}
+                  onChange={(e) => setTextSmColor(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={textSmColor}
+                  onChange={(e) => setTextSmColor(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="text-md-color">Medium Text Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="text-md-color"
+                  type="color"
+                  value={textMdColor}
+                  onChange={(e) => setTextMdColor(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={textMdColor}
+                  onChange={(e) => setTextMdColor(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="text-lg-color">Large Text Color</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="text-lg-color"
+                  type="color"
+                  value={textLgColor}
+                  onChange={(e) => setTextLgColor(e.target.value)}
+                  className="w-20 h-10 cursor-pointer"
+                />
+                <Input
+                  type="text"
+                  value={textLgColor}
+                  onChange={(e) => setTextLgColor(e.target.value)}
+                  className="flex-1"
+                  placeholder="#ffffff"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
 
         <Button onClick={handleSave} disabled={uploading} className="w-full">
           Save Background Settings

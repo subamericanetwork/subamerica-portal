@@ -52,6 +52,13 @@ interface PortSettings {
   background_type?: string;
   background_value?: string;
   background_video_url?: string | null;
+  h1_color?: string;
+  h2_color?: string;
+  h3_color?: string;
+  h4_color?: string;
+  text_sm_color?: string;
+  text_md_color?: string;
+  text_lg_color?: string;
 }
 
 export const useArtistData = () => {

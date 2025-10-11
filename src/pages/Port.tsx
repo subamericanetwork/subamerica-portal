@@ -53,6 +53,7 @@ const Port = () => {
   const [backgroundType, setBackgroundType] = useState<string>("color");
   const [backgroundValue, setBackgroundValue] = useState<string>("#000000");
   const [backgroundVideoUrl, setBackgroundVideoUrl] = useState<string | null>(null);
+  const [portSettings, setPortSettings] = useState<any>(null);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -79,7 +80,7 @@ const Port = () => {
         // Check if port is published and get background settings
         const { data: settingsData, error: settingsError } = await supabase
           .from("port_settings")
-          .select("publish_status, background_type, background_value, background_video_url")
+          .select("publish_status, background_type, background_value, background_video_url, h1_color, h2_color, h3_color, h4_color, text_sm_color, text_md_color, text_lg_color")
           .eq("artist_id", artistData.id)
           .maybeSingle();
 
@@ -92,6 +93,7 @@ const Port = () => {
         }
 
         setArtist(artistData);
+        setPortSettings(settingsData);
         
         // Set background settings
         if (settingsData) {
@@ -201,32 +203,42 @@ const Port = () => {
   };
 
   return (
-    <div className="min-h-screen relative" style={getBackgroundStyles()}>
-      {/* Background Video */}
-      {backgroundType === "video" && backgroundVideoUrl && (
-        <>
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="fixed inset-0 w-full h-full object-cover -z-10"
-          >
-            <source src={backgroundVideoUrl} type="video/mp4" />
-            <source src={backgroundVideoUrl} type="video/webm" />
-          </video>
-          <div className="fixed inset-0 bg-black/40 -z-10" />
-        </>
-      )}
-      
-      {/* Content overlay for better text readability */}
-      {(backgroundType === "image" || backgroundType === "video") && (
-        <div className="fixed inset-0 bg-gradient-to-b from-black/30 to-black/60 -z-10" />
-      )}
-      
-      <div className="relative z-0">
-      {/* Hamburger Menu */}
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+    <>
+      <style>{`
+        h1 { color: ${portSettings?.h1_color || '#ffffff'} !important; }
+        h2 { color: ${portSettings?.h2_color || '#ffffff'} !important; }
+        h3 { color: ${portSettings?.h3_color || '#ffffff'} !important; }
+        h4 { color: ${portSettings?.h4_color || '#ffffff'} !important; }
+        .text-sm { color: ${portSettings?.text_sm_color || '#ffffff'} !important; }
+        .text-base { color: ${portSettings?.text_md_color || '#ffffff'} !important; }
+        .text-lg { color: ${portSettings?.text_lg_color || '#ffffff'} !important; }
+      `}</style>
+      <div className="min-h-screen relative" style={getBackgroundStyles()}>
+        {/* Background Video */}
+        {backgroundType === "video" && backgroundVideoUrl && (
+          <>
+            <video
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="fixed inset-0 w-full h-full object-cover -z-10"
+            >
+              <source src={backgroundVideoUrl} type="video/mp4" />
+              <source src={backgroundVideoUrl} type="video/webm" />
+            </video>
+            <div className="fixed inset-0 bg-black/40 -z-10" />
+          </>
+        )}
+        
+        {/* Content overlay for better text readability */}
+        {(backgroundType === "image" || backgroundType === "video") && (
+          <div className="fixed inset-0 bg-gradient-to-b from-black/30 to-black/60 -z-10" />
+        )}
+        
+        <div className="relative z-0">
+          {/* Hamburger Menu */}
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
         <Button
           variant="outline"
@@ -536,9 +548,10 @@ const Port = () => {
           </div>
         </footer>
 
+        </div>
+        </div>
       </div>
-      </div>
-    </div>
+    </>
   );
 };
 
