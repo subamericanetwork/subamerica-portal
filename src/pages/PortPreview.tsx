@@ -150,15 +150,15 @@ const PortPreview = () => {
           {/* Hamburger Menu */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute top-4 right-4 z-50 bg-card border-border shadow-lg"
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-80">
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute top-4 left-4 z-50 bg-card border-border shadow-lg"
+            >
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-80">
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-xl font-bold">{artist?.display_name}</h2>
