@@ -192,7 +192,7 @@ const Port = () => {
             <div className="flex items-center justify-between mb-8">
               <h2 className="text-xl font-bold">{artist?.display_name}</h2>
             </div>
-            <nav className="flex flex-col space-y-4">
+            <nav className="flex flex-col space-y-4 overflow-y-auto flex-1 pr-2">
               <Button
                 variant="ghost"
                 className="justify-start h-auto py-4 text-lg"
