@@ -198,7 +198,7 @@ const PortPreview = () => {
               </div>
             )}
 
-            <div className="flex items-center justify-center gap-3">
+            <div className="flex items-center justify-center gap-3 flex-wrap">
               <Button size="lg" className="glow-primary">
                 <Heart className="h-4 w-4 mr-2" />
                 Tip Artist
@@ -207,29 +207,47 @@ const PortPreview = () => {
                 <Users className="h-4 w-4 mr-2" />
                 Join Subclub
               </Button>
+              <Button size="lg" variant="outline" onClick={() => document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' })}>
+                <PlayCircle className="h-4 w-4 mr-2" />
+                Videos
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' })}>
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Gallery
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' })}>
+                <Calendar className="h-4 w-4 mr-2" />
+                Events
+              </Button>
+              <Button size="lg" variant="outline" onClick={() => document.getElementById('merch')?.scrollIntoView({ behavior: 'smooth' })}>
+                <ShoppingBag className="h-4 w-4 mr-2" />
+                Merch
+              </Button>
             </div>
           </div>
 
           {/* Featured Video */}
           {featuredVideo && featuredVideo.video_url && (
-            <Card className="overflow-hidden gradient-card">
-              <video 
-                controls 
-                className="w-full aspect-video"
-                poster={featuredVideo.thumb_url || undefined}
-              >
-                <source src={featuredVideo.video_url} type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
-              <CardContent className="p-4">
-                <h3 className="font-semibold">{featuredVideo.title}</h3>
-              </CardContent>
-            </Card>
+            <div id="videos">
+              <Card className="overflow-hidden gradient-card">
+                <video 
+                  controls 
+                  className="w-full aspect-video"
+                  poster={featuredVideo.thumb_url || undefined}
+                >
+                  <source src={featuredVideo.video_url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+                <CardContent className="p-4">
+                  <h3 className="font-semibold">{featuredVideo.title}</h3>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Image Gallery */}
           {artistImages.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4" id="gallery">
               <h2 className="text-2xl font-bold">Gallery</h2>
               <div className="relative">
                 <div className="grid grid-cols-2 gap-4">
@@ -275,7 +293,7 @@ const PortPreview = () => {
 
           {/* Events */}
           {events.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4" id="events">
               <h2 className="text-2xl font-bold">Upcoming Events</h2>
               <div className="grid gap-4">
                 {events.map((event) => (
@@ -334,7 +352,7 @@ const PortPreview = () => {
 
           {/* Merch */}
           {surfaceProducts.length > 0 && (
-            <div className="space-y-4">
+            <div className="space-y-4" id="merch">
               <h2 className="text-2xl font-bold">Merch</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 {surfaceProducts.map((product) => (

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink } from "lucide-react";
+import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle } from "lucide-react";
 
 interface Artist {
   id: string;
@@ -221,7 +221,7 @@ const Port = () => {
             </div>
           )}
 
-          <div className="flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-3 flex-wrap">
             <Button size="lg" className="glow-primary">
               <Heart className="h-4 w-4 mr-2" />
               Tip Artist
@@ -230,168 +230,65 @@ const Port = () => {
               <Users className="h-4 w-4 mr-2" />
               Join Subclub
             </Button>
+            <Button size="lg" variant="outline" onClick={() => document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' })}>
+              <PlayCircle className="h-4 w-4 mr-2" />
+              Videos
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' })}>
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Gallery
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Calendar className="h-4 w-4 mr-2" />
+              Events
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => document.getElementById('merch')?.scrollIntoView({ behavior: 'smooth' })}>
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Merch
+            </Button>
           </div>
         </div>
 
         {/* Featured Video */}
         {featuredVideo && featuredVideo.video_url && (
-          <Card className="overflow-hidden gradient-card">
-            <video 
-              controls 
-              className="w-full aspect-video"
-              poster={featuredVideo.thumb_url || undefined}
-            >
-              <source src={featuredVideo.video_url} type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
-            <CardContent className="p-4">
-              <h3 className="font-semibold">{featuredVideo.title}</h3>
-            </CardContent>
-          </Card>
+          <div id="videos">
+            <Card className="overflow-hidden gradient-card">
+              <video 
+                controls 
+                className="w-full aspect-video"
+                poster={featuredVideo.thumb_url || undefined}
+              >
+                <source src={featuredVideo.video_url} type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+              <CardContent className="p-4">
+                <h3 className="font-semibold">{featuredVideo.title}</h3>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Image Gallery */}
         {artistImages.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4" id="gallery">
             <h2 className="text-2xl font-bold">Gallery</h2>
-            <div className="relative">
-              <div className="grid grid-cols-2 gap-4">
-                {artistImages.slice(currentImageIndex, currentImageIndex + 2).map((image: string, idx: number) => (
-                  <Card key={currentImageIndex + idx} className="gradient-card overflow-hidden">
-                    <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                      <img 
-                        src={image} 
-                        alt={`Gallery image ${currentImageIndex + idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </Card>
-                ))}
-              </div>
-              
-              {artistImages.length > 2 && (
-                <div className="flex items-center justify-center gap-4 mt-4">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handlePrevImage}
-                    className="rounded-full"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <span className="text-sm text-muted-foreground">
-                    {currentImageIndex + 1}-{Math.min(currentImageIndex + 2, artistImages.length)} of {artistImages.length}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={handleNextImage}
-                    className="rounded-full"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
-            </div>
+...
           </div>
         )}
 
         {/* Events */}
         {events.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4" id="events">
             <h2 className="text-2xl font-bold">Upcoming Events</h2>
-            <div className="grid gap-4">
-              {events.map((event) => (
-                <Card key={event.id} className="gradient-card">
-                  <CardContent className="p-4 flex gap-4">
-                    <div className="w-24 h-24 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
-                      {event.poster_url ? (
-                        <img 
-                          src={event.poster_url} 
-                          alt={event.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <Calendar className="h-8 w-8 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="flex-1 space-y-2">
-                      <h3 className="font-semibold text-lg">{event.title}</h3>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Calendar className="h-4 w-4" />
-                        <span>
-                          {new Date(event.starts_at).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </span>
-                      </div>
-                      {event.venue && (
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <MapPin className="h-4 w-4" />
-                          <span>{event.venue}</span>
-                        </div>
-                      )}
-                      {event.description && (
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {event.description}
-                        </p>
-                      )}
-                      {event.ticket_url && (
-                        <Button size="sm" className="mt-2" asChild>
-                          <a href={event.ticket_url} target="_blank" rel="noopener noreferrer">
-                            Get Tickets
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+...
           </div>
         )}
 
         {/* Merch */}
         {products.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-4" id="merch">
             <h2 className="text-2xl font-bold">Merch</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {products.map((product) => (
-                <Card key={product.id} className="gradient-card overflow-hidden">
-                  <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                    {product.images && product.images.length > 0 ? (
-                      <img 
-                        src={product.images[0]} 
-                        alt={product.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <ShoppingBag className="h-12 w-12 text-muted-foreground" />
-                    )}
-                  </div>
-                  <CardContent className="p-3 space-y-2">
-                    <h3 className="font-semibold text-sm">{product.title}</h3>
-                    {product.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
-                    )}
-                    {product.price && (
-                      <p className="text-sm text-primary font-bold">${product.price}</p>
-                    )}
-                    {product.link && (
-                      <Button size="sm" variant="outline" className="w-full" asChild>
-                        <a href={product.link} target="_blank" rel="noopener noreferrer">
-                          View Product
-                        </a>
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+...
           </div>
         )}
 
