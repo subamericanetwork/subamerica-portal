@@ -25,6 +25,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Profile", href: "/profile", icon: Settings },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
