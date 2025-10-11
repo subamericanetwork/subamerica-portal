@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, ShoppingBag, Heart, Users, MapPin } from "lucide-react";
+import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Artist {
   id: string;
@@ -11,6 +11,7 @@ interface Artist {
   bio_short: string | null;
   scene: string | null;
   socials: any;
+  brand: any;
 }
 
 interface Video {
@@ -46,6 +47,7 @@ const Port = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchPortData = async () => {
@@ -55,7 +57,7 @@ const Port = () => {
         // Fetch artist by slug using secure public view (excludes email)
         const { data: artistData, error: artistError } = await supabase
           .from("artists_public")
-          .select("id, display_name, bio_short, scene, socials")
+          .select("id, display_name, bio_short, scene, socials, brand")
           .eq("slug", slug)
           .single();
 
@@ -122,6 +124,20 @@ const Port = () => {
     fetchPortData();
   }, [slug]);
 
+  const artistImages = artist?.brand?.images || [];
+  
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? Math.max(0, artistImages.length - 2) : prev - 1
+    );
+  };
+  
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev >= artistImages.length - 2 ? 0 : prev + 1
+    );
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -146,10 +162,18 @@ const Port = () => {
       <div className="max-w-5xl mx-auto space-y-8 p-8">
         {/* Hero Section */}
         <div className="text-center space-y-6">
-          <div className="w-32 h-32 mx-auto rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center">
-            <span className="text-4xl font-bold text-primary">
-              {artist.display_name.charAt(0).toUpperCase()}
-            </span>
+          <div className="w-32 h-32 mx-auto rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center overflow-hidden">
+            {artist.brand?.profile_photo ? (
+              <img 
+                src={artist.brand.profile_photo} 
+                alt={artist.display_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <span className="text-4xl font-bold text-primary">
+                {artist.display_name.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
           
           <div>
@@ -163,6 +187,25 @@ const Port = () => {
               </p>
             )}
           </div>
+
+          {/* Social Links Bar */}
+          {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
+            <div className="flex items-center justify-center gap-4 py-2">
+              {Object.entries(artist.socials).map(([platform, url]) => (
+                url && (
+                  <a 
+                    key={platform}
+                    href={url as string} 
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
+                  >
+                    {platform}
+                  </a>
+                )
+              ))}
+            </div>
+          )}
 
           <div className="flex items-center justify-center gap-3">
             <Button size="lg" className="glow-primary">
@@ -191,6 +234,52 @@ const Port = () => {
               <h3 className="font-semibold">{featuredVideo.title}</h3>
             </CardContent>
           </Card>
+        )}
+
+        {/* Image Gallery */}
+        {artistImages.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-2xl font-bold">Gallery</h2>
+            <div className="relative">
+              <div className="grid grid-cols-2 gap-4">
+                {artistImages.slice(currentImageIndex, currentImageIndex + 2).map((image: string, idx: number) => (
+                  <Card key={currentImageIndex + idx} className="gradient-card overflow-hidden">
+                    <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
+                      <img 
+                        src={image} 
+                        alt={`Gallery image ${currentImageIndex + idx + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+              
+              {artistImages.length > 2 && (
+                <div className="flex items-center justify-center gap-4 mt-4">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handlePrevImage}
+                    className="rounded-full"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <span className="text-sm text-muted-foreground">
+                    {currentImageIndex + 1}-{Math.min(currentImageIndex + 2, artistImages.length)} of {artistImages.length}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleNextImage}
+                    className="rounded-full"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
         )}
 
         {/* Events */}
@@ -292,24 +381,6 @@ const Port = () => {
           </div>
         )}
 
-        {/* Social Links */}
-        {artist.socials && Object.keys(artist.socials).length > 0 && (
-          <div className="pt-6 border-t border-border">
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
-              {Object.entries(artist.socials).map(([platform, url]) => (
-                <a 
-                  key={platform}
-                  href={url as string} 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary transition-smooth capitalize"
-                >
-                  {platform}
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
