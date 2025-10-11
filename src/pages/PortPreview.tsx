@@ -253,36 +253,6 @@ const PortPreview = () => {
               )}
             </div>
 
-            <div className="flex items-center justify-center gap-3 flex-wrap">
-              <Button size="lg" className="glow-primary">
-                <Heart className="h-4 w-4 mr-2" />
-                Tip Artist
-              </Button>
-              <Button size="lg" variant="outline">
-                <Users className="h-4 w-4 mr-2" />
-                Join Subclub
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' })}>
-                <PlayCircle className="h-4 w-4 mr-2" />
-                Videos
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' })}>
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Gallery
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => document.getElementById('events')?.scrollIntoView({ behavior: 'smooth' })}>
-                <Calendar className="h-4 w-4 mr-2" />
-                Events
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => document.getElementById('merch')?.scrollIntoView({ behavior: 'smooth' })}>
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Merch
-              </Button>
-              <Button size="lg" variant="outline" onClick={() => document.getElementById('footer')?.scrollIntoView({ behavior: 'smooth' })}>
-                <Share2 className="h-4 w-4 mr-2" />
-                Socials
-              </Button>
-            </div>
           </div>
 
           {/* Featured Video */}
