@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2, Menu, Image as ImageIcon } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,6 +14,15 @@ const PortPreview = () => {
   const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings } = useArtistData();
   const [isPublishing, setIsPublishing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+      setMenuOpen(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -136,9 +146,87 @@ const PortPreview = () => {
         </Alert>
 
         {/* Port Preview */}
-        <div className="max-w-5xl mx-auto space-y-8 p-8 border border-primary/20 rounded-lg bg-gradient-to-b from-card to-background">
+        <div className="max-w-5xl mx-auto space-y-8 p-8 border border-primary/20 rounded-lg bg-gradient-to-b from-card to-background relative">
+          {/* Hamburger Menu */}
+          <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute top-4 right-4 z-50 bg-card border-border shadow-lg"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-80">
+              <div className="flex flex-col h-full">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-bold">{artist?.display_name}</h2>
+                </div>
+                <nav className="flex flex-col space-y-4">
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('hero')}
+                  >
+                    <Heart className="mr-3 h-5 w-5" />
+                    Tip Artist
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('hero')}
+                  >
+                    <Users className="mr-3 h-5 w-5" />
+                    Join Subclub
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('videos')}
+                  >
+                    <PlayCircle className="mr-3 h-5 w-5" />
+                    Videos
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('gallery')}
+                  >
+                    <ImageIcon className="mr-3 h-5 w-5" />
+                    Gallery
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('events')}
+                  >
+                    <Calendar className="mr-3 h-5 w-5" />
+                    Events
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('merch')}
+                  >
+                    <ShoppingBag className="mr-3 h-5 w-5" />
+                    Merch
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('footer')}
+                  >
+                    <Share2 className="mr-3 h-5 w-5" />
+                    Socials
+                  </Button>
+                </nav>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           {/* Hero Section */}
-          <div className="text-center space-y-6">
+          <div id="hero" className="text-center space-y-6">
             <div className="w-32 h-32 mx-auto rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center overflow-hidden">
               {artist.brand?.profile_photo ? (
                 <img 
