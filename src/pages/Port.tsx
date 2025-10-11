@@ -163,39 +163,6 @@ const Port = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto space-y-8 p-8">
-        {/* Social Links Bar - Top */}
-        {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
-          <div className="flex items-center justify-center gap-4 py-4 border-b border-border">
-            {Object.entries(artist.socials).map(([platform, url]) => {
-              const getSocialIcon = () => {
-                switch(platform.toLowerCase()) {
-                  case 'instagram': return <Instagram className="h-4 w-4" />;
-                  case 'facebook': return <Facebook className="h-4 w-4" />;
-                  case 'twitter': case 'x': return <Twitter className="h-4 w-4" />;
-                  case 'youtube': return <Youtube className="h-4 w-4" />;
-                  case 'linkedin': return <Linkedin className="h-4 w-4" />;
-                  case 'spotify': case 'soundcloud': case 'apple music': return <Music2 className="h-4 w-4" />;
-                  case 'website': return <Globe className="h-4 w-4" />;
-                  default: return <ExternalLink className="h-4 w-4" />;
-                }
-              };
-              
-              return url && (
-                <a 
-                  key={platform}
-                  href={url as string} 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
-                >
-                  {getSocialIcon()}
-                  <span>{platform}</span>
-                </a>
-              );
-            })}
-          </div>
-        )}
-
         {/* Hero Section */}
         <div className="text-center space-y-6">
           <div className="w-32 h-32 mx-auto rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center overflow-hidden">
