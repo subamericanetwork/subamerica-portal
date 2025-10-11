@@ -134,7 +134,18 @@ const PortPreview = () => {
           <Info className="h-4 w-4" />
           <AlertDescription>
             {isPublished ? (
-              <p><strong>Your Port is live!</strong> It's publicly accessible at subamerica.net/port/{artist.slug}. Any changes you make will appear immediately.</p>
+              <p>
+                <strong>Your Port is live!</strong> It&apos;s publicly accessible at{" "}
+                <a 
+                  href={`https://subamerica.net/port/${artist.slug}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80"
+                >
+                  subamerica.net/port/{artist.slug}
+                </a>
+                . Any changes you make will appear immediately.
+              </p>
             ) : (
               <div className="space-y-1">
                 <p><strong>Preview Mode:</strong> Your Port is currently in draft mode and not visible to the public.</p>
