@@ -87,7 +87,7 @@ const Port = () => {
           .eq("artist_id", artistData.id)
           .eq("is_featured", true)
           .not("published_at", "is", null)
-          .single();
+          .maybeSingle();
 
         setFeaturedVideo(videoData);
 
