@@ -49,6 +49,9 @@ interface Product {
 
 interface PortSettings {
   publish_status: string;
+  background_type?: string;
+  background_value?: string;
+  background_video_url?: string | null;
 }
 
 export const useArtistData = () => {

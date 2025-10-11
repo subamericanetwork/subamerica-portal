@@ -11,13 +11,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, User } from "lucide-react";
+import { BackgroundSettings } from "@/components/BackgroundSettings";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { artist, loading } = useArtistData();
+  const { artist, loading, portSettings } = useArtistData();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Form state
   const [profilePhoto, setProfilePhoto] = useState<string>("");
@@ -423,6 +427,19 @@ const Profile = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* Background Settings */}
+        {artist && user && (
+          <BackgroundSettings
+            key={refreshKey}
+            artistId={artist.id}
+            userId={user.id}
+            initialType={portSettings?.background_type}
+            initialValue={portSettings?.background_value}
+            initialVideoUrl={portSettings?.background_video_url || ""}
+            onSave={() => setRefreshKey(prev => prev + 1)}
+          />
+        )}
 
         {/* Save Button */}
         <div className="flex justify-end gap-4">

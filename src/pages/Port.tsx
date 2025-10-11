@@ -50,6 +50,9 @@ const Port = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [backgroundType, setBackgroundType] = useState<string>("color");
+  const [backgroundValue, setBackgroundValue] = useState<string>("#000000");
+  const [backgroundVideoUrl, setBackgroundVideoUrl] = useState<string | null>(null);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -73,10 +76,10 @@ const Port = () => {
 
         if (artistError) throw artistError;
         
-        // Check if port is published
+        // Check if port is published and get background settings
         const { data: settingsData, error: settingsError } = await supabase
           .from("port_settings")
-          .select("publish_status")
+          .select("publish_status, background_type, background_value, background_video_url")
           .eq("artist_id", artistData.id)
           .maybeSingle();
 
@@ -89,6 +92,14 @@ const Port = () => {
         }
 
         setArtist(artistData);
+        
+        // Set background settings
+        if (settingsData) {
+          setBackgroundType(settingsData.background_type || "color");
+          setBackgroundValue(settingsData.background_value || "#000000");
+          setBackgroundVideoUrl(settingsData.background_video_url || null);
+        }
+        
         if (import.meta.env.DEV) console.log("Artist data loaded:", { artistData, images: artistData?.brand && typeof artistData.brand === 'object' ? (artistData.brand as any).images : null });
 
         // Fetch featured video
@@ -174,8 +185,46 @@ const Port = () => {
     );
   }
 
+  // Get background styles
+  const getBackgroundStyles = () => {
+    if (backgroundType === "color") {
+      return { backgroundColor: backgroundValue };
+    } else if (backgroundType === "image") {
+      return {
+        backgroundImage: `url(${backgroundValue})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed"
+      };
+    }
+    return {};
+  };
+
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen relative" style={getBackgroundStyles()}>
+      {/* Background Video */}
+      {backgroundType === "video" && backgroundVideoUrl && (
+        <>
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="fixed inset-0 w-full h-full object-cover -z-10"
+          >
+            <source src={backgroundVideoUrl} type="video/mp4" />
+            <source src={backgroundVideoUrl} type="video/webm" />
+          </video>
+          <div className="fixed inset-0 bg-black/40 -z-10" />
+        </>
+      )}
+      
+      {/* Content overlay for better text readability */}
+      {(backgroundType === "image" || backgroundType === "video") && (
+        <div className="fixed inset-0 bg-gradient-to-b from-black/30 to-black/60 -z-10" />
+      )}
+      
+      <div className="relative z-0">
       {/* Hamburger Menu */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
@@ -487,6 +536,7 @@ const Port = () => {
           </div>
         </footer>
 
+      </div>
       </div>
     </div>
   );

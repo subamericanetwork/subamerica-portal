@@ -16,6 +16,10 @@ const PortPreview = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   
+  const backgroundType = portSettings?.background_type || "color";
+  const backgroundValue = portSettings?.background_value || "#000000";
+  const backgroundVideoUrl = portSettings?.background_video_url || null;
+  
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
@@ -96,6 +100,21 @@ const PortPreview = () => {
     );
   };
 
+  // Get background styles
+  const getBackgroundStyles = () => {
+    if (backgroundType === "color") {
+      return { backgroundColor: backgroundValue };
+    } else if (backgroundType === "image") {
+      return {
+        backgroundImage: `url(${backgroundValue})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed"
+      };
+    }
+    return {};
+  };
+
   return (
     <DashboardLayout>
       <div className="p-8 space-y-6">
@@ -157,7 +176,30 @@ const PortPreview = () => {
         </Alert>
 
         {/* Port Preview */}
-        <div className="max-w-5xl mx-auto space-y-8 p-8 border border-primary/20 rounded-lg bg-gradient-to-b from-card to-background relative">
+        <div className="max-w-5xl mx-auto space-y-8 p-8 border border-primary/20 rounded-lg relative overflow-hidden" style={getBackgroundStyles()}>
+          {/* Background Video */}
+          {backgroundType === "video" && backgroundVideoUrl && (
+            <>
+              <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                className="absolute inset-0 w-full h-full object-cover -z-10"
+              >
+                <source src={backgroundVideoUrl} type="video/mp4" />
+                <source src={backgroundVideoUrl} type="video/webm" />
+              </video>
+              <div className="absolute inset-0 bg-black/40 -z-10" />
+            </>
+          )}
+          
+          {/* Content overlay for better text readability */}
+          {(backgroundType === "image" || backgroundType === "video") && (
+            <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-black/60 -z-10" />
+          )}
+          
+          <div className="relative z-0">
           {/* Hamburger Menu */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>
@@ -468,6 +510,7 @@ const PortPreview = () => {
             </div>
           </footer>
 
+          </div>
         </div>
       </div>
     </DashboardLayout>

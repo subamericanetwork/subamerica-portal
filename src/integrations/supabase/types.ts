@@ -206,6 +206,9 @@ export type Database = {
       port_settings: {
         Row: {
           artist_id: string
+          background_type: string | null
+          background_value: string | null
+          background_video_url: string | null
           commenting: string | null
           created_at: string | null
           go_live_at: string | null
@@ -219,6 +222,9 @@ export type Database = {
         }
         Insert: {
           artist_id: string
+          background_type?: string | null
+          background_value?: string | null
+          background_video_url?: string | null
           commenting?: string | null
           created_at?: string | null
           go_live_at?: string | null
@@ -232,6 +238,9 @@ export type Database = {
         }
         Update: {
           artist_id?: string
+          background_type?: string | null
+          background_value?: string | null
+          background_video_url?: string | null
           commenting?: string | null
           created_at?: string | null
           go_live_at?: string | null
