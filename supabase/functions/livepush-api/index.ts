@@ -143,18 +143,17 @@ serve(async (req) => {
         throw tokenError;
       }
 
-      // Upload video to Livepush - using the octopus API
-      const uploadResponse = await fetch('https://octopus.livepush.io/videos', {
+      // For Livepush, we need to upload the video file by URL
+      // The API expects the video to be uploaded to a stream's video library
+      const uploadResponse = await fetch(`https://octopus.livepush.io/streams/${artistId}/videos`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          title: video.title,
-          description: `Video from SubAmerica: ${video.title}`,
+          label: video.title,
           url: video.video_url,
-          tags: video.tags || [],
         }),
       });
 
