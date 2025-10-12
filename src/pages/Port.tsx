@@ -135,11 +135,14 @@ const Port = () => {
           if (!slug) return;
 
           // Fetch artist by slug - using main artists table which has public RLS policy
+          console.log("Fetching artist by slug:", slug);
           const { data: artistData, error: artistError } = await supabase
             .from("artists")
             .select("id, display_name, bio_short, scene, socials, brand")
             .eq("slug", slug)
             .maybeSingle();
+
+          console.log("Artist query result:", { artistData, artistError });
 
           if (artistError) {
             console.error("Error fetching artist:", artistError);
@@ -157,13 +160,14 @@ const Port = () => {
           setArtist(artistData);
           
           // Check if port is published and get background settings
+          console.log("Fetching port settings for artist:", artistId);
           const { data: settingsData, error: settingsError } = await supabase
             .from("port_settings")
             .select("publish_status, background_type, background_value, background_video_url, h1_color, h2_color, h3_color, h4_color, text_sm_color, text_md_color, text_lg_color")
             .eq("artist_id", artistData.id)
             .maybeSingle();
 
-          if (import.meta.env.DEV) console.log("Port settings check:", { settingsData, settingsError, artistId: artistData.id });
+          console.log("Port settings result:", { settingsData, settingsError });
 
           if (!settingsData || settingsData?.publish_status !== 'published') {
             if (import.meta.env.DEV) console.log("Port not published or settings missing");
