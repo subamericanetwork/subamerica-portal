@@ -50,31 +50,17 @@ serve(async (req) => {
 
     console.log(`Livepush API - Action: ${action}, User: ${user.id}`);
 
-    // Get Livepush access token using admin credentials (client credentials flow)
-    const getAccessToken = async () => {
-      const params = new URLSearchParams({
-        client_id: LIVEPUSH_CLIENT_ID!,
-        client_secret: LIVEPUSH_CLIENT_SECRET!,
-        grant_type: 'client_credentials',
-        response_type: 'code',
-        scope: 'streams.read streams.write streams.create streams.videos.read streams.videos.write'
-      });
+    // Get stored admin access token from database
+    const getAdminAccessToken = async () => {
+      // For now, we'll get the admin user's token from environment or a special admin tokens table
+      // This requires you to authorize the app first and store your token
+      const ADMIN_LIVEPUSH_TOKEN = Deno.env.get('LIVEPUSH_ADMIN_TOKEN');
       
-      const tokenUrl = `https://tokens.livepush.io/oauth2/access_token?${params.toString()}`;
-      console.log('Requesting Livepush token from:', tokenUrl.replace(LIVEPUSH_CLIENT_SECRET!, 'REDACTED'));
-      
-      const tokenResponse = await fetch(tokenUrl, {
-        method: 'GET',
-      });
-
-      if (!tokenResponse.ok) {
-        const errorText = await tokenResponse.text();
-        console.error('Livepush token error:', errorText);
-        throw new Error('Failed to get Livepush access token');
+      if (!ADMIN_LIVEPUSH_TOKEN) {
+        throw new Error('Admin Livepush token not configured. Please authorize the application first.');
       }
-
-      const tokenData = await tokenResponse.json();
-      return tokenData.access_token;
+      
+      return ADMIN_LIVEPUSH_TOKEN;
     };
 
     // SYNC VIDEO TO LIVEPUSH
@@ -141,17 +127,17 @@ serve(async (req) => {
         throw insertError;
       }
 
-      // Get access token (this can fail, so we wrap it)
+      // Get admin access token
       let accessToken;
       try {
-        accessToken = await getAccessToken();
+        accessToken = await getAdminAccessToken();
       } catch (tokenError) {
         // Update status to failed if we can't get token
         await supabase
           .from('livepush_videos')
           .update({
             sync_status: 'failed',
-            sync_error: 'Failed to authenticate with Livepush',
+            sync_error: 'Admin authorization required. Please contact administrator.',
           })
           .eq('id', livepushVideo.id);
         throw tokenError;
@@ -259,8 +245,8 @@ serve(async (req) => {
         throw new Error('Playlist not found');
       }
 
-      // Get access token
-      const accessToken = await getAccessToken();
+      // Get admin access token
+      const accessToken = await getAdminAccessToken();
 
       // Create stream on Livepush
       const streamResponse = await fetch('https://octopus.livepush.io/v1/streams', {
