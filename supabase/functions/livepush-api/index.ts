@@ -169,8 +169,11 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          label: video.title,
-          url: video.video_url,
+          name: video.title,
+          source: {
+            type: 'url',
+            url: video.video_url,
+          },
         }),
       });
 
