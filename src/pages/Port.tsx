@@ -659,9 +659,11 @@ const Port = () => {
         {/* Footer with Social Links */}
         <footer id="footer" className="border-t border-border pt-8 mt-16">
           <div className="text-center space-y-4">
-            {artist.socials && Object.keys(artist.socials).filter(key => artist.socials[key]).length > 0 && (
+            {artist.socials && Object.entries(artist.socials).filter(([_, url]) => url && typeof url === 'string').length > 0 && (
               <div className="flex items-center justify-center gap-4 py-2">
-                {Object.entries(artist.socials).map(([platform, url]) => {
+                {Object.entries(artist.socials)
+                  .filter(([_, url]) => url && typeof url === 'string')
+                  .map(([platform, url]) => {
                   const getSocialIcon = () => {
                     switch(platform.toLowerCase()) {
                       case 'instagram': return <Instagram className="h-4 w-4" />;
@@ -675,7 +677,7 @@ const Port = () => {
                     }
                   };
                   
-                  return url && (
+                  return (
                     <a 
                       key={platform}
                       href={url as string} 
