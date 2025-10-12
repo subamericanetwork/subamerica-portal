@@ -29,7 +29,6 @@ const Profile = () => {
   // Form state
   const [profilePhoto, setProfilePhoto] = useState<string>("");
   const [bioShort, setBioShort] = useState("");
-  const [website, setWebsite] = useState("");
   const [socials, setSocials] = useState({
     tiktok: "",
     youtube: "",
@@ -44,7 +43,6 @@ const Profile = () => {
     if (artist) {
       setProfilePhoto(artist.brand?.profile_photo || "");
       setBioShort(artist.bio_short || "");
-      setWebsite(artist.brand?.website || "");
       setSocials({
         tiktok: artist.socials?.tiktok || "",
         youtube: artist.socials?.youtube || "",
@@ -152,7 +150,6 @@ const Profile = () => {
           brand: {
             ...artist.brand,
             profile_photo: profilePhoto,
-            website: website,
             images: artistImages
           }
         })
@@ -298,24 +295,6 @@ const Profile = () => {
                 {charCount}/{maxChars} characters
               </p>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Website */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Website</CardTitle>
-            <CardDescription>
-              Add a link to your personal website or portfolio.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Input
-              type="url"
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://yourwebsite.com"
-            />
           </CardContent>
         </Card>
 
