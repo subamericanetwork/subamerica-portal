@@ -13,6 +13,7 @@ import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { LivepushVideoSync } from "@/components/LivepushVideoSync";
 
 const Videos = () => {
   const { artist, videos, loading } = useArtistData();
@@ -353,42 +354,50 @@ const Videos = () => {
                         </div>
                       </div>
 
-                      <div className="mt-4 flex items-center gap-3">
-                        {!video.is_featured && (
+                      <div className="mt-4 space-y-3">
+                        <LivepushVideoSync 
+                          videoId={video.id} 
+                          artistId={artist?.id || ''} 
+                          videoTitle={video.title}
+                        />
+                        
+                        <div className="flex items-center gap-3">
+                          {!video.is_featured && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleSetFeatured(video.id, video.is_featured)}
+                            >
+                              Set as Featured
+                            </Button>
+                          )}
+                          {video.is_featured && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSetFeatured(video.id, video.is_featured)}
+                            >
+                              Remove Featured
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleSetFeatured(video.id, video.is_featured)}
+                            onClick={() => handleEdit(video)}
                           >
-                            Set as Featured
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
                           </Button>
-                        )}
-                        {video.is_featured && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleSetFeatured(video.id, video.is_featured)}
+                            className="text-destructive"
+                            onClick={() => handleDelete(video.id)}
                           >
-                            Remove Featured
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
                           </Button>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(video)}
-                        >
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive"
-                          onClick={() => handleDelete(video.id)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import AdminRoute from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -16,6 +17,7 @@ import Monetization from "./pages/Monetization";
 import PortPreview from "./pages/PortPreview";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
+import AdminVideos from "./pages/admin/AdminVideos";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +38,7 @@ const App = () => (
           <Route path="/merch" element={<ProtectedRoute><Merch /></ProtectedRoute>} />
           <Route path="/monetization" element={<ProtectedRoute><Monetization /></ProtectedRoute>} />
           <Route path="/preview" element={<ProtectedRoute><PortPreview /></ProtectedRoute>} />
+          <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
