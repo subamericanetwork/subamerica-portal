@@ -11,7 +11,8 @@ import {
   User,
   Settings,
   LogOut,
-  Menu
+  Menu,
+  BarChart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -33,6 +34,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
+    { name: "Analytics", href: "/social-analytics", icon: BarChart },
     { name: "Monetization", href: "/monetization", icon: DollarSign },
     { name: "Preview Port", href: "/preview", icon: Eye },
   ];
