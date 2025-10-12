@@ -52,7 +52,7 @@ serve(async (req) => {
 
     // Get Livepush access token
     const getAccessToken = async () => {
-      const tokenResponse = await fetch('https://api.livepush.io/v1/oauth/token', {
+      const tokenResponse = await fetch('https://octopus.livepush.io/v1/oauth/token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -141,7 +141,7 @@ serve(async (req) => {
       const accessToken = await getAccessToken();
 
       // Upload video to Livepush
-      const uploadResponse = await fetch('https://api.livepush.io/v1/videos', {
+      const uploadResponse = await fetch('https://octopus.livepush.io/v1/videos', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -246,7 +246,7 @@ serve(async (req) => {
       const accessToken = await getAccessToken();
 
       // Create stream on Livepush
-      const streamResponse = await fetch('https://api.livepush.io/v1/streams', {
+      const streamResponse = await fetch('https://octopus.livepush.io/v1/streams', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
