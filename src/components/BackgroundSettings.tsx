@@ -255,7 +255,7 @@ export const BackgroundSettings = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Port Background</CardTitle>
+        <CardTitle>Port Experience</CardTitle>
         <CardDescription>
           Customize your port's background with a color, image, or short video
         </CardDescription>
