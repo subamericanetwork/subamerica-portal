@@ -76,7 +76,10 @@ export const useArtistData = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
-  const [portSettings, setPortSettings] = useState<PortSettings | null>(null);
+  const [portSettings, setPortSettings] = useState<PortSettings & {
+    custom_domain?: string;
+    custom_domain_verified?: boolean;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -139,7 +142,7 @@ export const useArtistData = () => {
         // Fetch port settings
         const { data: settingsData } = await supabase
           .from("port_settings")
-          .select("*")
+          .select("*, custom_domain, custom_domain_verified")
           .eq("artist_id", artistData.id)
           .single();
 

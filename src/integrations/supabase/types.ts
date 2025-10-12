@@ -254,6 +254,60 @@ export type Database = {
         }
         Relationships: []
       }
+      domain_verifications: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          dns_check_results: Json | null
+          domain: string
+          id: string
+          last_checked_at: string | null
+          updated_at: string | null
+          verification_status: string | null
+          verification_token: string
+          verified_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          dns_check_results?: Json | null
+          domain: string
+          id?: string
+          last_checked_at?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verification_token: string
+          verified_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          dns_check_results?: Json | null
+          domain?: string
+          id?: string
+          last_checked_at?: string | null
+          updated_at?: string | null
+          verification_status?: string | null
+          verification_token?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "domain_verifications_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "domain_verifications_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       events: {
         Row: {
           approval_status: string | null
@@ -557,6 +611,10 @@ export type Database = {
           background_video_url: string | null
           commenting: string | null
           created_at: string | null
+          custom_domain: string | null
+          custom_domain_dns_instructions: Json | null
+          custom_domain_verified: boolean | null
+          custom_domain_verified_at: string | null
           go_live_at: string | null
           h1_color: string | null
           h2_color: string | null
@@ -580,6 +638,10 @@ export type Database = {
           background_video_url?: string | null
           commenting?: string | null
           created_at?: string | null
+          custom_domain?: string | null
+          custom_domain_dns_instructions?: Json | null
+          custom_domain_verified?: boolean | null
+          custom_domain_verified_at?: string | null
           go_live_at?: string | null
           h1_color?: string | null
           h2_color?: string | null
@@ -603,6 +665,10 @@ export type Database = {
           background_video_url?: string | null
           commenting?: string | null
           created_at?: string | null
+          custom_domain?: string | null
+          custom_domain_dns_instructions?: Json | null
+          custom_domain_verified?: boolean | null
+          custom_domain_verified_at?: string | null
           go_live_at?: string | null
           h1_color?: string | null
           h2_color?: string | null

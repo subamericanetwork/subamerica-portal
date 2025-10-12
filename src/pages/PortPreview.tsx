@@ -139,10 +139,22 @@ const PortPreview = () => {
                 </>
               )}
             </Badge>
-            <Button variant="outline" onClick={handleOpenInNewTab}>
-              <ExternalLink className="h-4 w-4 mr-2" />
-              Open in New Tab
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Default URL
+              </Button>
+              {portSettings?.custom_domain_verified && portSettings?.custom_domain && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => window.open(`https://${portSettings.custom_domain}`, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Custom Domain
+                </Button>
+              )}
+            </div>
             <Button onClick={handlePublish} disabled={isPublishing}>
               {isPublished ? 'Unpublish' : 'Publish Port'}
             </Button>

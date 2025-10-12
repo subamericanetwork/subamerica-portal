@@ -75,50 +75,107 @@ const Port = () => {
 
   useEffect(() => {
     const fetchPortData = async () => {
-      if (!slug) return;
+      // Determine if request is from custom domain or slug
+      const hostname = window.location.hostname;
+      const isCustomDomain = hostname !== 'artist-portal.subamerica.net' && 
+                            hostname !== 'localhost' && 
+                            !hostname.includes('lovable.app');
+
+      let artistId: string | null = null;
 
       try {
-        // Fetch artist by slug - using main artists table which has public RLS policy
-        const { data: artistData, error: artistError } = await supabase
-          .from("artists")
-          .select("id, display_name, bio_short, scene, socials, brand")
-          .eq("slug", slug)
-          .single();
+        if (isCustomDomain) {
+          // Query by custom domain
+          const { data: portData, error: portError } = await supabase
+            .from('port_settings')
+            .select('artist_id, custom_domain_verified, publish_status, background_type, background_value, background_video_url, h1_color, h2_color, h3_color, h4_color, text_sm_color, text_md_color, text_lg_color')
+            .eq('custom_domain', hostname)
+            .maybeSingle();
 
-        if (artistError) throw artistError;
-        
-        // Check if port is published and get background settings
-        const { data: settingsData, error: settingsError } = await supabase
-          .from("port_settings")
-          .select("publish_status, background_type, background_value, background_video_url, h1_color, h2_color, h3_color, h4_color, text_sm_color, text_md_color, text_lg_color")
-          .eq("artist_id", artistData.id)
-          .maybeSingle();
+          if (portError || !portData) {
+            setLoading(false);
+            return;
+          }
 
-        if (import.meta.env.DEV) console.log("Port settings check:", { settingsData, settingsError, artistId: artistData.id });
+          // Check if custom domain is verified
+          if (!portData.custom_domain_verified) {
+            setLoading(false);
+            return;
+          }
 
-        if (!settingsData || settingsData?.publish_status !== 'published') {
-          if (import.meta.env.DEV) console.log("Port not published or settings missing");
+          // Check if published
+          if (portData.publish_status !== 'published') {
+            setLoading(false);
+            return;
+          }
+
+          artistId = portData.artist_id;
+          setPortSettings(portData);
+          setBackgroundType(portData.background_type || "color");
+          setBackgroundValue(portData.background_value || "#000000");
+          setBackgroundVideoUrl(portData.background_video_url || null);
+
+          // Fetch artist data by artistId
+          const { data: artistData, error: artistError } = await supabase
+            .from("artists")
+            .select("id, display_name, bio_short, scene, socials, brand")
+            .eq("id", artistId)
+            .single();
+
+          if (artistError) throw artistError;
+          setArtist(artistData);
+        } else {
+          // Query by slug (original behavior)
+          if (!slug) return;
+
+          // Fetch artist by slug - using main artists table which has public RLS policy
+          const { data: artistData, error: artistError } = await supabase
+            .from("artists")
+            .select("id, display_name, bio_short, scene, socials, brand")
+            .eq("slug", slug)
+            .single();
+
+          if (artistError) throw artistError;
+          artistId = artistData.id;
+          setArtist(artistData);
+          
+          // Check if port is published and get background settings
+          const { data: settingsData, error: settingsError } = await supabase
+            .from("port_settings")
+            .select("publish_status, background_type, background_value, background_video_url, h1_color, h2_color, h3_color, h4_color, text_sm_color, text_md_color, text_lg_color")
+            .eq("artist_id", artistData.id)
+            .maybeSingle();
+
+          if (import.meta.env.DEV) console.log("Port settings check:", { settingsData, settingsError, artistId: artistData.id });
+
+          if (!settingsData || settingsData?.publish_status !== 'published') {
+            if (import.meta.env.DEV) console.log("Port not published or settings missing");
+            setLoading(false);
+            return;
+          }
+
+          setPortSettings(settingsData);
+          
+          // Set background settings
+          if (settingsData) {
+            setBackgroundType(settingsData.background_type || "color");
+            setBackgroundValue(settingsData.background_value || "#000000");
+            setBackgroundVideoUrl(settingsData.background_video_url || null);
+          }
+        }
+
+        if (!artistId) {
           setLoading(false);
           return;
         }
-
-        setArtist(artistData);
-        setPortSettings(settingsData);
         
-        // Set background settings
-        if (settingsData) {
-          setBackgroundType(settingsData.background_type || "color");
-          setBackgroundValue(settingsData.background_value || "#000000");
-          setBackgroundVideoUrl(settingsData.background_video_url || null);
-        }
-        
-        if (import.meta.env.DEV) console.log("Artist data loaded:", { artistData, images: artistData?.brand && typeof artistData.brand === 'object' ? (artistData.brand as any).images : null });
+        if (import.meta.env.DEV) console.log("Artist data loaded, fetching related content for artist:", artistId);
 
         // Fetch featured video
         const { data: videoData } = await supabase
           .from("videos")
           .select("id, title, video_url, thumb_url")
-          .eq("artist_id", artistData.id)
+          .eq("artist_id", artistId)
           .eq("is_featured", true)
           .not("published_at", "is", null)
           .maybeSingle();
@@ -129,7 +186,7 @@ const Port = () => {
         const { data: eventsData } = await supabase
           .from("events")
           .select("*")
-          .eq("artist_id", artistData.id)
+          .eq("artist_id", artistId)
           .gte("starts_at", new Date().toISOString())
           .order("starts_at", { ascending: true });
 
@@ -140,7 +197,7 @@ const Port = () => {
         const { data: productsData } = await supabase
           .from("products")
           .select("*")
-          .eq("artist_id", artistData.id)
+          .eq("artist_id", artistId)
           .eq("is_surface", true)
           .order("created_at", { ascending: false });
 
@@ -156,7 +213,7 @@ const Port = () => {
         const { data: faqsData } = await supabase
           .from("artist_faqs")
           .select("*")
-          .eq("artist_id", artistData.id)
+          .eq("artist_id", artistId)
           .eq("is_visible", true)
           .order("display_order", { ascending: true });
 

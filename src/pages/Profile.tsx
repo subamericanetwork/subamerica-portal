@@ -14,6 +14,7 @@ import { Loader2, Upload, X, User } from "lucide-react";
 import { BackgroundSettings } from "@/components/BackgroundSettings";
 import { FAQManagement } from "@/components/FAQManagement";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
+import { CustomDomainSettings } from "@/components/CustomDomainSettings";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
@@ -213,6 +214,16 @@ const Profile = () => {
             artist={artist}
             faqs={faqs}
             portSettings={portSettings}
+          />
+        )}
+
+        {/* Custom Domain Settings */}
+        {artist && (
+          <CustomDomainSettings 
+            artistId={artist.id}
+            slug={artist.slug}
+            currentDomain={portSettings?.custom_domain}
+            isVerified={portSettings?.custom_domain_verified}
           />
         )}
 

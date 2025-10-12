@@ -26,7 +26,7 @@ export const SEOCompleteness = ({ artist, faqs, portSettings }: SEOCompletenessP
       id: "faqs",
       label: "FAQ Section (8 questions)",
       completed: faqs.filter(f => f.is_visible).length >= 8,
-      weight: 40,
+      weight: 30,
       detail: `${faqs.filter(f => f.is_visible).length}/8 FAQs completed`,
     },
     {
@@ -44,6 +44,15 @@ export const SEOCompleteness = ({ artist, faqs, portSettings }: SEOCompletenessP
       completed: portSettings?.background_type !== "color" || 
                  (portSettings?.background_value && portSettings.background_value !== "#000000"),
       weight: 20,
+    },
+    {
+      id: "custom_domain",
+      label: "Custom Domain ★ Bonus",
+      completed: !!(portSettings as any)?.custom_domain_verified,
+      weight: 10,
+      detail: (portSettings as any)?.custom_domain_verified 
+        ? `Verified: ${(portSettings as any).custom_domain}`
+        : "Connect your own domain for better branding",
     },
   ];
 
