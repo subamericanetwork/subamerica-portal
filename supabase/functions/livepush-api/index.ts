@@ -163,7 +163,7 @@ serve(async (req) => {
 
       // Upload video directly to the artist's stream video library
       const uploadResponse = await fetch(`https://octopus.livepush.io/streams/${permissions.livepush_stream_id}/videos`, {
-        method: 'POST',
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
