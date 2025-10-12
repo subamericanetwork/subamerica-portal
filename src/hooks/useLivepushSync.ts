@@ -14,7 +14,7 @@ export const useLivepushSync = () => {
         throw new Error('Not authenticated');
       }
 
-      const response = await supabase.functions.invoke('livepush-api', {
+      const response = await supabase.functions.invoke('livepush-api?action=sync-video', {
         body: { videoId, artistId },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
