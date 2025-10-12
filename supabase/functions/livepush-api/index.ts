@@ -56,7 +56,8 @@ serve(async (req) => {
         client_id: LIVEPUSH_CLIENT_ID!,
         client_secret: LIVEPUSH_CLIENT_SECRET!,
         grant_type: 'client_credentials',
-        response_type: 'code'
+        response_type: 'code',
+        scope: 'streams.read streams.write streams.create streams.videos.read streams.videos.write'
       });
       
       const tokenResponse = await fetch(`https://tokens.livepush.io/oauth2/access_token?${params.toString()}`, {
