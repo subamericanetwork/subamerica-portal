@@ -229,7 +229,7 @@ export const FAQManagement = ({ artistId, artistName, faqs, onUpdate }: FAQManag
       <CardHeader>
         <CardTitle>FAQ Section</CardTitle>
         <CardDescription>
-          Optimize your artist page for search engines and voice assistants with structured FAQs.
+          Optimize your artist page for search engines, voice assistants, and generative AI engines (ChatGPT, Perplexity, Claude).
           Use the guided templates or create your own custom Q&A.
         </CardDescription>
       </CardHeader>
