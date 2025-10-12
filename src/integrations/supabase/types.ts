@@ -14,6 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_notification_preferences: {
+        Row: {
+          admin_id: string
+          created_at: string | null
+          email_address: string | null
+          email_enabled: boolean | null
+          id: string
+          notify_artist_limit_reached: boolean | null
+          notify_copyright_detected: boolean | null
+          notify_playlist_approval: boolean | null
+          notify_stream_flagged: boolean | null
+          notify_tier_change: boolean | null
+          phone_number: string | null
+          sms_enabled: boolean | null
+          updated_at: string | null
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string | null
+          email_address?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          notify_artist_limit_reached?: boolean | null
+          notify_copyright_detected?: boolean | null
+          notify_playlist_approval?: boolean | null
+          notify_stream_flagged?: boolean | null
+          notify_tier_change?: boolean | null
+          phone_number?: string | null
+          sms_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string | null
+          email_address?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          notify_artist_limit_reached?: boolean | null
+          notify_copyright_detected?: boolean | null
+          notify_playlist_approval?: boolean | null
+          notify_stream_flagged?: boolean | null
+          notify_tier_change?: boolean | null
+          phone_number?: string | null
+          sms_enabled?: boolean | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      admin_notifications: {
+        Row: {
+          admin_id: string
+          created_at: string | null
+          email_sent: boolean | null
+          id: string
+          in_app_read: boolean | null
+          message: string
+          metadata: Json | null
+          read_at: string | null
+          sms_sent: boolean | null
+          title: string
+          type: string
+        }
+        Insert: {
+          admin_id: string
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          in_app_read?: boolean | null
+          message: string
+          metadata?: Json | null
+          read_at?: string | null
+          sms_sent?: boolean | null
+          title: string
+          type: string
+        }
+        Update: {
+          admin_id?: string
+          created_at?: string | null
+          email_sent?: boolean | null
+          id?: string
+          in_app_read?: boolean | null
+          message?: string
+          metadata?: Json | null
+          read_at?: string | null
+          sms_sent?: boolean | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       artists: {
         Row: {
           bio_long: string | null
@@ -27,6 +117,13 @@ export type Database = {
           scene: string | null
           slug: string
           socials: Json | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_expires_at: string | null
+          subscription_started_at: string | null
+          subscription_tier:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           tz: string | null
           updated_at: string | null
           user_id: string
@@ -43,6 +140,13 @@ export type Database = {
           scene?: string | null
           slug: string
           socials?: Json | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           tz?: string | null
           updated_at?: string | null
           user_id: string
@@ -59,6 +163,13 @@ export type Database = {
           scene?: string | null
           slug?: string
           socials?: Json | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_expires_at?: string | null
+          subscription_started_at?: string | null
+          subscription_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
           tz?: string | null
           updated_at?: string | null
           user_id?: string
@@ -97,45 +208,72 @@ export type Database = {
       }
       events: {
         Row: {
+          approval_status: string | null
+          approved_by: string | null
           artist_id: string
           created_at: string | null
           description: string | null
           duration: number | null
           geo: Json | null
           id: string
+          livepush_stream_id: string | null
           livestream_source: string | null
+          livestream_status: string | null
+          multistream_destinations: Json | null
           poster_url: string | null
+          qr_code_enabled: boolean | null
+          qr_code_position: string | null
+          rtmp_url: string | null
           starts_at: string
+          stream_key: string | null
           ticket_url: string | null
           title: string
           updated_at: string | null
           venue: string | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_by?: string | null
           artist_id: string
           created_at?: string | null
           description?: string | null
           duration?: number | null
           geo?: Json | null
           id?: string
+          livepush_stream_id?: string | null
           livestream_source?: string | null
+          livestream_status?: string | null
+          multistream_destinations?: Json | null
           poster_url?: string | null
+          qr_code_enabled?: boolean | null
+          qr_code_position?: string | null
+          rtmp_url?: string | null
           starts_at: string
+          stream_key?: string | null
           ticket_url?: string | null
           title: string
           updated_at?: string | null
           venue?: string | null
         }
         Update: {
+          approval_status?: string | null
+          approved_by?: string | null
           artist_id?: string
           created_at?: string | null
           description?: string | null
           duration?: number | null
           geo?: Json | null
           id?: string
+          livepush_stream_id?: string | null
           livestream_source?: string | null
+          livestream_status?: string | null
+          multistream_destinations?: Json | null
           poster_url?: string | null
+          qr_code_enabled?: boolean | null
+          qr_code_position?: string | null
+          rtmp_url?: string | null
           starts_at?: string
+          stream_key?: string | null
           ticket_url?: string | null
           title?: string
           updated_at?: string | null
@@ -154,6 +292,163 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livepush_artist_permissions: {
+        Row: {
+          artist_id: string
+          copyright_check_enabled: boolean | null
+          created_at: string | null
+          current_month_stream_hours: number | null
+          id: string
+          is_suspended: boolean | null
+          is_trusted_artist: boolean | null
+          last_stream_reset_at: string | null
+          livepush_enabled: boolean | null
+          max_concurrent_streams: number | null
+          max_monthly_stream_hours: number | null
+          max_multistream_destinations: number | null
+          max_playlist_videos: number | null
+          multistreaming_enabled: boolean | null
+          playlist_streams_enabled: boolean | null
+          requires_approval: boolean | null
+          suspension_reason: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          copyright_check_enabled?: boolean | null
+          created_at?: string | null
+          current_month_stream_hours?: number | null
+          id?: string
+          is_suspended?: boolean | null
+          is_trusted_artist?: boolean | null
+          last_stream_reset_at?: string | null
+          livepush_enabled?: boolean | null
+          max_concurrent_streams?: number | null
+          max_monthly_stream_hours?: number | null
+          max_multistream_destinations?: number | null
+          max_playlist_videos?: number | null
+          multistreaming_enabled?: boolean | null
+          playlist_streams_enabled?: boolean | null
+          requires_approval?: boolean | null
+          suspension_reason?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          copyright_check_enabled?: boolean | null
+          created_at?: string | null
+          current_month_stream_hours?: number | null
+          id?: string
+          is_suspended?: boolean | null
+          is_trusted_artist?: boolean | null
+          last_stream_reset_at?: string | null
+          livepush_enabled?: boolean | null
+          max_concurrent_streams?: number | null
+          max_monthly_stream_hours?: number | null
+          max_multistream_destinations?: number | null
+          max_playlist_videos?: number | null
+          multistreaming_enabled?: boolean | null
+          playlist_streams_enabled?: boolean | null
+          requires_approval?: boolean | null
+          suspension_reason?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livepush_artist_permissions_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livepush_artist_permissions_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: true
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      livepush_videos: {
+        Row: {
+          approval_notes: string | null
+          approval_status: string | null
+          approved_by: string | null
+          artist_id: string
+          copyright_details: Json | null
+          copyright_detected: boolean | null
+          created_at: string | null
+          id: string
+          last_synced_at: string | null
+          livepush_id: string | null
+          livepush_url: string | null
+          sync_error: string | null
+          sync_started_at: string | null
+          sync_status: string | null
+          updated_at: string | null
+          video_id: string
+        }
+        Insert: {
+          approval_notes?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
+          artist_id: string
+          copyright_details?: Json | null
+          copyright_detected?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          livepush_id?: string | null
+          livepush_url?: string | null
+          sync_error?: string | null
+          sync_started_at?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+          video_id: string
+        }
+        Update: {
+          approval_notes?: string | null
+          approval_status?: string | null
+          approved_by?: string | null
+          artist_id?: string
+          copyright_details?: Json | null
+          copyright_detected?: boolean | null
+          created_at?: string | null
+          id?: string
+          last_synced_at?: string | null
+          livepush_id?: string | null
+          livepush_url?: string | null
+          sync_error?: string | null
+          sync_started_at?: string | null
+          sync_status?: string | null
+          updated_at?: string | null
+          video_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "livepush_videos_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livepush_videos_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "livepush_videos_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: true
+            referencedRelation: "videos"
             referencedColumns: ["id"]
           },
         ]
@@ -407,6 +702,547 @@ export type Database = {
           },
         ]
       }
+      social_analytics: {
+        Row: {
+          artist_id: string
+          comments: number | null
+          created_at: string | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          platform: string
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          social_post_id: string
+          synced_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          social_post_id: string
+          synced_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform?: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          social_post_id?: string
+          synced_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_analytics_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_analytics_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_analytics_social_post_id_fkey"
+            columns: ["social_post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_connections: {
+        Row: {
+          access_token: string
+          artist_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          platform: string
+          platform_user_id: string
+          platform_username: string | null
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          artist_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          platform: string
+          platform_user_id: string
+          platform_username?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          artist_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          platform?: string
+          platform_user_id?: string
+          platform_username?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connections_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_connections_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          artist_id: string
+          caption: string | null
+          created_at: string | null
+          id: string
+          media_url: string | null
+          permalink: string | null
+          platform: string
+          platform_post_id: string
+          post_type: string | null
+          posted_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          media_url?: string | null
+          permalink?: string | null
+          platform: string
+          platform_post_id: string
+          post_type?: string | null
+          posted_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          media_url?: string | null
+          permalink?: string | null
+          platform?: string
+          platform_post_id?: string
+          post_type?: string | null
+          posted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stream_donations: {
+        Row: {
+          amount: number
+          artist_id: string
+          created_at: string | null
+          donor_name: string | null
+          event_id: string | null
+          id: string
+          message: string | null
+          payment_method: string | null
+          shown_on_stream: boolean | null
+          stream_id: string | null
+          transaction_id: string | null
+        }
+        Insert: {
+          amount: number
+          artist_id: string
+          created_at?: string | null
+          donor_name?: string | null
+          event_id?: string | null
+          id?: string
+          message?: string | null
+          payment_method?: string | null
+          shown_on_stream?: boolean | null
+          stream_id?: string | null
+          transaction_id?: string | null
+        }
+        Update: {
+          amount?: number
+          artist_id?: string
+          created_at?: string | null
+          donor_name?: string | null
+          event_id?: string | null
+          id?: string
+          message?: string | null
+          payment_method?: string | null
+          shown_on_stream?: boolean | null
+          stream_id?: string | null
+          transaction_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_donations_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_donations_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_donations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_donations_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "stream_playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stream_markers: {
+        Row: {
+          created_at: string | null
+          event_id: string | null
+          id: string
+          label: string
+          marker_type: string | null
+          stream_id: string | null
+          timestamp_seconds: number
+        }
+        Insert: {
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          label: string
+          marker_type?: string | null
+          stream_id?: string | null
+          timestamp_seconds: number
+        }
+        Update: {
+          created_at?: string | null
+          event_id?: string | null
+          id?: string
+          label?: string
+          marker_type?: string | null
+          stream_id?: string | null
+          timestamp_seconds?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_markers_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_markers_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "stream_playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stream_playlists: {
+        Row: {
+          approval_notes: string | null
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
+          artist_id: string
+          auto_start: boolean | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          livepush_stream_id: string | null
+          loop_count: number | null
+          loop_mode: string | null
+          multistream_destinations: Json | null
+          name: string
+          qr_code_enabled: boolean | null
+          qr_code_position: string | null
+          qr_code_url: string | null
+          rtmp_url: string | null
+          scheduled_end_at: string | null
+          scheduled_start_at: string | null
+          shuffle: boolean | null
+          status: string | null
+          stream_key: string | null
+          updated_at: string | null
+          video_ids: string[]
+          video_order: Json | null
+          viewer_count: number | null
+        }
+        Insert: {
+          approval_notes?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          artist_id: string
+          auto_start?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          livepush_stream_id?: string | null
+          loop_count?: number | null
+          loop_mode?: string | null
+          multistream_destinations?: Json | null
+          name: string
+          qr_code_enabled?: boolean | null
+          qr_code_position?: string | null
+          qr_code_url?: string | null
+          rtmp_url?: string | null
+          scheduled_end_at?: string | null
+          scheduled_start_at?: string | null
+          shuffle?: boolean | null
+          status?: string | null
+          stream_key?: string | null
+          updated_at?: string | null
+          video_ids: string[]
+          video_order?: Json | null
+          viewer_count?: number | null
+        }
+        Update: {
+          approval_notes?: string | null
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          artist_id?: string
+          auto_start?: boolean | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          livepush_stream_id?: string | null
+          loop_count?: number | null
+          loop_mode?: string | null
+          multistream_destinations?: Json | null
+          name?: string
+          qr_code_enabled?: boolean | null
+          qr_code_position?: string | null
+          qr_code_url?: string | null
+          rtmp_url?: string | null
+          scheduled_end_at?: string | null
+          scheduled_start_at?: string | null
+          shuffle?: boolean | null
+          status?: string | null
+          stream_key?: string | null
+          updated_at?: string | null
+          video_ids?: string[]
+          video_order?: Json | null
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_playlists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_playlists_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stream_tracklists: {
+        Row: {
+          artist_name: string
+          created_at: string | null
+          duration_seconds: number | null
+          event_id: string | null
+          id: string
+          label: string | null
+          stream_id: string | null
+          timestamp_seconds: number | null
+          track_name: string
+          track_number: number
+        }
+        Insert: {
+          artist_name: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          event_id?: string | null
+          id?: string
+          label?: string | null
+          stream_id?: string | null
+          timestamp_seconds?: number | null
+          track_name: string
+          track_number: number
+        }
+        Update: {
+          artist_name?: string
+          created_at?: string | null
+          duration_seconds?: number | null
+          event_id?: string | null
+          id?: string
+          label?: string | null
+          stream_id?: string | null
+          timestamp_seconds?: number | null
+          track_name?: string
+          track_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_tracklists_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_tracklists_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "stream_playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_history: {
+        Row: {
+          action: string
+          amount_paid: number | null
+          artist_id: string
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          previous_tier: Database["public"]["Enums"]["subscription_tier"] | null
+          stripe_invoice_id: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Insert: {
+          action: string
+          amount_paid?: number | null
+          artist_id: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          previous_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          stripe_invoice_id?: string | null
+          tier: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Update: {
+          action?: string
+          amount_paid?: number | null
+          artist_id?: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          previous_tier?:
+            | Database["public"]["Enums"]["subscription_tier"]
+            | null
+          stripe_invoice_id?: string | null
+          tier?: Database["public"]["Enums"]["subscription_tier"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_history_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subscription_history_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          granted_at: string | null
+          granted_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          granted_at?: string | null
+          granted_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       videos: {
         Row: {
           artist_id: string
@@ -537,14 +1373,23 @@ export type Database = {
       }
     }
     Functions: {
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_artist_owner: {
         Args: { _artist_id: string }
         Returns: boolean
       }
     }
     Enums: {
+      app_role: "admin" | "artist" | "moderator"
       pay_mode: "heartland_hosted" | "woo_heartland"
       publish_status: "draft" | "pending" | "scheduled" | "published"
+      subscription_tier: "free" | "pro" | "premium"
       video_kind:
         | "music_video"
         | "performance_clip"
@@ -679,8 +1524,10 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "artist", "moderator"],
       pay_mode: ["heartland_hosted", "woo_heartland"],
       publish_status: ["draft", "pending", "scheduled", "published"],
+      subscription_tier: ["free", "pro", "premium"],
       video_kind: [
         "music_video",
         "performance_clip",
