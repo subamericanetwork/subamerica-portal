@@ -50,18 +50,17 @@ serve(async (req) => {
 
     console.log(`Livepush API - Action: ${action}, User: ${user.id}`);
 
-    // Get Livepush access token
+    // Get Livepush access token using admin credentials (client credentials flow)
     const getAccessToken = async () => {
-      const tokenResponse = await fetch('https://octopus.livepush.io/v1/oauth/token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          grant_type: 'client_credentials',
-          client_id: LIVEPUSH_CLIENT_ID,
-          client_secret: LIVEPUSH_CLIENT_SECRET,
-        }),
+      const params = new URLSearchParams({
+        client_id: LIVEPUSH_CLIENT_ID!,
+        client_secret: LIVEPUSH_CLIENT_SECRET!,
+        grant_type: 'client_credentials',
+        response_type: 'code'
+      });
+      
+      const tokenResponse = await fetch(`https://tokens.livepush.io/oauth2/access_token?${params.toString()}`, {
+        method: 'GET',
       });
 
       if (!tokenResponse.ok) {
