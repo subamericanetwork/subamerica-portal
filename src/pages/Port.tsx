@@ -139,9 +139,20 @@ const Port = () => {
             .from("artists")
             .select("id, display_name, bio_short, scene, socials, brand")
             .eq("slug", slug)
-            .single();
+            .maybeSingle();
 
-          if (artistError) throw artistError;
+          if (artistError) {
+            console.error("Error fetching artist:", artistError);
+            setLoading(false);
+            return;
+          }
+          
+          if (!artistData) {
+            console.log("No artist found for slug:", slug);
+            setLoading(false);
+            return;
+          }
+          
           artistId = artistData.id;
           setArtist(artistData);
           
