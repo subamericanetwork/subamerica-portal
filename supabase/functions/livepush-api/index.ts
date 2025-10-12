@@ -60,7 +60,10 @@ serve(async (req) => {
         scope: 'streams.read streams.write streams.create streams.videos.read streams.videos.write'
       });
       
-      const tokenResponse = await fetch(`https://tokens.livepush.io/oauth2/access_token?${params.toString()}`, {
+      const tokenUrl = `https://tokens.livepush.io/oauth2/access_token?${params.toString()}`;
+      console.log('Requesting Livepush token from:', tokenUrl.replace(LIVEPUSH_CLIENT_SECRET!, 'REDACTED'));
+      
+      const tokenResponse = await fetch(tokenUrl, {
         method: 'GET',
       });
 
