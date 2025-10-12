@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { FAQSection } from "@/components/FAQSection";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon } from "lucide-react";
 
 interface Artist {
@@ -41,12 +42,21 @@ interface Product {
   description: string | null;
 }
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number;
+  is_visible: boolean;
+}
+
 const Port = () => {
   const { slug } = useParams();
   const [artist, setArtist] = useState<Artist | null>(null);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -141,6 +151,16 @@ const Port = () => {
         if (import.meta.env.DEV) {
           if (import.meta.env.DEV) console.log("Products loaded:", productsData);
         }
+
+        // Fetch FAQs
+        const { data: faqsData } = await supabase
+          .from("artist_faqs")
+          .select("*")
+          .eq("artist_id", artistData.id)
+          .eq("is_visible", true)
+          .order("display_order", { ascending: true });
+
+        setFaqs(faqsData || []);
 
       } catch (error) {
         if (import.meta.env.DEV) {
@@ -469,6 +489,12 @@ const Port = () => {
             </div>
           </div>
         )}
+
+        {/* FAQ Section */}
+        <FAQSection 
+          faqs={faqs} 
+          textColor={portSettings?.text_md_color || "#ffffff"}
+        />
 
         {/* Merch */}
         {products.length > 0 && (

@@ -12,11 +12,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, User } from "lucide-react";
 import { BackgroundSettings } from "@/components/BackgroundSettings";
+import { FAQManagement } from "@/components/FAQManagement";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
   const navigate = useNavigate();
-  const { artist, loading, portSettings } = useArtistData();
+  const { artist, loading, portSettings, faqs } = useArtistData();
   const { user } = useAuth();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
@@ -427,6 +428,15 @@ const Profile = () => {
             </p>
           </CardContent>
         </Card>
+
+        {/* FAQ Management */}
+        {artist && (
+          <FAQManagement
+            artistId={artist.id}
+            faqs={faqs}
+            onUpdate={() => setRefreshKey(prev => prev + 1)}
+          />
+        )}
 
         {/* Background Settings */}
         {artist && user && (

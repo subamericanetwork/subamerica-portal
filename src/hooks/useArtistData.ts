@@ -47,6 +47,14 @@ interface Product {
   images: string[] | null;
 }
 
+interface FAQ {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number;
+  is_visible: boolean;
+}
+
 interface PortSettings {
   publish_status: string;
   background_type?: string;
@@ -67,6 +75,7 @@ export const useArtistData = () => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [faqs, setFaqs] = useState<FAQ[]>([]);
   const [portSettings, setPortSettings] = useState<PortSettings | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -118,6 +127,15 @@ export const useArtistData = () => {
           images: Array.isArray(p.images) ? p.images as string[] : null
         })));
 
+        // Fetch FAQs
+        const { data: faqsData } = await supabase
+          .from("artist_faqs")
+          .select("*")
+          .eq("artist_id", artistData.id)
+          .order("display_order", { ascending: true });
+
+        setFaqs(faqsData || []);
+
         // Fetch port settings
         const { data: settingsData } = await supabase
           .from("port_settings")
@@ -143,6 +161,7 @@ export const useArtistData = () => {
     videos,
     events,
     products,
+    faqs,
     portSettings,
     loading,
     surfaceProducts: products.filter(p => p.is_surface),
