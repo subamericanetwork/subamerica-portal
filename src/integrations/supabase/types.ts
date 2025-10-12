@@ -407,6 +407,190 @@ export type Database = {
           },
         ]
       }
+      social_analytics: {
+        Row: {
+          artist_id: string
+          comments: number | null
+          created_at: string | null
+          engagement_rate: number | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          platform: string
+          reach: number | null
+          saves: number | null
+          shares: number | null
+          social_post_id: string
+          synced_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          social_post_id: string
+          synced_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          comments?: number | null
+          created_at?: string | null
+          engagement_rate?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          platform?: string
+          reach?: number | null
+          saves?: number | null
+          shares?: number | null
+          social_post_id?: string
+          synced_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_analytics_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_analytics_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_analytics_social_post_id_fkey"
+            columns: ["social_post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_connections: {
+        Row: {
+          access_token: string
+          artist_id: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_synced_at: string | null
+          platform: string
+          platform_user_id: string
+          platform_username: string | null
+          refresh_token: string | null
+          token_expires_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          artist_id: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          platform: string
+          platform_user_id: string
+          platform_username?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          artist_id?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_synced_at?: string | null
+          platform?: string
+          platform_user_id?: string
+          platform_username?: string | null
+          refresh_token?: string | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_connections_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_connections_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_posts: {
+        Row: {
+          artist_id: string
+          caption: string | null
+          created_at: string | null
+          id: string
+          media_url: string | null
+          permalink: string | null
+          platform: string
+          platform_post_id: string
+          post_type: string | null
+          posted_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          media_url?: string | null
+          permalink?: string | null
+          platform: string
+          platform_post_id: string
+          post_type?: string | null
+          posted_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          caption?: string | null
+          created_at?: string | null
+          id?: string
+          media_url?: string | null
+          permalink?: string | null
+          platform?: string
+          platform_post_id?: string
+          post_type?: string | null
+          posted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_posts_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_posts_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       videos: {
         Row: {
           artist_id: string
