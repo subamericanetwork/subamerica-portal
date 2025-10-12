@@ -433,6 +433,7 @@ const Profile = () => {
         {artist && (
           <FAQManagement
             artistId={artist.id}
+            artistName={artist.display_name}
             faqs={faqs}
             onUpdate={() => setRefreshKey(prev => prev + 1)}
           />

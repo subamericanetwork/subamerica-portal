@@ -20,6 +20,7 @@ interface FAQ {
 
 interface FAQManagementProps {
   artistId: string;
+  artistName: string;
   faqs: FAQ[];
   onUpdate: () => void;
 }
@@ -67,22 +68,24 @@ const FAQ_TEMPLATES = [
   },
 ];
 
-export const FAQManagement = ({ artistId, faqs, onUpdate }: FAQManagementProps) => {
+export const FAQManagement = ({ artistId, artistName, faqs, onUpdate }: FAQManagementProps) => {
   const [editingFaq, setEditingFaq] = useState<Partial<FAQ> | null>(null);
   const [saving, setSaving] = useState(false);
   const [templateAnswers, setTemplateAnswers] = useState<Record<string, string>>({});
 
   const getTemplateAnswer = (templateId: string) => {
-    const existingFaq = faqs.find(faq => 
-      FAQ_TEMPLATES.find(t => t.id === templateId && t.question === faq.question)
-    );
+    const template = FAQ_TEMPLATES.find(t => t.id === templateId);
+    if (!template) return "";
+    const displayQuestion = template.question.replace(/\[Artist Name\]/g, artistName);
+    const existingFaq = faqs.find(faq => faq.question === displayQuestion);
     return existingFaq?.answer || templateAnswers[templateId] || "";
   };
 
   const isTemplateAnswered = (templateId: string) => {
-    return faqs.some(faq => 
-      FAQ_TEMPLATES.find(t => t.id === templateId && t.question === faq.question)
-    );
+    const template = FAQ_TEMPLATES.find(t => t.id === templateId);
+    if (!template) return false;
+    const displayQuestion = template.question.replace(/\[Artist Name\]/g, artistName);
+    return faqs.some(faq => faq.question === displayQuestion);
   };
 
   const handleAddNew = () => {
@@ -181,9 +184,11 @@ export const FAQManagement = ({ artistId, faqs, onUpdate }: FAQManagementProps) 
       return;
     }
 
+    const displayQuestion = template.question.replace(/\[Artist Name\]/g, artistName);
+
     setSaving(true);
     try {
-      const existingFaq = faqs.find(faq => faq.question === template.question);
+      const existingFaq = faqs.find(faq => faq.question === displayQuestion);
       
       if (existingFaq) {
         const { error } = await supabase
@@ -199,7 +204,7 @@ export const FAQManagement = ({ artistId, faqs, onUpdate }: FAQManagementProps) 
           .from("artist_faqs")
           .insert({
             artist_id: artistId,
-            question: template.question,
+            question: displayQuestion,
             answer,
             display_order: maxOrder + 1,
             is_visible: true,
@@ -243,6 +248,7 @@ export const FAQManagement = ({ artistId, faqs, onUpdate }: FAQManagementProps) 
             {FAQ_TEMPLATES.map((template) => {
               const isAnswered = isTemplateAnswered(template.id);
               const currentAnswer = getTemplateAnswer(template.id);
+              const displayQuestion = template.question.replace(/\[Artist Name\]/g, artistName);
               
               return (
                 <Card key={template.id} className={isAnswered ? "border-primary/50" : ""}>
@@ -254,7 +260,7 @@ export const FAQManagement = ({ artistId, faqs, onUpdate }: FAQManagementProps) 
                         <Circle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
                       )}
                       <div className="flex-1">
-                        <CardTitle className="text-base">{template.question}</CardTitle>
+                        <CardTitle className="text-base">{displayQuestion}</CardTitle>
                         <CardDescription className="text-xs mt-1">
                           {template.placeholder}
                         </CardDescription>
@@ -300,10 +306,19 @@ export const FAQManagement = ({ artistId, faqs, onUpdate }: FAQManagementProps) 
           {/* Custom Q&A Tab */}
           <TabsContent value="custom" className="space-y-4 mt-4">
             {/* Custom FAQs */}
-            {faqs.filter(f => !FAQ_TEMPLATES.some(t => t.question === f.question)).length > 0 && (
+            {faqs.filter(f => {
+              // Filter out template questions by checking if any template matches this FAQ's question
+              return !FAQ_TEMPLATES.some(t => {
+                const displayQuestion = t.question.replace(/\[Artist Name\]/g, artistName);
+                return displayQuestion === f.question;
+              });
+            }).length > 0 && (
               <div className="space-y-2">
                 {faqs
-                  .filter(f => !FAQ_TEMPLATES.some(t => t.question === f.question))
+                  .filter(f => !FAQ_TEMPLATES.some(t => {
+                    const displayQuestion = t.question.replace(/\[Artist Name\]/g, artistName);
+                    return displayQuestion === f.question;
+                  }))
                   .map((faq) => (
                     <div
                       key={faq.id}
