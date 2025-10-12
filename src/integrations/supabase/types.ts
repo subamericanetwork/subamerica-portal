@@ -307,6 +307,7 @@ export type Database = {
           is_trusted_artist: boolean | null
           last_stream_reset_at: string | null
           livepush_enabled: boolean | null
+          livepush_stream_id: string | null
           max_concurrent_streams: number | null
           max_monthly_stream_hours: number | null
           max_multistream_destinations: number | null
@@ -327,6 +328,7 @@ export type Database = {
           is_trusted_artist?: boolean | null
           last_stream_reset_at?: string | null
           livepush_enabled?: boolean | null
+          livepush_stream_id?: string | null
           max_concurrent_streams?: number | null
           max_monthly_stream_hours?: number | null
           max_multistream_destinations?: number | null
@@ -347,6 +349,7 @@ export type Database = {
           is_trusted_artist?: boolean | null
           last_stream_reset_at?: string | null
           livepush_enabled?: boolean | null
+          livepush_stream_id?: string | null
           max_concurrent_streams?: number | null
           max_monthly_stream_hours?: number | null
           max_multistream_destinations?: number | null
