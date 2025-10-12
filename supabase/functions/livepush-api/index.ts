@@ -142,40 +142,8 @@ serve(async (req) => {
         throw tokenError;
       }
 
-      // First, we need to create a stream to hold this video
-      // Create a simple stream for this video
-      const streamResponse = await fetch('https://octopus.livepush.io/streams', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: video.title,
-          category: 'scheduler', // scheduler streams can hold videos
-        }),
-      });
-
-      if (!streamResponse.ok) {
-        const errorText = await streamResponse.text();
-        console.error('Livepush stream creation error:', errorText);
-        
-        await supabase
-          .from('livepush_videos')
-          .update({
-            sync_status: 'failed',
-            sync_error: `Failed to create stream: ${errorText}`,
-          })
-          .eq('id', livepushVideo.id);
-
-        throw new Error(`Failed to create stream: ${errorText}`);
-      }
-
-      const streamData = await streamResponse.json();
-      console.log(`Stream created: ${streamData.id}`);
-
-      // Now upload video to the stream
-      const uploadResponse = await fetch(`https://octopus.livepush.io/streams/${streamData.id}/videos`, {
+      // Upload video directly to Livepush video library
+      const uploadResponse = await fetch('https://octopus.livepush.io/videos', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -208,8 +176,8 @@ serve(async (req) => {
       const { data: updatedVideo } = await supabase
         .from('livepush_videos')
         .update({
-          livepush_id: uploadData.id || streamData.id,
-          livepush_url: uploadData.playbackUrl || uploadData.url || streamData.streamUrl,
+          livepush_id: uploadData.id,
+          livepush_url: uploadData.playbackUrl || uploadData.url,
           sync_status: 'synced',
           last_synced_at: new Date().toISOString(),
         })
@@ -217,13 +185,12 @@ serve(async (req) => {
         .select()
         .single();
 
-      console.log(`Video synced successfully`);
+      console.log(`Video synced to Livepush library: ${uploadData.id}`);
 
       return new Response(
         JSON.stringify({ 
           success: true, 
           livepushVideo: updatedVideo,
-          streamData,
           uploadData
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
