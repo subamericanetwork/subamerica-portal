@@ -142,8 +142,27 @@ serve(async (req) => {
         throw tokenError;
       }
 
-      // Upload video directly to Livepush video library
-      const uploadResponse = await fetch('https://octopus.livepush.io/videos', {
+      // Get the artist's Livepush stream ID from their permissions
+      const { data: permissions } = await supabase
+        .from('livepush_artist_permissions')
+        .select('livepush_stream_id')
+        .eq('artist_id', artistId)
+        .single();
+
+      if (!permissions?.livepush_stream_id) {
+        await supabase
+          .from('livepush_videos')
+          .update({
+            sync_status: 'failed',
+            sync_error: 'No Livepush stream ID configured. Please set up your Livepush stream first.',
+          })
+          .eq('id', livepushVideo.id);
+
+        throw new Error('No Livepush stream ID configured');
+      }
+
+      // Upload video directly to the artist's stream video library
+      const uploadResponse = await fetch(`https://octopus.livepush.io/streams/${permissions.livepush_stream_id}/videos`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
