@@ -143,8 +143,8 @@ serve(async (req) => {
         throw tokenError;
       }
 
-      // Upload video to Livepush - using the correct API endpoint
-      const uploadResponse = await fetch('https://api.livepush.io/videos', {
+      // Upload video to Livepush - using the octopus API
+      const uploadResponse = await fetch('https://octopus.livepush.io/videos', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -249,7 +249,7 @@ serve(async (req) => {
       const accessToken = await getAdminAccessToken();
 
       // Create stream on Livepush
-      const streamResponse = await fetch('https://api.livepush.io/streams', {
+      const streamResponse = await fetch('https://octopus.livepush.io/streams', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
