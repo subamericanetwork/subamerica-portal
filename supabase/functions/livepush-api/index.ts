@@ -36,8 +36,17 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action');
+    // Get action from request body or query params
+    let action = null;
+    let requestBody: any = {};
+    
+    if (req.method === 'POST') {
+      requestBody = await req.json();
+      action = requestBody.action;
+    } else {
+      const url = new URL(req.url);
+      action = url.searchParams.get('action');
+    }
 
     console.log(`Livepush API - Action: ${action}, User: ${user.id}`);
 
@@ -67,7 +76,7 @@ serve(async (req) => {
 
     // SYNC VIDEO TO LIVEPUSH
     if (action === 'sync-video' && req.method === 'POST') {
-      const { videoId, artistId } = await req.json();
+      const { videoId, artistId } = requestBody;
 
       console.log(`Syncing video ${videoId} for artist ${artistId}`);
 
@@ -190,6 +199,7 @@ serve(async (req) => {
 
     // GET SYNC STATUS
     if (action === 'sync-status' && req.method === 'GET') {
+      const url = new URL(req.url);
       const videoId = url.searchParams.get('videoId');
 
       const { data: livepushVideo } = await supabase
@@ -206,7 +216,7 @@ serve(async (req) => {
 
     // CREATE PLAYLIST STREAM
     if (action === 'create-playlist-stream' && req.method === 'POST') {
-      const { playlistId, artistId } = await req.json();
+      const { playlistId, artistId } = requestBody;
 
       console.log(`Creating playlist stream ${playlistId} for artist ${artistId}`);
 
