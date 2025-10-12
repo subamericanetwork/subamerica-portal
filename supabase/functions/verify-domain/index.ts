@@ -37,14 +37,47 @@ serve(async (req) => {
   }
 
   try {
-    const { artistId, domain, verificationToken } = await req.json() as VerificationRequest;
+    // Authenticate user
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    console.log('Verifying domain:', { artistId, domain });
-
-    // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Verify user token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      console.error('Authentication failed:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { artistId, domain, verificationToken } = await req.json() as VerificationRequest;
+
+    // Verify user owns the artist
+    const { data: artist, error: artistError } = await supabase
+      .from('artists')
+      .select('user_id')
+      .eq('id', artistId)
+      .single();
+
+    if (artistError || !artist || artist.user_id !== user.id) {
+      console.error('Authorization failed');
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: You do not own this artist profile' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Check A record for root domain
     const aRecordCheck: DNSCheckResult = await (async () => {

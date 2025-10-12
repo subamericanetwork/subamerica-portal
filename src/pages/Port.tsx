@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FAQSection } from "@/components/FAQSection";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon } from "lucide-react";
+import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 
 interface Artist {
   id: string;
@@ -134,24 +135,13 @@ const Port = () => {
           // Query by slug (original behavior)
           if (!slug) return;
 
-          // Fetch artist by slug - using main artists table which has public RLS policy
-          console.log("Fetching artist by slug:", slug);
           const { data: artistData, error: artistError } = await supabase
             .from("artists")
             .select("id, display_name, bio_short, scene, socials, brand")
             .eq("slug", slug)
             .maybeSingle();
 
-          console.log("Artist query result:", { artistData, artistError });
-
-          if (artistError) {
-            console.error("Error fetching artist:", artistError);
-            setLoading(false);
-            return;
-          }
-          
-          if (!artistData) {
-            console.log("No artist found for slug:", slug);
+          if (artistError || !artistData) {
             setLoading(false);
             return;
           }
@@ -309,26 +299,34 @@ const Port = () => {
       "@type": "FAQPage",
       "mainEntity": faqs.map(faq => ({
         "@type": "Question",
-        "name": faq.question,
+        "name": sanitizeText(faq.question),
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": faq.answer
+          "text": sanitizeText(faq.answer)
         }
       }))
     };
 
-    const sameAsLinks = artist.socials 
-      ? Object.values(artist.socials).filter(url => url && typeof url === 'string')
-      : [];
+    const sameAsLinks: string[] = [];
+    if (artist.socials) {
+      Object.values(artist.socials).forEach(url => {
+        if (url && typeof url === 'string') {
+          const sanitized = sanitizeUrl(url);
+          if (sanitized) {
+            sameAsLinks.push(sanitized);
+          }
+        }
+      });
+    }
 
     const musicArtistSchema = {
       "@context": "https://schema.org",
       "@type": "MusicArtist",
-      "name": artist.display_name,
-      "description": artist.bio_short || "",
-      ...(artist.scene && { "genre": artist.scene }),
+      "name": sanitizeText(artist.display_name),
+      "description": sanitizeText(artist.bio_short || ""),
+      ...(artist.scene && { "genre": sanitizeText(artist.scene) }),
       ...(sameAsLinks.length > 0 && { "sameAs": sameAsLinks }),
-      ...(artist.brand?.profile_photo && { "image": artist.brand.profile_photo })
+      ...(artist.brand?.profile_photo && { "image": sanitizeUrl(artist.brand.profile_photo) })
     };
 
     return [faqSchema, musicArtistSchema];
@@ -345,13 +343,13 @@ const Port = () => {
       )}
       
       <style>{`
-        h1 { color: ${portSettings?.h1_color || '#ffffff'} !important; }
-        h2 { color: ${portSettings?.h2_color || '#ffffff'} !important; }
-        h3 { color: ${portSettings?.h3_color || '#ffffff'} !important; }
-        h4 { color: ${portSettings?.h4_color || '#ffffff'} !important; }
-        .text-sm { color: ${portSettings?.text_sm_color || '#ffffff'} !important; }
-        .text-base { color: ${portSettings?.text_md_color || '#ffffff'} !important; }
-        .text-lg { color: ${portSettings?.text_lg_color || '#ffffff'} !important; }
+        h1 { color: ${sanitizeColor(portSettings?.h1_color)} !important; }
+        h2 { color: ${sanitizeColor(portSettings?.h2_color)} !important; }
+        h3 { color: ${sanitizeColor(portSettings?.h3_color)} !important; }
+        h4 { color: ${sanitizeColor(portSettings?.h4_color)} !important; }
+        .text-sm { color: ${sanitizeColor(portSettings?.text_sm_color)} !important; }
+        .text-base { color: ${sanitizeColor(portSettings?.text_md_color)} !important; }
+        .text-lg { color: ${sanitizeColor(portSettings?.text_lg_color)} !important; }
       `}</style>
       <div className="min-h-screen relative" style={getBackgroundStyles()}>
         {/* Background Video */}
