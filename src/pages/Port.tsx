@@ -77,9 +77,9 @@ const Port = () => {
     const fetchPortData = async () => {
       // Determine if request is from custom domain or slug
       const hostname = window.location.hostname;
-      const isCustomDomain = hostname !== 'artist-portal.subamerica.net' && 
-                            hostname !== 'localhost' && 
-                            !hostname.includes('lovable.app');
+      const isCustomDomain = hostname !== 'localhost' && 
+                            !hostname.includes('lovable.app') &&
+                            !hostname.includes('lovable.dev');
 
       let artistId: string | null = null;
 
