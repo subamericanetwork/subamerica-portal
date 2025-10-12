@@ -75,16 +75,22 @@ const Port = () => {
 
   useEffect(() => {
     const fetchPortData = async () => {
-      // Determine if request is from custom domain or slug
+      // Determine if request is from custom domain or slug-based URL
+      // If there's a slug in the URL, use slug-based routing
+      // If no slug and hostname is not a known platform domain, check for custom domain
       const hostname = window.location.hostname;
-      const isCustomDomain = hostname !== 'localhost' && 
-                            !hostname.includes('lovable.app') &&
-                            !hostname.includes('lovable.dev');
+      const hasSlugInUrl = !!slug;
+      const isKnownPlatformDomain = hostname === 'localhost' || 
+                                   hostname.includes('lovable.app') ||
+                                   hostname.includes('lovable.dev') ||
+                                   hostname.includes('artist-portal.subamerica.net');
+      
+      const useCustomDomainRouting = !hasSlugInUrl && !isKnownPlatformDomain;
 
       let artistId: string | null = null;
 
       try {
-        if (isCustomDomain) {
+        if (useCustomDomainRouting) {
           // Query by custom domain
           const { data: portData, error: portError } = await supabase
             .from('port_settings')
