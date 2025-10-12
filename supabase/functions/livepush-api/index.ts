@@ -128,6 +128,7 @@ serve(async (req) => {
           video_id: videoId,
           sync_status: 'syncing',
           sync_started_at: new Date().toISOString(),
+          sync_error: null, // Clear any previous errors
         }, { onConflict: 'video_id' })
         .select()
         .single();
@@ -137,8 +138,21 @@ serve(async (req) => {
         throw insertError;
       }
 
-      // Get access token
-      const accessToken = await getAccessToken();
+      // Get access token (this can fail, so we wrap it)
+      let accessToken;
+      try {
+        accessToken = await getAccessToken();
+      } catch (tokenError) {
+        // Update status to failed if we can't get token
+        await supabase
+          .from('livepush_videos')
+          .update({
+            sync_status: 'failed',
+            sync_error: 'Failed to authenticate with Livepush',
+          })
+          .eq('id', livepushVideo.id);
+        throw tokenError;
+      }
 
       // Upload video to Livepush
       const uploadResponse = await fetch('https://octopus.livepush.io/v1/videos', {
