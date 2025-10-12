@@ -13,7 +13,6 @@ import Videos from "./pages/Videos";
 import Events from "./pages/Events";
 import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
-import SocialAnalytics from "./pages/SocialAnalytics";
 import PortPreview from "./pages/PortPreview";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
@@ -35,7 +34,6 @@ const App = () => (
           <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
           <Route path="/merch" element={<ProtectedRoute><Merch /></ProtectedRoute>} />
-          <Route path="/social-analytics" element={<ProtectedRoute><SocialAnalytics /></ProtectedRoute>} />
           <Route path="/monetization" element={<ProtectedRoute><Monetization /></ProtectedRoute>} />
           <Route path="/preview" element={<ProtectedRoute><PortPreview /></ProtectedRoute>} />
           <Route path="/:slug" element={<Port />} />
