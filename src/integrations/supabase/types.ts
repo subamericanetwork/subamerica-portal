@@ -104,6 +104,54 @@ export type Database = {
         }
         Relationships: []
       }
+      artist_faqs: {
+        Row: {
+          answer: string
+          artist_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_visible: boolean
+          question: string
+          updated_at: string
+        }
+        Insert: {
+          answer: string
+          artist_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          question: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: string
+          artist_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_visible?: boolean
+          question?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_faqs_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "artist_faqs_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artists: {
         Row: {
           bio_long: string | null
