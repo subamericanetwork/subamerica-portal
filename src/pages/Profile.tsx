@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, User } from "lucide-react";
 import { BackgroundSettings } from "@/components/BackgroundSettings";
 import { FAQManagement } from "@/components/FAQManagement";
+import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Profile = () => {
@@ -205,6 +206,15 @@ const Profile = () => {
             Manage your public profile information and social links
           </p>
         </div>
+
+        {/* SEO Completeness Indicator */}
+        {artist && (
+          <SEOCompleteness
+            artist={artist}
+            faqs={faqs}
+            portSettings={portSettings}
+          />
+        )}
 
         {/* Profile Photo */}
         <Card>

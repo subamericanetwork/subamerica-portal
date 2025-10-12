@@ -273,7 +273,7 @@ export const FAQManagement = ({ artistId, artistName, faqs, onUpdate }: FAQManag
                       onChange={(e) => {
                         if (isAnswered) {
                           // Update existing FAQ
-                          const existingFaq = faqs.find(f => f.question === template.question);
+                          const existingFaq = faqs.find(f => f.question === displayQuestion);
                           if (existingFaq) {
                             setTemplateAnswers(prev => ({ ...prev, [template.id]: e.target.value }));
                           }
@@ -286,9 +286,36 @@ export const FAQManagement = ({ artistId, artistName, faqs, onUpdate }: FAQManag
                       className="resize-none"
                     />
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-muted-foreground">
-                        {(isAnswered ? currentAnswer : (templateAnswers[template.id] || "")).length} characters
-                      </p>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const length = (isAnswered ? currentAnswer : (templateAnswers[template.id] || "")).length;
+                          const isOptimal = length >= 150 && length <= 300;
+                          const isTooShort = length > 0 && length < 150;
+                          const isTooLong = length > 300;
+                          
+                          return (
+                            <>
+                              <p className={`text-xs font-medium ${
+                                isOptimal ? 'text-green-600' :
+                                isTooLong ? 'text-orange-600' :
+                                isTooShort ? 'text-yellow-600' :
+                                'text-muted-foreground'
+                              }`}>
+                                {length} characters
+                              </p>
+                              {isOptimal && (
+                                <span className="text-xs text-green-600 font-medium">✓ Optimal for SEO</span>
+                              )}
+                              {isTooShort && (
+                                <span className="text-xs text-yellow-600">Add more detail (150-300 recommended)</span>
+                              )}
+                              {isTooLong && (
+                                <span className="text-xs text-orange-600">Consider shortening (150-300 optimal)</span>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                       <Button
                         size="sm"
                         onClick={() => handleSaveTemplate(template)}
@@ -386,13 +413,40 @@ export const FAQManagement = ({ artistId, artistName, faqs, onUpdate }: FAQManag
                     id="answer"
                     value={editingFaq.answer}
                     onChange={(e) => setEditingFaq({ ...editingFaq, answer: e.target.value })}
-                    placeholder="Enter your answer (150-300 characters recommended)"
+                    placeholder="Enter your answer (150-300 characters recommended for SEO)"
                     rows={4}
                     className="resize-none"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    {editingFaq.answer?.length || 0} characters
-                  </p>
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const length = editingFaq.answer?.length || 0;
+                      const isOptimal = length >= 150 && length <= 300;
+                      const isTooShort = length > 0 && length < 150;
+                      const isTooLong = length > 300;
+                      
+                      return (
+                        <>
+                          <p className={`text-xs font-medium ${
+                            isOptimal ? 'text-green-600' :
+                            isTooLong ? 'text-orange-600' :
+                            isTooShort ? 'text-yellow-600' :
+                            'text-muted-foreground'
+                          }`}>
+                            {length} characters
+                          </p>
+                          {isOptimal && (
+                            <span className="text-xs text-green-600 font-medium">✓ Optimal for SEO</span>
+                          )}
+                          {isTooShort && length > 0 && (
+                            <span className="text-xs text-yellow-600">Add more detail (150-300 recommended)</span>
+                          )}
+                          {isTooLong && (
+                            <span className="text-xs text-orange-600">Consider shortening (150-300 optimal)</span>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">

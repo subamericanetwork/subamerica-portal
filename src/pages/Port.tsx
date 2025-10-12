@@ -1,5 +1,5 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -222,8 +222,50 @@ const Port = () => {
     return {};
   };
 
+  // Generate structured data for SEO (FAQPage + MusicArtist schema)
+  const structuredData = useMemo(() => {
+    if (!artist || faqs.length === 0) return null;
+
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map(faq => ({
+        "@type": "Question",
+        "name": faq.question,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": faq.answer
+        }
+      }))
+    };
+
+    const sameAsLinks = artist.socials 
+      ? Object.values(artist.socials).filter(url => url && typeof url === 'string')
+      : [];
+
+    const musicArtistSchema = {
+      "@context": "https://schema.org",
+      "@type": "MusicArtist",
+      "name": artist.display_name,
+      "description": artist.bio_short || "",
+      ...(artist.scene && { "genre": artist.scene }),
+      ...(sameAsLinks.length > 0 && { "sameAs": sameAsLinks }),
+      ...(artist.brand?.profile_photo && { "image": artist.brand.profile_photo })
+    };
+
+    return [faqSchema, musicArtistSchema];
+  }, [artist, faqs]);
+
   return (
     <>
+      {/* Structured Data for SEO/AEO */}
+      {structuredData && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        />
+      )}
+      
       <style>{`
         h1 { color: ${portSettings?.h1_color || '#ffffff'} !important; }
         h2 { color: ${portSettings?.h2_color || '#ffffff'} !important; }
