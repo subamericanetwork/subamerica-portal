@@ -180,7 +180,7 @@ const Port = () => {
           return;
         }
         
-        if (import.meta.env.DEV) console.log("Artist data loaded, fetching related content for artist:", artistId);
+        if (import.meta.env.DEV) console.log("Artist data loaded, fetching related content for artist:", String(artistId));
 
         // Fetch featured video
         const { data: videoData } = await supabase
@@ -202,7 +202,7 @@ const Port = () => {
           .order("starts_at", { ascending: true });
 
         setEvents(eventsData || []);
-        if (import.meta.env.DEV) console.log("Events loaded:", eventsData);
+        if (import.meta.env.DEV) console.log("Events loaded:", eventsData ? eventsData.length : 0);
 
         // Fetch surface products
         const { data: productsData } = await supabase
@@ -217,7 +217,7 @@ const Port = () => {
           images: Array.isArray(p.images) ? p.images as string[] : null
         })));
         if (import.meta.env.DEV) {
-          if (import.meta.env.DEV) console.log("Products loaded:", productsData);
+          console.log("Products loaded:", productsData ? productsData.length : 0);
         }
 
         // Fetch FAQs
@@ -384,7 +384,7 @@ const Port = () => {
   return (
     <div className="min-h-screen relative" style={getBackgroundStyles()}>
         {/* Background Video */}
-        {backgroundType === "video" && backgroundVideoUrl && (
+        {backgroundType === "video" && backgroundVideoUrl && typeof backgroundVideoUrl === 'string' && (
           <>
             <video
               autoPlay
@@ -393,8 +393,8 @@ const Port = () => {
               playsInline
               className="fixed inset-0 w-full h-full object-cover -z-10"
             >
-              <source src={backgroundVideoUrl} type="video/mp4" />
-              <source src={backgroundVideoUrl} type="video/webm" />
+              <source src={String(backgroundVideoUrl)} type="video/mp4" />
+              <source src={String(backgroundVideoUrl)} type="video/webm" />
             </video>
             <div className="fixed inset-0 bg-black/40 -z-10" />
           </>
