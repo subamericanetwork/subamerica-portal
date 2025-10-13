@@ -760,6 +760,17 @@ const Port = () => {
               </div>
             )}
             <p className="text-sm text-muted-foreground">© {String(new Date().getFullYear())} {String(artist.display_name)}</p>
+            <p className="text-xs text-muted-foreground">
+              Site Design & Maintenance{' '}
+              <a 
+                href="https://subamerica.net" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-smooth underline"
+              >
+                Subamerica Network
+              </a>
+            </p>
           </div>
         </footer>
       </div>
