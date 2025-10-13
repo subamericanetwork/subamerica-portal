@@ -634,13 +634,13 @@ const Port = () => {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {event.starts_at && new Date(event.starts_at).toLocaleDateString('en-US', { 
+                          {event.starts_at ? String(new Date(event.starts_at).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric', 
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit'
-                          })}
+                          })) : 'Date TBA'}
                         </span>
                       </div>
                       {event.venue && (
@@ -751,7 +751,7 @@ const Port = () => {
                 })}
               </div>
             )}
-            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} {String(artist.display_name)}</p>
+            <p className="text-sm text-muted-foreground">© {String(new Date().getFullYear())} {String(artist.display_name)}</p>
           </div>
         </footer>
       </div>
