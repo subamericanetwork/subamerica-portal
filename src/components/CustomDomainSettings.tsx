@@ -180,9 +180,12 @@ export const CustomDomainSettings = ({ artistId, slug, currentDomain, isVerified
         });
       } else {
         setVerificationStatus("failed");
+        const nextStepsMessage = Array.isArray(data.nextSteps) 
+          ? data.nextSteps.join(". ") 
+          : "Please check your DNS configuration";
         toast({
           title: "Verification Failed",
-          description: data.nextSteps?.join(". ") || "Please check your DNS configuration",
+          description: nextStepsMessage,
           variant: "destructive",
         });
       }
@@ -367,7 +370,7 @@ export const CustomDomainSettings = ({ artistId, slug, currentDomain, isVerified
                       <div className="break-all">
                         <span className="text-muted-foreground">Type:</span> TXT &nbsp;
                         <span className="text-muted-foreground">Name:</span> _lovable-verify &nbsp;
-                        <span className="text-muted-foreground">Value:</span> {verificationToken}
+                        <span className="text-muted-foreground">Value:</span> {String(verificationToken)}
                       </div>
                       <Button size="sm" variant="ghost" onClick={() => copyToClipboard(verificationToken, "Verification Token")}>
                         <Copy className="h-3 w-3" />
@@ -394,14 +397,14 @@ export const CustomDomainSettings = ({ artistId, slug, currentDomain, isVerified
             <AlertDescription className="space-y-2">
               <p className="font-medium">DNS Check Results:</p>
               <ul className="text-sm space-y-1">
-                {dnsResults.aRecord?.status === "fail" && (
-                  <li>❌ A Record: {dnsResults.aRecord.message}</li>
+                {dnsResults.aRecord?.status === "fail" && dnsResults.aRecord?.message && (
+                  <li>❌ A Record: {String(dnsResults.aRecord.message)}</li>
                 )}
-                {dnsResults.wwwRecord?.status === "fail" && (
-                  <li>❌ WWW Record: {dnsResults.wwwRecord.message}</li>
+                {dnsResults.wwwRecord?.status === "fail" && dnsResults.wwwRecord?.message && (
+                  <li>❌ WWW Record: {String(dnsResults.wwwRecord.message)}</li>
                 )}
-                {dnsResults.txtRecord?.status === "fail" && (
-                  <li>❌ TXT Record: {dnsResults.txtRecord.message}</li>
+                {dnsResults.txtRecord?.status === "fail" && dnsResults.txtRecord?.message && (
+                  <li>❌ TXT Record: {String(dnsResults.txtRecord.message)}</li>
                 )}
               </ul>
             </AlertDescription>
