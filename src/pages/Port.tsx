@@ -528,7 +528,7 @@ const Port = () => {
                 Your browser does not support the video tag.
               </video>
               <CardContent className="p-4">
-                <h3 className="font-semibold">{featuredVideo.title}</h3>
+                <h3 className="font-semibold">{String(featuredVideo.title)}</h3>
               </CardContent>
             </Card>
           </div>
@@ -591,8 +591,8 @@ const Port = () => {
                     <div className="w-24 h-24 bg-muted rounded-lg flex-shrink-0 flex items-center justify-center overflow-hidden">
                       {event.poster_url ? (
                         <img 
-                          src={event.poster_url} 
-                          alt={event.title}
+                          src={String(event.poster_url)} 
+                          alt={String(event.title)}
                           className="w-full h-full object-cover"
                         />
                       ) : (
@@ -600,7 +600,7 @@ const Port = () => {
                       )}
                     </div>
                     <div className="flex-1 space-y-2">
-                      <h3 className="font-semibold text-lg">{event.title}</h3>
+                      <h3 className="font-semibold text-lg">{String(event.title)}</h3>
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
@@ -616,12 +616,12 @@ const Port = () => {
                       {event.venue && (
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <MapPin className="h-4 w-4" />
-                          <span>{event.venue}</span>
+                          <span>{String(event.venue)}</span>
                         </div>
                       )}
                       {event.description && (
                         <p className="text-sm text-muted-foreground line-clamp-2">
-                          {event.description}
+                          {String(event.description)}
                         </p>
                       )}
                       {event.ticket_url && (
@@ -655,8 +655,8 @@ const Port = () => {
                   <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
                     {Array.isArray(product.images) && product.images.length > 0 ? (
                       <img 
-                        src={product.images[0]} 
-                        alt={product.title}
+                        src={String(product.images[0])} 
+                        alt={String(product.title)}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -664,9 +664,9 @@ const Port = () => {
                     )}
                   </div>
                   <CardContent className="p-3 space-y-2">
-                    <h3 className="font-semibold text-sm">{product.title}</h3>
+                    <h3 className="font-semibold text-sm">{String(product.title)}</h3>
                     {product.description && (
-                      <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">{String(product.description)}</p>
                     )}
                     {product.price && (
                       <p className="text-sm text-primary font-bold">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
