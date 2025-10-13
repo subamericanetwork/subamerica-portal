@@ -150,14 +150,11 @@ const Port = () => {
           setArtist(artistData);
           
           // Check if port is published and get background settings
-          console.log("Fetching port settings for artist:", artistId);
           const { data: settingsData, error: settingsError } = await supabase
             .from("port_settings")
             .select("publish_status, background_type, background_value, background_video_url, h1_color, h2_color, h3_color, h4_color, text_sm_color, text_md_color, text_lg_color")
             .eq("artist_id", artistData.id)
             .maybeSingle();
-
-          console.log("Port settings result:", { settingsData, settingsError });
 
           if (!settingsData || settingsData?.publish_status !== 'published') {
             if (import.meta.env.DEV) console.log("Port not published or settings missing");
@@ -724,9 +721,8 @@ const Port = () => {
             <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} {artist.display_name}</p>
           </div>
         </footer>
-
-        </div>
-        </div>
+      </div>
+    </div>
     </div>
   );
 };
