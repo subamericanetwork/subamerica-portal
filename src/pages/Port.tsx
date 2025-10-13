@@ -242,7 +242,7 @@ const Port = () => {
     fetchPortData();
   }, [slug]);
 
-  // Computed values that depend on artist
+  // Computed values that depend on artist - must be after all useEffect hooks
   const artistImages = useMemo(() => 
     Array.isArray(artist?.brand?.images) 
       ? artist.brand.images.filter((img): img is string => typeof img === 'string') 
@@ -261,25 +261,6 @@ const Port = () => {
       prev >= artistImages.length - 2 ? 0 : prev + 1
     );
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (!artist) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Port Not Found</h1>
-          <p className="text-muted-foreground">This artist portfolio is not available or not published yet.</p>
-        </div>
-      </div>
-    );
-  }
 
   // Get background styles
   const getBackgroundStyles = (): React.CSSProperties => {
@@ -416,6 +397,27 @@ const Port = () => {
       scriptEl?.remove();
     };
   }, [structuredData]);
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Not found state
+  if (!artist) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Port Not Found</h1>
+          <p className="text-muted-foreground">This artist portfolio is not available or not published yet.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen relative" style={getBackgroundStyles()}>
