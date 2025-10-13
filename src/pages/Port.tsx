@@ -653,7 +653,7 @@ const Port = () => {
               {products.map((product) => (
                 <Card key={product.id} className="gradient-card overflow-hidden">
                   <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
-                    {product.images && product.images.length > 0 ? (
+                    {Array.isArray(product.images) && product.images.length > 0 ? (
                       <img 
                         src={product.images[0]} 
                         alt={product.title}
