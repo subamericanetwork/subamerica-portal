@@ -450,7 +450,7 @@ const Port = () => {
       <SheetContent side="left" className="w-80">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-bold">{artist?.display_name}</h2>
+              <h2 className="text-xl font-bold">{artist?.display_name ? String(artist.display_name) : ''}</h2>
             </div>
             <nav className="flex flex-col space-y-4 overflow-y-auto flex-1 pr-2">
               <Button
@@ -699,7 +699,7 @@ const Port = () => {
                       <p className="text-xs text-muted-foreground line-clamp-2">{String(product.description)}</p>
                     )}
                     {product.price && (
-                      <p className="text-sm text-primary font-bold">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
+                      <p className="text-sm text-primary font-bold">${typeof product.price === 'number' ? product.price.toFixed(2) : String(product.price)}</p>
                     )}
                     {product.link && (
                       <Button size="sm" variant="outline" className="w-full" asChild>
