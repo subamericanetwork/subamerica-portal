@@ -324,9 +324,9 @@ const Port = () => {
       "@type": "MusicArtist",
       "name": sanitizeText(artist.display_name),
       "description": sanitizeText(artist.bio_short || ""),
-      ...(artist.scene && { "genre": sanitizeText(artist.scene) }),
+      ...(artist.scene && typeof artist.scene === 'string' && { "genre": sanitizeText(artist.scene) }),
       ...(sameAsLinks.length > 0 && { "sameAs": sameAsLinks }),
-      ...(artist.brand?.profile_photo && { "image": sanitizeUrl(artist.brand.profile_photo) })
+      ...(artist.brand?.profile_photo && typeof artist.brand.profile_photo === 'string' && { "image": sanitizeUrl(artist.brand.profile_photo) })
     };
 
     return [faqSchema, musicArtistSchema];
