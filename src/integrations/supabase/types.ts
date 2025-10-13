@@ -143,13 +143,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "artist_faqs_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       artists: {
@@ -299,13 +292,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "domain_verifications_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       events: {
@@ -389,13 +375,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "events_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       livepush_artist_permissions: {
@@ -470,13 +449,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "livepush_artist_permissions_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: true
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       livepush_videos: {
@@ -543,13 +515,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "livepush_videos_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "livepush_videos_video_id_fkey"
             columns: ["video_id"]
             isOneToOne: true
@@ -592,13 +557,6 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: true
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payments_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: true
-            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
         ]
@@ -693,13 +651,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "port_settings_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: true
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       products: {
@@ -765,13 +716,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "products_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       qr_settings: {
@@ -808,13 +752,6 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: true
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "qr_settings_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: true
-            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
         ]
@@ -871,13 +808,6 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "social_analytics_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
           {
@@ -940,13 +870,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "social_connections_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       social_posts: {
@@ -992,13 +915,6 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "social_posts_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
         ]
@@ -1049,13 +965,6 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stream_donations_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
             referencedColumns: ["id"]
           },
           {
@@ -1218,13 +1127,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "stream_playlists_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       stream_tracklists: {
@@ -1327,13 +1229,6 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "subscription_history_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       user_roles: {
@@ -1429,65 +1324,11 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "videos_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: false
-            referencedRelation: "artists_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
     }
     Views: {
-      artists_public: {
-        Row: {
-          bio_long: string | null
-          bio_short: string | null
-          brand: Json | null
-          created_at: string | null
-          display_name: string | null
-          id: string | null
-          pronouns: string | null
-          scene: string | null
-          slug: string | null
-          socials: Json | null
-          tz: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          bio_long?: string | null
-          bio_short?: string | null
-          brand?: Json | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          pronouns?: string | null
-          scene?: string | null
-          slug?: string | null
-          socials?: Json | null
-          tz?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          bio_long?: string | null
-          bio_short?: string | null
-          brand?: Json | null
-          created_at?: string | null
-          display_name?: string | null
-          id?: string | null
-          pronouns?: string | null
-          scene?: string | null
-          slug?: string | null
-          socials?: Json | null
-          tz?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       has_role: {
