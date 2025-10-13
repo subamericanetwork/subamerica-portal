@@ -420,7 +420,7 @@ const Port = () => {
   }
 
   return (
-    <div className="min-h-screen relative" style={getBackgroundStyles()}>
+    <div className="min-h-screen relative bg-black" style={getBackgroundStyles()}>
         {/* Background Video */}
         {backgroundType === "video" && backgroundVideoUrl && typeof backgroundVideoUrl === 'string' && (
           <>
