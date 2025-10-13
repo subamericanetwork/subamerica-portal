@@ -242,7 +242,7 @@ const Port = () => {
     fetchPortData();
   }, [slug]);
 
-  const artistImages = artist?.brand?.images || [];
+  const artistImages = Array.isArray(artist?.brand?.images) ? artist.brand.images : [];
   
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => 
@@ -540,7 +540,7 @@ const Port = () => {
             <h2 className="text-2xl font-bold">Gallery</h2>
             <div className="relative">
               <div className="grid grid-cols-2 gap-4">
-                {artistImages.slice(currentImageIndex, currentImageIndex + 2).map((image: string, idx: number) => (
+                {artistImages.slice(currentImageIndex, currentImageIndex + 2).map((image, idx) => (
                   <Card key={currentImageIndex + idx} className="gradient-card overflow-hidden">
                     <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
                       <img 
