@@ -66,10 +66,8 @@ const PortPreview = () => {
       
       const { error } = await supabase
         .from('port_settings')
-        .upsert({
-          artist_id: artist.id,
-          publish_status: newStatus
-        });
+        .update({ publish_status: newStatus })
+        .eq('artist_id', artist.id);
 
       if (error) throw error;
 
