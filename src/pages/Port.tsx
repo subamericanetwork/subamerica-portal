@@ -708,14 +708,14 @@ const Port = () => {
                   
                   return (
                     <a 
-                      key={platform}
+                      key={String(platform)}
                       href={url as string} 
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
                     >
                       {getSocialIcon()}
-                      <span>{platform}</span>
+                      <span>{String(platform)}</span>
                     </a>
                   );
                 })}
