@@ -488,27 +488,27 @@ const Port = () => {
         {/* Hero Section */}
         <div id="hero" className="text-center space-y-6">
           <div className="w-32 h-32 mx-auto rounded-full bg-primary/20 border-4 border-primary flex items-center justify-center overflow-hidden">
-            {artist.brand?.profile_photo ? (
+            {artist.brand?.profile_photo && typeof artist.brand.profile_photo === 'string' ? (
               <img 
-                src={artist.brand.profile_photo} 
-                alt={artist.display_name}
+                src={String(artist.brand.profile_photo)} 
+                alt={String(artist.display_name)}
                 className="w-full h-full object-cover"
               />
             ) : (
               <span className="text-4xl font-bold text-primary">
-                {artist.display_name.charAt(0).toUpperCase()}
+                {String(artist.display_name).charAt(0).toUpperCase()}
               </span>
             )}
           </div>
           
           <div>
-            <h1 className="text-5xl font-bold mb-2">{artist.display_name}</h1>
-            {artist.scene && (
-              <p className="text-xl text-primary">{artist.scene}</p>
+            <h1 className="text-5xl font-bold mb-2">{String(artist.display_name)}</h1>
+            {artist.scene && typeof artist.scene === 'string' && (
+              <p className="text-xl text-primary">{String(artist.scene)}</p>
             )}
-            {artist.bio_short && (
+            {artist.bio_short && typeof artist.bio_short === 'string' && (
               <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
-                {artist.bio_short}
+                {String(artist.bio_short)}
               </p>
             )}
           </div>
@@ -721,7 +721,7 @@ const Port = () => {
                 })}
               </div>
             )}
-            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} {artist.display_name}</p>
+            <p className="text-sm text-muted-foreground">© {new Date().getFullYear()} {String(artist.display_name)}</p>
           </div>
         </footer>
       </div>
