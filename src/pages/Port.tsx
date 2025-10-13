@@ -334,26 +334,26 @@ const Port = () => {
 
   // Inject custom colors via style tag
   useEffect(() => {
-    if (!portSettings) return;
-    
     const styleId = 'port-custom-colors';
     let styleEl = document.getElementById(styleId) as HTMLStyleElement;
     
-    if (!styleEl) {
-      styleEl = document.createElement('style');
-      styleEl.id = styleId;
-      document.head.appendChild(styleEl);
+    if (portSettings) {
+      if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+      
+      styleEl.textContent = `
+        h1 { color: ${sanitizeColor(portSettings?.h1_color)} !important; }
+        h2 { color: ${sanitizeColor(portSettings?.h2_color)} !important; }
+        h3 { color: ${sanitizeColor(portSettings?.h3_color)} !important; }
+        h4 { color: ${sanitizeColor(portSettings?.h4_color)} !important; }
+        .text-sm { color: ${sanitizeColor(portSettings?.text_sm_color)} !important; }
+        .text-base { color: ${sanitizeColor(portSettings?.text_md_color)} !important; }
+        .text-lg { color: ${sanitizeColor(portSettings?.text_lg_color)} !important; }
+      `;
     }
-    
-    styleEl.textContent = `
-      h1 { color: ${sanitizeColor(portSettings?.h1_color)} !important; }
-      h2 { color: ${sanitizeColor(portSettings?.h2_color)} !important; }
-      h3 { color: ${sanitizeColor(portSettings?.h3_color)} !important; }
-      h4 { color: ${sanitizeColor(portSettings?.h4_color)} !important; }
-      .text-sm { color: ${sanitizeColor(portSettings?.text_sm_color)} !important; }
-      .text-base { color: ${sanitizeColor(portSettings?.text_md_color)} !important; }
-      .text-lg { color: ${sanitizeColor(portSettings?.text_lg_color)} !important; }
-    `;
     
     return () => {
       styleEl?.remove();
@@ -362,26 +362,26 @@ const Port = () => {
 
   // Update page title and meta tags
   useEffect(() => {
-    if (!artist) return;
+    if (artist) {
+      // Update title
+      document.title = `${String(artist.display_name)} - Artist Port | Subamerica Network`;
 
-    // Update title
-    document.title = `${String(artist.display_name)} - Artist Port | Subamerica Network`;
+      // Update meta description
+      const metaDescription = document.querySelector('meta[name="description"]');
+      if (metaDescription) {
+        metaDescription.setAttribute('content', String(artist.bio_short || `${artist.display_name} - Independent artist portfolio`));
+      }
 
-    // Update meta description
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute('content', String(artist.bio_short || `${artist.display_name} - Independent artist portfolio`));
-    }
+      // Update OG tags
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) {
+        ogTitle.setAttribute('content', String(artist.display_name));
+      }
 
-    // Update OG tags
-    const ogTitle = document.querySelector('meta[property="og:title"]');
-    if (ogTitle) {
-      ogTitle.setAttribute('content', String(artist.display_name));
-    }
-
-    const ogDescription = document.querySelector('meta[property="og:description"]');
-    if (ogDescription) {
-      ogDescription.setAttribute('content', String(artist.bio_short || `${artist.display_name} - Independent artist portfolio`));
+      const ogDescription = document.querySelector('meta[property="og:description"]');
+      if (ogDescription) {
+        ogDescription.setAttribute('content', String(artist.bio_short || `${artist.display_name} - Independent artist portfolio`));
+      }
     }
 
     return () => {
@@ -392,19 +392,19 @@ const Port = () => {
 
   // Inject structured data via script tag
   useEffect(() => {
-    if (!structuredData) return;
-    
     const scriptId = 'port-structured-data';
     let scriptEl = document.getElementById(scriptId) as HTMLScriptElement;
     
-    if (!scriptEl) {
-      scriptEl = document.createElement('script');
-      scriptEl.id = scriptId;
-      scriptEl.type = 'application/ld+json';
-      document.head.appendChild(scriptEl);
+    if (structuredData) {
+      if (!scriptEl) {
+        scriptEl = document.createElement('script');
+        scriptEl.id = scriptId;
+        scriptEl.type = 'application/ld+json';
+        document.head.appendChild(scriptEl);
+      }
+      
+      scriptEl.textContent = JSON.stringify(structuredData);
     }
-    
-    scriptEl.textContent = JSON.stringify(structuredData);
     
     return () => {
       scriptEl?.remove();
