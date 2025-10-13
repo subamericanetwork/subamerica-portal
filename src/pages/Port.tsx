@@ -360,6 +360,36 @@ const Port = () => {
     };
   }, [portSettings]);
 
+  // Update page title and meta tags
+  useEffect(() => {
+    if (!artist) return;
+
+    // Update title
+    document.title = `${String(artist.display_name)} - Artist Port`;
+
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) {
+      metaDescription.setAttribute('content', String(artist.bio_short || `${artist.display_name} - Independent artist portfolio`));
+    }
+
+    // Update OG tags
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) {
+      ogTitle.setAttribute('content', String(artist.display_name));
+    }
+
+    const ogDescription = document.querySelector('meta[property="og:description"]');
+    if (ogDescription) {
+      ogDescription.setAttribute('content', String(artist.bio_short || `${artist.display_name} - Independent artist portfolio`));
+    }
+
+    return () => {
+      // Reset to default on unmount
+      document.title = 'Subamerica Creator Portal - Manage Your Artist Port';
+    };
+  }, [artist]);
+
   // Inject structured data via script tag
   useEffect(() => {
     if (!structuredData) return;
