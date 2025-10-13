@@ -365,7 +365,7 @@ const Port = () => {
     if (!artist) return;
 
     // Update title
-    document.title = `${String(artist.display_name)} - Artist Port`;
+    document.title = `${String(artist.display_name)} - Artist Port | Subamerica Network`;
 
     // Update meta description
     const metaDescription = document.querySelector('meta[name="description"]');
