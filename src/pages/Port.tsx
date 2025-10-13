@@ -242,7 +242,7 @@ const Port = () => {
     fetchPortData();
   }, [slug]);
 
-  const artistImages = Array.isArray(artist?.brand?.images) ? artist.brand.images : [];
+  const artistImages = Array.isArray(artist?.brand?.images) ? artist.brand.images.filter((img): img is string => typeof img === 'string') : [];
   
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => 
@@ -279,9 +279,9 @@ const Port = () => {
   const getBackgroundStyles = (): React.CSSProperties => {
     if (backgroundType === "color") {
       return { backgroundColor: sanitizeColor(backgroundValue) };
-    } else if (backgroundType === "image") {
+    } else if (backgroundType === "image" && typeof backgroundValue === 'string') {
       return {
-        backgroundImage: `url(${backgroundValue})`,
+        backgroundImage: `url(${String(backgroundValue)})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundAttachment: "fixed"
@@ -522,9 +522,9 @@ const Port = () => {
               <video 
                 controls 
                 className="w-full aspect-video"
-                poster={featuredVideo.thumb_url || undefined}
+                poster={featuredVideo.thumb_url && typeof featuredVideo.thumb_url === 'string' ? String(featuredVideo.thumb_url) : undefined}
               >
-                <source src={featuredVideo.video_url} type="video/mp4" />
+                <source src={String(featuredVideo.video_url)} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
               <CardContent className="p-4">
@@ -544,7 +544,7 @@ const Port = () => {
                   <Card key={currentImageIndex + idx} className="gradient-card overflow-hidden">
                     <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
                       <img 
-                        src={image} 
+                        src={String(image)} 
                         alt={`Gallery image ${currentImageIndex + idx + 1}`}
                         className="w-full h-full object-cover"
                       />
@@ -626,7 +626,7 @@ const Port = () => {
                       )}
                       {event.ticket_url && (
                         <Button size="sm" className="mt-2" asChild>
-                          <a href={event.ticket_url} target="_blank" rel="noopener noreferrer">
+                          <a href={String(event.ticket_url)} target="_blank" rel="noopener noreferrer">
                             Get Tickets
                           </a>
                         </Button>
@@ -673,7 +673,7 @@ const Port = () => {
                     )}
                     {product.link && (
                       <Button size="sm" variant="outline" className="w-full" asChild>
-                        <a href={product.link} target="_blank" rel="noopener noreferrer">
+                        <a href={String(product.link)} target="_blank" rel="noopener noreferrer">
                           View Product
                         </a>
                       </Button>
@@ -709,7 +709,7 @@ const Port = () => {
                   return (
                     <a 
                       key={String(platform)}
-                      href={url as string} 
+                      href={String(url)} 
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
