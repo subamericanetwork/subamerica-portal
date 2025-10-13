@@ -3,7 +3,7 @@
  * Only allows valid hex color formats
  */
 export const sanitizeColor = (color: string | null | undefined): string => {
-  if (!color) return '#ffffff';
+  if (!color) return '#000000';
   
   // Only allow hex colors (3 or 6 digits)
   const hexPattern = /^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{3}$/;
@@ -13,7 +13,7 @@ export const sanitizeColor = (color: string | null | undefined): string => {
   }
   
   // Return safe default if invalid
-  return '#ffffff';
+  return '#000000';
 };
 
 /**
