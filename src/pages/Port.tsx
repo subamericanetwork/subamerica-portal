@@ -242,7 +242,13 @@ const Port = () => {
     fetchPortData();
   }, [slug]);
 
-  const artistImages = Array.isArray(artist?.brand?.images) ? artist.brand.images.filter((img): img is string => typeof img === 'string') : [];
+  // Computed values that depend on artist
+  const artistImages = useMemo(() => 
+    Array.isArray(artist?.brand?.images) 
+      ? artist.brand.images.filter((img): img is string => typeof img === 'string') 
+      : [], 
+    [artist]
+  );
   
   const handlePrevImage = () => {
     setCurrentImageIndex((prev) => 
