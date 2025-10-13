@@ -13,8 +13,11 @@ interface Artist {
   display_name: string;
   bio_short: string | null;
   scene: string | null;
-  socials: any;
-  brand: any;
+  socials: Record<string, unknown> | null;
+  brand: {
+    profile_photo?: string;
+    images?: string[];
+  } | null;
 }
 
 interface Video {
@@ -130,7 +133,7 @@ const Port = () => {
             .single();
 
           if (artistError) throw artistError;
-          setArtist(artistData);
+          setArtist(artistData as Artist);
         } else {
           // Query by slug (original behavior)
           if (!slug) return;
@@ -147,7 +150,7 @@ const Port = () => {
           }
           
           artistId = artistData.id;
-          setArtist(artistData);
+          setArtist(artistData as Artist);
           
           // Check if port is published and get background settings
           const { data: settingsData, error: settingsError } = await supabase
