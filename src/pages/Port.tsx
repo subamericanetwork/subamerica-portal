@@ -276,9 +276,9 @@ const Port = () => {
   }
 
   // Get background styles
-  const getBackgroundStyles = () => {
+  const getBackgroundStyles = (): React.CSSProperties => {
     if (backgroundType === "color") {
-      return { backgroundColor: backgroundValue };
+      return { backgroundColor: sanitizeColor(backgroundValue) };
     } else if (backgroundType === "image") {
       return {
         backgroundImage: `url(${backgroundValue})`,
@@ -604,7 +604,7 @@ const Port = () => {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
                         <span>
-                          {new Date(event.starts_at).toLocaleDateString('en-US', { 
+                          {event.starts_at && new Date(event.starts_at).toLocaleDateString('en-US', { 
                             month: 'short', 
                             day: 'numeric', 
                             year: 'numeric',
@@ -669,7 +669,7 @@ const Port = () => {
                       <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
                     )}
                     {product.price && (
-                      <p className="text-sm text-primary font-bold">${product.price}</p>
+                      <p className="text-sm text-primary font-bold">${typeof product.price === 'number' ? product.price.toFixed(2) : product.price}</p>
                     )}
                     {product.link && (
                       <Button size="sm" variant="outline" className="w-full" asChild>
