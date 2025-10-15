@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { PortFooterActions } from "@/components/PortFooterActions";
 import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2, Menu, Image as ImageIcon } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
@@ -530,6 +531,14 @@ const PortPreview = () => {
           </footer>
 
           </div>
+
+          {/* Footer Actions Overlay */}
+          <PortFooterActions 
+            artistId={artist.id}
+            artistName={artist.display_name}
+            artistSlug={artist.slug}
+            socials={artist.socials}
+          />
         </div>
       </div>
     </DashboardLayout>

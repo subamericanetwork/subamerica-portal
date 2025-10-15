@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FAQSection } from "@/components/FAQSection";
+import { PortFooterActions } from "@/components/PortFooterActions";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 
@@ -775,6 +776,14 @@ const Port = () => {
         </footer>
       </div>
     </div>
+
+      {/* Footer Actions Overlay */}
+      <PortFooterActions 
+        artistId={artist.id}
+        artistName={artist.display_name}
+        artistSlug={slug || ''}
+        socials={artist.socials}
+      />
     </div>
   );
 };
