@@ -38,6 +38,9 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
+    --coral: 0 85% 70%;
+    --teal: 180 100% 35%;
+
     --sidebar-background: 240 10% 8%;
     --sidebar-foreground: 180 5% 85%;
     --sidebar-primary: 180 85% 50%;
@@ -103,10 +106,29 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   }
 
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
+  }
+
+  .eyebrow {
+    @apply text-sm font-semibold uppercase tracking-wider;
+    color: hsl(var(--coral));
+  }
+
+  .section-spacing {
+    @apply py-12 md:py-16;
+  }
+
+  .kpi-card {
+    @apply border border-border rounded-lg p-4 min-w-[160px];
+  }
+
+  .kpi-value {
+    @apply block font-semibold text-lg;
+    color: hsl(var(--coral));
   }
 }
 
