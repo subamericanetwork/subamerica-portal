@@ -53,22 +53,20 @@ const Watch = () => {
                 width="100%"
                 height="100%"
                 allowFullScreen
-                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                sandbox="allow-scripts allow-same-origin allow-presentation"
-                referrerPolicy="no-referrer-when-downgrade"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope"
                 className="absolute inset-0"
                 title="Subamerica Live Stream"
               />
             </AspectRatio>
             <p className="text-center text-sm text-muted-foreground mt-4">
-              If the player doesn't load, try visiting{" "}
+              If the player doesn't load, try{" "}
               <a 
                 href="https://player.livepush.io/live/emvJyyEvXzer9Rw-" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline inline-flex items-center gap-1"
               >
-                the direct player link
+                opening the player directly <ExternalLink className="h-3 w-3" />
               </a>
             </p>
           </div>
