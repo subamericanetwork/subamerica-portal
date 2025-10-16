@@ -53,12 +53,24 @@ const Watch = () => {
                 width="100%"
                 height="100%"
                 allowFullScreen
-                frameBorder="0"
-                allow="autoplay; fullscreen; picture-in-picture"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+                sandbox="allow-scripts allow-same-origin allow-presentation"
+                referrerPolicy="no-referrer-when-downgrade"
                 className="absolute inset-0"
                 title="Subamerica Live Stream"
               />
             </AspectRatio>
+            <p className="text-center text-sm text-muted-foreground mt-4">
+              If the player doesn't load, try visiting{" "}
+              <a 
+                href="https://player.livepush.io/live/emvJyyEvXzer9Rw-" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                the direct player link
+              </a>
+            </p>
           </div>
         </section>
 
