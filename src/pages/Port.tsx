@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FAQSection } from "@/components/FAQSection";
 import { PortFooterActions } from "@/components/PortFooterActions";
-import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon } from "lucide-react";
+import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 
 interface Artist {
@@ -57,6 +57,7 @@ interface FAQ {
 
 const Port = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [artist, setArtist] = useState<Artist | null>(null);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
@@ -462,6 +463,17 @@ const Port = () => {
               <h2 className="text-xl font-bold">{artist?.display_name ? String(artist.display_name) : ''}</h2>
             </div>
             <nav className="flex flex-col space-y-4 overflow-y-auto flex-1 pr-2">
+              <Button
+                variant="ghost"
+                className="justify-start h-auto py-4 text-lg"
+                onClick={() => {
+                  navigate('/watch');
+                  setMenuOpen(false);
+                }}
+              >
+                <Tv className="mr-3 h-5 w-5" />
+                Watch Now
+              </Button>
               <Button
                 variant="ghost"
                 className="justify-start h-auto py-4 text-lg"

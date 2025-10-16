@@ -6,13 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PortFooterActions } from "@/components/PortFooterActions";
-import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2, Menu, Image as ImageIcon } from "lucide-react";
+import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const PortPreview = () => {
   const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings } = useArtistData();
+  const navigate = useNavigate();
   const [isPublishing, setIsPublishing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -237,6 +239,17 @@ const PortPreview = () => {
                 <h2 className="text-xl font-bold">{artist?.display_name}</h2>
               </div>
               <nav className="flex flex-col space-y-4 overflow-y-auto flex-1 pr-2">
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
+                    onClick={() => {
+                      navigate('/watch');
+                      setMenuOpen(false);
+                    }}
+                  >
+                    <Tv className="mr-3 h-5 w-5" />
+                    Watch Now
+                  </Button>
                   <Button
                     variant="ghost"
                     className="justify-start h-auto py-4 text-lg"

@@ -48,11 +48,9 @@ const Index = () => {
               size="lg" 
               variant="outline"
               className="text-lg"
-              asChild
+              onClick={() => navigate("/watch")}
             >
-              <a href="https://subamerica.net/watch" target="_blank" rel="noopener noreferrer">
-                Watch Now
-              </a>
+              Watch Now
             </Button>
           </div>
         </div>
@@ -195,11 +193,9 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="text-lg glow-primary"
-                asChild
+                onClick={() => navigate("/watch")}
               >
-                <a href="https://subamerica.net" target="_blank" rel="noopener noreferrer">
-                  Watch Now
-                </a>
+                Watch Now
               </Button>
               <Button 
                 size="lg" 
