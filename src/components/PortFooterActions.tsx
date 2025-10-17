@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Heart, UserPlus, Share2 } from "lucide-react";
 import { toast } from "sonner";
+import { TipDialog } from "@/components/TipDialog";
 
 interface PortFooterActionsProps {
   artistId: string;
@@ -15,14 +17,10 @@ export const PortFooterActions = ({
   artistSlug,
   socials 
 }: PortFooterActionsProps) => {
+  const [tipDialogOpen, setTipDialogOpen] = useState(false);
   
   const handleTip = () => {
-    // Navigate to tip section or open payment modal
-    const heroSection = document.getElementById('hero');
-    if (heroSection) {
-      heroSection.scrollIntoView({ behavior: 'smooth' });
-      toast.info("Tip options coming soon!");
-    }
+    setTipDialogOpen(true);
   };
 
   const handleFollow = () => {
@@ -70,40 +68,50 @@ export const PortFooterActions = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
-      <div className="max-w-5xl mx-auto px-4 py-3">
-        <div className="flex items-center justify-center gap-3">
-          <Button 
-            onClick={handleTip}
-            variant="default"
-            size="lg"
-            className="flex-1 max-w-xs"
-          >
-            <Heart className="h-5 w-5 mr-2" />
-            Tip
-          </Button>
-          
-          <Button 
-            onClick={handleFollow}
-            variant="secondary"
-            size="lg"
-            className="flex-1 max-w-xs"
-          >
-            <UserPlus className="h-5 w-5 mr-2" />
-            Follow
-          </Button>
-          
-          <Button 
-            onClick={handleShare}
-            variant="outline"
-            size="lg"
-            className="flex-1 max-w-xs"
-          >
-            <Share2 className="h-5 w-5 mr-2" />
-            Share
-          </Button>
+    <>
+      <TipDialog
+        open={tipDialogOpen}
+        onOpenChange={setTipDialogOpen}
+        artistId={artistId}
+        artistName={artistName}
+        artistSlug={artistSlug}
+      />
+      
+      <div className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-t border-border">
+        <div className="max-w-5xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-3">
+            <Button 
+              onClick={handleTip}
+              variant="default"
+              size="lg"
+              className="flex-1 max-w-xs"
+            >
+              <Heart className="h-5 w-5 mr-2" />
+              Tip
+            </Button>
+            
+            <Button 
+              onClick={handleFollow}
+              variant="secondary"
+              size="lg"
+              className="flex-1 max-w-xs"
+            >
+              <UserPlus className="h-5 w-5 mr-2" />
+              Follow
+            </Button>
+            
+            <Button 
+              onClick={handleShare}
+              variant="outline"
+              size="lg"
+              className="flex-1 max-w-xs"
+            >
+              <Share2 className="h-5 w-5 mr-2" />
+              Share
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
