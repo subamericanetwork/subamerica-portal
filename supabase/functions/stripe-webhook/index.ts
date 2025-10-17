@@ -86,7 +86,7 @@ serve(async (req) => {
         artist_id: artistId,
         artist_name: artistName,
         artist_slug: artistSlug,
-        amount: parseFloat(tipAmount) * 100, // Convert dollars to cents
+        amount: parseFloat(tipAmount), // Already in cents from metadata
         tipper_email: tipperEmail,
       });
 
@@ -115,6 +115,7 @@ serve(async (req) => {
     }
 
     const fromEmail = "colleen.nagle@subamerica.net";
+    const tipAmountDollars = (parseFloat(tipAmount) / 100).toFixed(2); // Convert cents to dollars
     let adminEmailSent = false;
     let tipperEmailSent = false;
 
@@ -132,7 +133,7 @@ serve(async (req) => {
           type: "text/html",
           value: `
             <h2>New Tip Received!</h2>
-            <p><strong>Tip Amount:</strong> $${tipAmount}</p>
+            <p><strong>Tip Amount:</strong> $${tipAmountDollars}</p>
             <p><strong>Artist:</strong> ${artistName}</p>
             <p><strong>Tipper Email:</strong> ${tipperEmail}</p>
             <p><strong>Transaction ID:</strong> ${session.id}</p>
@@ -172,7 +173,7 @@ serve(async (req) => {
         type: "text/html",
         value: `
           <h2>Thank You for Your Support!</h2>
-          <p>Your tip of <strong>$${tipAmount}</strong> to <strong>${artistName}</strong> has been received.</p>
+          <p>Your tip of <strong>$${tipAmountDollars}</strong> to <strong>${artistName}</strong> has been received.</p>
           <p>Your support means the world to independent artists and helps them continue creating amazing content.</p>
           <p><strong>Transaction ID:</strong> ${session.id}</p>
           <p>Thank you for being awesome!</p>
