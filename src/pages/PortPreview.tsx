@@ -477,7 +477,7 @@ const PortPreview = () => {
                             onClick={() => handlePurchase(event.stripe_price_id!, 'event', event.id)}
                             disabled={purchasingItem === event.id}
                           >
-                            {purchasingItem === event.id ? 'Processing...' : `Buy Ticket - ${event.ticket_currency?.toUpperCase()}${event.ticket_price}`}
+                            {purchasingItem === event.id ? 'Processing...' : `Buy Ticket - $${event.ticket_price} ${event.ticket_currency?.toUpperCase()}`}
                           </Button>
                         ) : event.ticket_url && (
                           <Button size="sm" className="mt-2" asChild>
