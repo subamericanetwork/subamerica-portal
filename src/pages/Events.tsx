@@ -126,24 +126,32 @@ const Events = () => {
 
         // Create Stripe product and price
         const { data: stripeData, error: stripeError } = await supabase.functions.invoke(
-          "create-stripe-product-and-price",
+          "create-stripe-event-product",
           {
             body: {
-              product_name: `Ticket - ${formData.title}`,
-              product_description: `Event ticket for ${formData.title}`,
-              price_amount: Math.round(priceAmount * 100), // Convert to cents
-              price_currency: formData.ticket_currency,
+              productName: `Ticket - ${formData.title}`,
+              productDescription: `Event ticket for ${formData.title}`,
+              priceAmount: Math.round(priceAmount * 100), // Convert to cents
+              priceCurrency: formData.ticket_currency,
             },
           }
         );
 
-        if (stripeError || !stripeData?.price_id) {
-          toast.error("Failed to create Stripe price");
+        if (stripeError) {
+          console.error("Stripe error:", stripeError);
+          toast.error(`Failed to create Stripe price: ${stripeError.message}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (!stripeData?.price_id) {
+          toast.error("Failed to create Stripe price: No price ID returned");
           setIsSubmitting(false);
           return;
         }
 
         stripePriceId = stripeData.price_id;
+        console.log("Created Stripe price:", stripePriceId);
       }
 
       const eventData = {
