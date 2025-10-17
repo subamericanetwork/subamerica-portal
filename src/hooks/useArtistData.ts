@@ -48,6 +48,9 @@ interface Product {
   pitch: string | null;
   description: string | null;
   link: string | null;
+  payment_type: string | null;
+  stripe_price_id: string | null;
+  currency: string | null;
   images: string[] | null;
 }
 

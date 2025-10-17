@@ -18,6 +18,7 @@ const PortPreview = () => {
   const [isPublishing, setIsPublishing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [purchasingItem, setPurchasingItem] = useState<string | null>(null);
   
   const backgroundType = portSettings?.background_type || "color";
   const backgroundValue = portSettings?.background_value || "#000000";
@@ -28,6 +29,25 @@ const PortPreview = () => {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setMenuOpen(false);
+    }
+  };
+
+  const handlePurchase = async (priceId: string, type: 'event' | 'product', itemId: string) => {
+    setPurchasingItem(itemId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId, type, itemId }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast.error('Failed to create checkout session');
+    } finally {
+      setPurchasingItem(null);
     }
   };
 
@@ -450,7 +470,16 @@ const PortPreview = () => {
                             {event.description}
                           </p>
                         )}
-                        {event.ticket_url && (
+                        {event.ticket_type === "stripe" && event.stripe_price_id && event.ticket_price ? (
+                          <Button 
+                            size="sm" 
+                            className="mt-2"
+                            onClick={() => handlePurchase(event.stripe_price_id!, 'event', event.id)}
+                            disabled={purchasingItem === event.id}
+                          >
+                            {purchasingItem === event.id ? 'Processing...' : `Buy Ticket - ${event.ticket_currency?.toUpperCase()}${event.ticket_price}`}
+                          </Button>
+                        ) : event.ticket_url && (
                           <Button size="sm" className="mt-2" asChild>
                             <a href={event.ticket_url} target="_blank" rel="noopener noreferrer">
                               Get Tickets
@@ -489,9 +518,19 @@ const PortPreview = () => {
                         <p className="text-xs text-muted-foreground line-clamp-2">{product.description}</p>
                       )}
                       {product.price && (
-                        <p className="text-sm text-primary font-bold">${product.price}</p>
+                        <p className="text-sm text-primary font-bold">{product.currency?.toUpperCase()}{product.price}</p>
                       )}
-                      {product.link && (
+                      {product.payment_type === "stripe" && product.stripe_price_id && product.price ? (
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => handlePurchase(product.stripe_price_id!, 'product', product.id)}
+                          disabled={purchasingItem === product.id}
+                        >
+                          {purchasingItem === product.id ? 'Processing...' : 'Buy Now'}
+                        </Button>
+                      ) : product.link && (
                         <Button size="sm" variant="outline" className="w-full" asChild>
                           <a href={product.link} target="_blank" rel="noopener noreferrer">
                             View Product

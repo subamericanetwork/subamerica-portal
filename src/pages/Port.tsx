@@ -34,6 +34,10 @@ interface Event {
   starts_at: string;
   venue: string | null;
   ticket_url: string | null;
+  ticket_type: string | null;
+  stripe_price_id: string | null;
+  ticket_price: number | null;
+  ticket_currency: string | null;
   poster_url: string | null;
   description: string | null;
 }
@@ -43,6 +47,9 @@ interface Product {
   title: string;
   price: number | null;
   link: string | null;
+  payment_type: string | null;
+  stripe_price_id: string | null;
+  currency: string | null;
   images: string[] | null;
   description: string | null;
 }
@@ -70,12 +77,31 @@ const Port = () => {
   const [backgroundValue, setBackgroundValue] = useState<string>("#000000");
   const [backgroundVideoUrl, setBackgroundVideoUrl] = useState<string | null>(null);
   const [portSettings, setPortSettings] = useState<any>(null);
+  const [purchasingItem, setPurchasingItem] = useState<string | null>(null);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' });
       setMenuOpen(false);
+    }
+  };
+
+  const handlePurchase = async (priceId: string, type: 'event' | 'product', itemId: string) => {
+    setPurchasingItem(itemId);
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: { priceId, type, itemId }
+      });
+
+      if (error) throw error;
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+    } finally {
+      setPurchasingItem(null);
     }
   };
 
@@ -675,7 +701,16 @@ const Port = () => {
                           {String(event.description)}
                         </p>
                       )}
-                      {event.ticket_url && (
+                      {event.ticket_type === "stripe" && event.stripe_price_id && event.ticket_price ? (
+                        <Button 
+                          size="sm" 
+                          className="mt-2"
+                          onClick={() => handlePurchase(event.stripe_price_id!, 'event', event.id)}
+                          disabled={purchasingItem === event.id}
+                        >
+                          {purchasingItem === event.id ? 'Processing...' : `Buy Ticket - ${event.ticket_currency?.toUpperCase()}${event.ticket_price}`}
+                        </Button>
+                      ) : event.ticket_url && (
                         <Button size="sm" className="mt-2" asChild>
                           <a href={String(event.ticket_url)} target="_blank" rel="noopener noreferrer">
                             Get Tickets
@@ -720,9 +755,19 @@ const Port = () => {
                       <p className="text-xs text-muted-foreground line-clamp-2">{String(product.description)}</p>
                     )}
                     {product.price && (
-                      <p className="text-sm text-primary font-bold">${typeof product.price === 'number' ? product.price.toFixed(2) : String(product.price)}</p>
+                      <p className="text-sm text-primary font-bold">{product.currency?.toUpperCase()}{typeof product.price === 'number' ? product.price.toFixed(2) : String(product.price)}</p>
                     )}
-                    {product.link && (
+                    {product.payment_type === "stripe" && product.stripe_price_id && product.price ? (
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => handlePurchase(product.stripe_price_id!, 'product', product.id)}
+                        disabled={purchasingItem === product.id}
+                      >
+                        {purchasingItem === product.id ? 'Processing...' : 'Buy Now'}
+                      </Button>
+                    ) : product.link && (
                       <Button size="sm" variant="outline" className="w-full" asChild>
                         <a href={String(product.link)} target="_blank" rel="noopener noreferrer">
                           View Product
