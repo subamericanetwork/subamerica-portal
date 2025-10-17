@@ -114,7 +114,7 @@ serve(async (req) => {
       throw new Error("SENDGRID_API_KEY not configured");
     }
 
-    const fromEmail = "subamericanetwork@gmail.com";
+    const fromEmail = "colleen.nagle@subamerica.net";
     let adminEmailSent = false;
     let tipperEmailSent = false;
 
