@@ -171,7 +171,7 @@ const Index = () => {
             </Card>
             <Card className="p-6 gradient-card space-y-4">
               <p className="text-foreground/90 leading-relaxed">
-                <strong className="text-primary">Subamerica</strong> — Cultural network and showcase brand: the Indie Underground.
+                <strong className="text-primary">Subamerica</strong> — Indie Underground — Stream fearless art, sound & stories 24/7.
               </p>
               <p className="text-foreground/90 leading-relaxed">
                 <strong className="text-primary">Hercules Media</strong> — Creative production and storytelling partner using the same stack.
