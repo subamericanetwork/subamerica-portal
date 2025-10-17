@@ -37,7 +37,7 @@ serve(async (req) => {
     }
 
     logStep("Verifying webhook signature");
-    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    const event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret);
     logStep("Webhook verified", { type: event.type });
 
     // Only handle checkout.session.completed events
