@@ -38,7 +38,7 @@ const Index = () => {
             </Button>
             <Button 
               size="lg" 
-              variant="secondary"
+              variant="outline"
               className="text-lg"
               onClick={() => navigate("/auth?tab=signup")}
             >
