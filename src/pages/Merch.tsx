@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil, ImageIcon, Info } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
@@ -27,10 +28,21 @@ const Merch = () => {
     pitch: "",
     description: "",
     link: "",
+    payment_type: "external" as "external" | "stripe",
+    currency: "usd",
   });
 
   const resetForm = () => {
-    setFormData({ title: "", type: "", price: "", pitch: "", description: "", link: "" });
+    setFormData({ 
+      title: "", 
+      type: "", 
+      price: "", 
+      pitch: "", 
+      description: "", 
+      link: "",
+      payment_type: "external",
+      currency: "usd"
+    });
     setImageFile(null);
     setEditingProduct(null);
   };
@@ -44,6 +56,8 @@ const Merch = () => {
       pitch: product.pitch || "",
       description: product.description || "",
       link: product.link || "",
+      payment_type: product.payment_type || "external",
+      currency: product.currency || "usd",
     });
     setIsDialogOpen(true);
   };
@@ -85,6 +99,40 @@ const Merch = () => {
         imageUrl = publicUrl;
       }
 
+      // Create Stripe product and price if payment type is Stripe
+      let stripePriceId = editingProduct?.stripe_price_id || null;
+      if (formData.payment_type === "stripe" && !editingProduct) {
+        const priceAmount = parseFloat(formData.price);
+
+        const { data: stripeData, error: stripeError } = await supabase.functions.invoke(
+          "create-stripe-event-product",
+          {
+            body: {
+              productName: formData.title,
+              productDescription: formData.description || `${formData.type} - ${formData.title}`,
+              priceAmount: Math.round(priceAmount * 100), // Convert to cents
+              priceCurrency: formData.currency,
+            },
+          }
+        );
+
+        if (stripeError) {
+          console.error("Stripe error:", stripeError);
+          toast.error(`Failed to create Stripe price: ${stripeError.message}`);
+          setIsSubmitting(false);
+          return;
+        }
+
+        if (!stripeData?.price_id) {
+          toast.error("Failed to create Stripe price: No price ID returned");
+          setIsSubmitting(false);
+          return;
+        }
+
+        stripePriceId = stripeData.price_id;
+        console.log("Created Stripe price:", stripePriceId);
+      }
+
       const productData = {
         artist_id: artist.id,
         title: formData.title,
@@ -95,6 +143,9 @@ const Merch = () => {
         link: formData.link,
         images: imageUrl ? [imageUrl] : null,
         is_surface: editingProduct?.is_surface || false,
+        payment_type: formData.payment_type,
+        stripe_price_id: stripePriceId,
+        currency: formData.currency,
       };
 
       let error;
@@ -233,7 +284,7 @@ const Merch = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ($)</Label>
+                  <Label htmlFor="price">Price ({formData.currency.toUpperCase()})</Label>
                   <Input
                     id="price"
                     type="number"
@@ -245,6 +296,42 @@ const Merch = () => {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="currency">Currency</Label>
+                  <Input
+                    id="currency"
+                    value={formData.currency}
+                    onChange={(e) => setFormData({ ...formData, currency: e.target.value.toLowerCase() })}
+                    placeholder="usd"
+                    maxLength={3}
+                    required
+                  />
+                  <p className="text-xs text-muted-foreground">3-letter currency code (e.g., usd, eur, gbp)</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Payment Type</Label>
+                  <RadioGroup
+                    value={formData.payment_type}
+                    onValueChange={(value: "external" | "stripe") => setFormData({ ...formData, payment_type: value })}
+                    disabled={!!editingProduct}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="external" id="external" />
+                      <Label htmlFor="external" className="font-normal cursor-pointer">
+                        External Link (you handle payments)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="stripe" id="stripe" />
+                      <Label htmlFor="stripe" className="font-normal cursor-pointer">
+                        Stripe (integrated checkout)
+                      </Label>
+                    </div>
+                  </RadioGroup>
+                  {editingProduct && (
+                    <p className="text-xs text-muted-foreground">Payment type cannot be changed after creation</p>
+                  )}
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="description">Description (optional)</Label>
                   <Textarea
                     id="description"
@@ -254,18 +341,20 @@ const Merch = () => {
                     rows={3}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="link">Product Link</Label>
-                  <Input
-                    id="link"
-                    type="url"
-                    value={formData.link}
-                    onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                    placeholder="https://your-store.com/product"
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">Where customers can purchase this product</p>
-                </div>
+                {formData.payment_type === "external" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="link">Product Link</Label>
+                    <Input
+                      id="link"
+                      type="url"
+                      value={formData.link}
+                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                      placeholder="https://your-store.com/product"
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground">Where customers can purchase this product</p>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="pitch">Pitch (optional)</Label>
                   <Input
