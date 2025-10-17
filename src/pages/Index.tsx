@@ -40,7 +40,7 @@ const Index = () => {
               size="lg" 
               variant="secondary"
               className="text-lg"
-              onClick={() => navigate("/auth")}
+              onClick={() => navigate("/auth?tab=signup")}
             >
               Register & Submit Your Work
             </Button>
