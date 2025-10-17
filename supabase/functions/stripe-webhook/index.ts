@@ -20,37 +20,27 @@ serve(async (req) => {
   try {
     logStep("Webhook received");
 
+    const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      apiVersion: "2025-08-27.basil",
+    });
+
     const signature = req.headers.get("stripe-signature");
     if (!signature) {
       throw new Error("No Stripe signature found");
     }
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
-    const sendgridKey = Deno.env.get("SENDGRID_API_KEY");
-
-    if (!stripeKey || !webhookSecret || !sendgridKey) {
-      throw new Error("Missing required environment variables");
-    }
-
-    const stripe = new Stripe(stripeKey, { apiVersion: "2025-08-27.basil" });
     const body = await req.text();
-
-    // Verify webhook signature
-    let event: Stripe.Event;
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      logStep("Webhook signature verified", { eventType: event.type });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      logStep("Webhook signature verification failed", { error: errorMessage });
-      return new Response(JSON.stringify({ error: `Webhook Error: ${errorMessage}` }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 400,
-      });
+    const webhookSecret = Deno.env.get("STRIPE_WEBHOOK_SECRET");
+    
+    if (!webhookSecret) {
+      throw new Error("STRIPE_WEBHOOK_SECRET not configured");
     }
 
-    // Only process checkout.session.completed events
+    logStep("Verifying webhook signature");
+    const event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    logStep("Webhook verified", { type: event.type });
+
+    // Only handle checkout.session.completed events
     if (event.type !== "checkout.session.completed") {
       logStep("Ignoring event type", { type: event.type });
       return new Response(JSON.stringify({ received: true }), {
@@ -64,151 +54,152 @@ serve(async (req) => {
 
     // Extract metadata
     const metadata = session.metadata;
-    if (!metadata || !metadata.artist_id || !metadata.artist_name || !metadata.tip_amount) {
-      logStep("Missing metadata in session", { metadata });
-      throw new Error("Missing required metadata in checkout session");
+    if (!metadata || !metadata.artist_id) {
+      logStep("No tip metadata found, skipping");
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
     const artistId = metadata.artist_id;
-    const artistName = metadata.artist_name;
+    const artistName = metadata.artist_name || "Unknown Artist";
     const artistSlug = metadata.artist_slug || "";
-    const tipAmount = parseFloat(metadata.tip_amount); // Amount in dollars
-    const tipperEmail = session.customer_details?.email || "Unknown";
+    const tipAmount = metadata.tip_amount || "0";
+    const tipperEmail = session.customer_details?.email || "unknown@email.com";
 
-    logStep("Tip details extracted", { artistId, artistName, tipAmount, tipperEmail });
+    logStep("Extracted tip data", { artistId, artistName, tipAmount, tipperEmail });
 
     // Initialize Supabase client
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+      { auth: { persistSession: false } }
     );
 
-    // Store tip record in database
-    const { error: insertError } = await supabase
+    // Store tip in database
+    logStep("Storing tip in database");
+    const { error: insertError } = await supabaseClient
       .from("tips")
       .insert({
         stripe_session_id: session.id,
         artist_id: artistId,
         artist_name: artistName,
         artist_slug: artistSlug,
-        amount: Math.round(tipAmount * 100), // Store as cents
+        amount: parseFloat(tipAmount) * 100, // Convert dollars to cents
         tipper_email: tipperEmail,
-        admin_email_sent: false,
-        tipper_email_sent: false,
       });
 
     if (insertError) {
-      logStep("Error inserting tip record", { error: insertError });
+      logStep("Database insert error", { error: insertError });
       throw insertError;
     }
 
-    logStep("Tip record stored in database");
+    logStep("Tip stored successfully");
 
     // Get admin email from admin_notification_preferences
-    const { data: adminPrefs } = await supabase
+    const { data: adminPrefs } = await supabaseClient
       .from("admin_notification_preferences")
       .select("email_address, email_enabled")
       .limit(1)
       .single();
 
     const adminEmail = adminPrefs?.email_address || "colleen.nagle@subamerica.net";
-    const emailEnabled = adminPrefs?.email_enabled !== false;
+    const shouldSendAdminEmail = adminPrefs?.email_enabled !== false;
 
-    logStep("Admin email preferences", { adminEmail, emailEnabled });
+    logStep("Admin preferences", { adminEmail, shouldSendAdminEmail });
 
+    const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY");
+    if (!sendgridApiKey) {
+      throw new Error("SENDGRID_API_KEY not configured");
+    }
+
+    const fromEmail = "subamericanetwork@gmail.com";
     let adminEmailSent = false;
     let tipperEmailSent = false;
 
-    if (emailEnabled) {
-      // Send admin notification email
+    // Send admin notification email
+    if (shouldSendAdminEmail) {
+      logStep("Sending admin notification email");
+      
       const adminEmailData = {
         personalizations: [{
           to: [{ email: adminEmail }],
           subject: `New Tip Received for ${artistName}`,
         }],
-        from: { email: "subamericanetwork@gmail.com", name: "SubAmerica Network" },
+        from: { email: fromEmail },
         content: [{
           type: "text/html",
           value: `
             <h2>New Tip Received!</h2>
+            <p><strong>Tip Amount:</strong> $${tipAmount}</p>
             <p><strong>Artist:</strong> ${artistName}</p>
-            <p><strong>Tip Amount:</strong> $${tipAmount.toFixed(2)}</p>
             <p><strong>Tipper Email:</strong> ${tipperEmail}</p>
             <p><strong>Transaction ID:</strong> ${session.id}</p>
-            <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-          `
-        }]
-      };
-
-      try {
-        const adminResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${sendgridKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(adminEmailData),
-        });
-
-        if (adminResponse.ok) {
-          adminEmailSent = true;
-          logStep("Admin email sent successfully");
-        } else {
-          const errorText = await adminResponse.text();
-          logStep("Failed to send admin email", { status: adminResponse.status, error: errorText });
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        logStep("Error sending admin email", { error: errorMessage });
-      }
-
-      // Send tipper confirmation email
-      const tipperEmailData = {
-        personalizations: [{
-          to: [{ email: tipperEmail }],
-          subject: `Thank you for supporting ${artistName}!`,
+            <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+          `,
         }],
-        from: { email: "subamericanetwork@gmail.com", name: "SubAmerica Network" },
-        content: [{
-          type: "text/html",
-          value: `
-            <h2>Thank You for Your Support!</h2>
-            <p>Dear ${session.customer_details?.name || "Fan"},</p>
-            <p>Thank you for your generous tip of <strong>$${tipAmount.toFixed(2)}</strong> to support <strong>${artistName}</strong>.</p>
-            <p>Your support means the world to independent artists and helps them continue creating amazing content.</p>
-            <p><strong>Transaction ID:</strong> ${session.id}</p>
-            <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-            <br>
-            <p>With gratitude,<br>The SubAmerica Network Team</p>
-          `
-        }]
       };
 
-      try {
-        const tipperResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${sendgridKey}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(tipperEmailData),
-        });
+      const adminEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${sendgridApiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(adminEmailData),
+      });
 
-        if (tipperResponse.ok) {
-          tipperEmailSent = true;
-          logStep("Tipper confirmation email sent successfully");
-        } else {
-          const errorText = await tipperResponse.text();
-          logStep("Failed to send tipper email", { status: tipperResponse.status, error: errorText });
-        }
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : String(err);
-        logStep("Error sending tipper email", { error: errorMessage });
+      if (adminEmailResponse.ok) {
+        logStep("Admin email sent successfully");
+        adminEmailSent = true;
+      } else {
+        const error = await adminEmailResponse.text();
+        logStep("Admin email failed", { status: adminEmailResponse.status, error });
       }
     }
 
+    // Send tipper confirmation email
+    logStep("Sending tipper confirmation email");
+    
+    const tipperEmailData = {
+      personalizations: [{
+        to: [{ email: tipperEmail }],
+        subject: `Thank you for supporting ${artistName}!`,
+      }],
+      from: { email: fromEmail },
+      content: [{
+        type: "text/html",
+        value: `
+          <h2>Thank You for Your Support!</h2>
+          <p>Your tip of <strong>$${tipAmount}</strong> to <strong>${artistName}</strong> has been received.</p>
+          <p>Your support means the world to independent artists and helps them continue creating amazing content.</p>
+          <p><strong>Transaction ID:</strong> ${session.id}</p>
+          <p>Thank you for being awesome!</p>
+          <p>- The SubAmerica Team</p>
+        `,
+      }],
+    };
+
+    const tipperEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${sendgridApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tipperEmailData),
+    });
+
+    if (tipperEmailResponse.ok) {
+      logStep("Tipper email sent successfully");
+      tipperEmailSent = true;
+    } else {
+      const error = await tipperEmailResponse.text();
+      logStep("Tipper email failed", { status: tipperEmailResponse.status, error });
+    }
+
     // Update email sent status in database
-    await supabase
+    await supabaseClient
       .from("tips")
       .update({
         admin_email_sent: adminEmailSent,
@@ -216,20 +207,25 @@ serve(async (req) => {
       })
       .eq("stripe_session_id", session.id);
 
-    logStep("Webhook processing complete", { adminEmailSent, tipperEmailSent });
-
-    return new Response(JSON.stringify({ 
-      received: true, 
+    logStep("Webhook processing complete", { 
       adminEmailSent, 
       tipperEmailSent 
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-      status: 200,
     });
 
+    return new Response(
+      JSON.stringify({ 
+        received: true, 
+        adminEmailSent, 
+        tipperEmailSent 
+      }),
+      {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      }
+    );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    logStep("ERROR in webhook processing", { message: errorMessage });
+    logStep("ERROR", { message: errorMessage });
     return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
