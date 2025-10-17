@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FAQSection } from "@/components/FAQSection";
 import { PortFooterActions } from "@/components/PortFooterActions";
+import { ProductDialog } from "@/components/ProductDialog";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 
@@ -45,6 +46,7 @@ interface Event {
 interface Product {
   id: string;
   title: string;
+  type: string;
   price: number | null;
   link: string | null;
   payment_type: string | null;
@@ -52,6 +54,7 @@ interface Product {
   currency: string | null;
   images: string[] | null;
   description: string | null;
+  variants?: any;
 }
 
 interface FAQ {
@@ -78,6 +81,7 @@ const Port = () => {
   const [backgroundVideoUrl, setBackgroundVideoUrl] = useState<string | null>(null);
   const [portSettings, setPortSettings] = useState<any>(null);
   const [purchasingItem, setPurchasingItem] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -757,23 +761,14 @@ const Port = () => {
                     {product.price && (
                       <p className="text-sm text-primary font-bold">{product.currency?.toUpperCase()}{typeof product.price === 'number' ? product.price.toFixed(2) : String(product.price)}</p>
                     )}
-                    {product.payment_type === "stripe" && product.stripe_price_id && product.price ? (
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => handlePurchase(product.stripe_price_id!, 'product', product.id)}
-                        disabled={purchasingItem === product.id}
-                      >
-                        {purchasingItem === product.id ? 'Processing...' : 'Buy Now'}
-                      </Button>
-                    ) : product.link && (
-                      <Button size="sm" variant="outline" className="w-full" asChild>
-                        <a href={String(product.link)} target="_blank" rel="noopener noreferrer">
-                          View Product
-                        </a>
-                      </Button>
-                    )}
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => setSelectedProduct(product)}
+                    >
+                      View Product
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
@@ -841,6 +836,17 @@ const Port = () => {
         artistSlug={slug || ''}
         socials={artist.socials}
       />
+
+      {/* Product Dialog */}
+      {selectedProduct && (
+        <ProductDialog
+          product={selectedProduct}
+          open={!!selectedProduct}
+          onOpenChange={(open) => !open && setSelectedProduct(null)}
+          onPurchase={handlePurchase}
+          purchasingItem={purchasingItem}
+        />
+      )}
     </div>
   );
 };

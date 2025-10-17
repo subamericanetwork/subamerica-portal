@@ -52,6 +52,7 @@ interface Product {
   stripe_price_id: string | null;
   currency: string | null;
   images: string[] | null;
+  variants?: any;
 }
 
 interface FAQ {

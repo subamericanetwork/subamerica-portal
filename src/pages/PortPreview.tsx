@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PortFooterActions } from "@/components/PortFooterActions";
+import { ProductDialog } from "@/components/ProductDialog";
 import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useArtistData } from "@/hooks/useArtistData";
@@ -19,6 +20,7 @@ const PortPreview = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [purchasingItem, setPurchasingItem] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   
   const backgroundType = portSettings?.background_type || "color";
   const backgroundValue = portSettings?.background_value || "#000000";
@@ -520,23 +522,14 @@ const PortPreview = () => {
                       {product.price && (
                         <p className="text-sm text-primary font-bold">{product.currency?.toUpperCase()}{product.price}</p>
                       )}
-                      {product.payment_type === "stripe" && product.stripe_price_id && product.price ? (
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="w-full"
-                          onClick={() => handlePurchase(product.stripe_price_id!, 'product', product.id)}
-                          disabled={purchasingItem === product.id}
-                        >
-                          {purchasingItem === product.id ? 'Processing...' : 'Buy Now'}
-                        </Button>
-                      ) : product.link && (
-                        <Button size="sm" variant="outline" className="w-full" asChild>
-                          <a href={product.link} target="_blank" rel="noopener noreferrer">
-                            View Product
-                          </a>
-                        </Button>
-                      )}
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => setSelectedProduct(product)}
+                      >
+                        View Product
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
@@ -591,6 +584,17 @@ const PortPreview = () => {
             artistSlug={artist.slug}
             socials={artist.socials}
           />
+
+          {/* Product Dialog */}
+          {selectedProduct && (
+            <ProductDialog
+              product={selectedProduct}
+              open={!!selectedProduct}
+              onOpenChange={(open) => !open && setSelectedProduct(null)}
+              onPurchase={handlePurchase}
+              purchasingItem={purchasingItem}
+            />
+          )}
         </div>
       </div>
     </DashboardLayout>
