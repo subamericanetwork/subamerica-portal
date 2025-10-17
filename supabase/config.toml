@@ -2,3 +2,9 @@ project_id = "hxzjhhsvssqrjlmbeokn"
 
 [functions.verify-domain]
 verify_jwt = true
+
+[functions.livepush-api]
+verify_jwt = true
+
+[functions.create-tip-payment]
+verify_jwt = false

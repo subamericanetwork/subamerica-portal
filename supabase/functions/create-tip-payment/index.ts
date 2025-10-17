@@ -91,8 +91,9 @@ serve(async (req) => {
       status: 200,
     });
   } catch (error) {
-    console.error("Error creating tip payment:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Error creating tip payment:", errorMessage);
+    return new Response(JSON.stringify({ error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });
