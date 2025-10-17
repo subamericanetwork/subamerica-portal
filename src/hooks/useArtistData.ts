@@ -33,6 +33,10 @@ interface Event {
   ticket_url: string | null;
   description: string | null;
   poster_url: string | null;
+  ticket_type: string | null;
+  ticket_price: number | null;
+  ticket_currency: string | null;
+  stripe_price_id: string | null;
 }
 
 interface Product {

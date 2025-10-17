@@ -314,6 +314,10 @@ export type Database = {
           rtmp_url: string | null
           starts_at: string
           stream_key: string | null
+          stripe_price_id: string | null
+          ticket_currency: string | null
+          ticket_price: number | null
+          ticket_type: string | null
           ticket_url: string | null
           title: string
           updated_at: string | null
@@ -338,6 +342,10 @@ export type Database = {
           rtmp_url?: string | null
           starts_at: string
           stream_key?: string | null
+          stripe_price_id?: string | null
+          ticket_currency?: string | null
+          ticket_price?: number | null
+          ticket_type?: string | null
           ticket_url?: string | null
           title: string
           updated_at?: string | null
@@ -362,6 +370,10 @@ export type Database = {
           rtmp_url?: string | null
           starts_at?: string
           stream_key?: string | null
+          stripe_price_id?: string | null
+          ticket_currency?: string | null
+          ticket_price?: number | null
+          ticket_type?: string | null
           ticket_url?: string | null
           title?: string
           updated_at?: string | null

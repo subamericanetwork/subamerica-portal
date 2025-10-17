@@ -15,6 +15,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Events = () => {
   const { artist, events, loading } = useArtistData();
@@ -29,10 +31,22 @@ const Events = () => {
     ticket_url: "",
     time: "20:00",
     description: "",
+    ticket_type: "external" as "external" | "stripe",
+    ticket_price: "",
+    ticket_currency: "usd",
   });
 
   const resetForm = () => {
-    setFormData({ title: "", venue: "", ticket_url: "", time: "20:00", description: "" });
+    setFormData({ 
+      title: "", 
+      venue: "", 
+      ticket_url: "", 
+      time: "20:00", 
+      description: "",
+      ticket_type: "external",
+      ticket_price: "",
+      ticket_currency: "usd",
+    });
     setSelectedDate(undefined);
     setImageFile(null);
     setEditingEvent(null);
@@ -47,6 +61,9 @@ const Events = () => {
       ticket_url: event.ticket_url || "",
       time: eventDate.toTimeString().slice(0, 5),
       description: event.description || "",
+      ticket_type: event.ticket_type || "external",
+      ticket_price: event.ticket_price?.toString() || "",
+      ticket_currency: event.ticket_currency || "usd",
     });
     setSelectedDate(eventDate);
     setIsDialogOpen(true);
@@ -97,14 +114,50 @@ const Events = () => {
       const eventDate = new Date(selectedDate);
       eventDate.setHours(parseInt(hours), parseInt(minutes));
 
+      // Handle Stripe price creation if using Stripe ticketing
+      let stripePriceId = editingEvent?.stripe_price_id || null;
+      if (formData.ticket_type === "stripe" && formData.ticket_price) {
+        const priceAmount = parseFloat(formData.ticket_price);
+        if (isNaN(priceAmount) || priceAmount <= 0) {
+          toast.error("Please enter a valid ticket price");
+          setIsSubmitting(false);
+          return;
+        }
+
+        // Create Stripe product and price
+        const { data: stripeData, error: stripeError } = await supabase.functions.invoke(
+          "create-stripe-product-and-price",
+          {
+            body: {
+              product_name: `Ticket - ${formData.title}`,
+              product_description: `Event ticket for ${formData.title}`,
+              price_amount: Math.round(priceAmount * 100), // Convert to cents
+              price_currency: formData.ticket_currency,
+            },
+          }
+        );
+
+        if (stripeError || !stripeData?.price_id) {
+          toast.error("Failed to create Stripe price");
+          setIsSubmitting(false);
+          return;
+        }
+
+        stripePriceId = stripeData.price_id;
+      }
+
       const eventData = {
         artist_id: artist.id,
         title: formData.title,
         venue: formData.venue,
-        ticket_url: formData.ticket_url || null,
+        ticket_url: formData.ticket_type === "external" ? (formData.ticket_url || null) : null,
         description: formData.description || null,
         poster_url: posterUrl,
         starts_at: eventDate.toISOString(),
+        ticket_type: formData.ticket_type,
+        ticket_price: formData.ticket_type === "stripe" ? parseFloat(formData.ticket_price) : null,
+        ticket_currency: formData.ticket_type === "stripe" ? formData.ticket_currency : null,
+        stripe_price_id: stripePriceId,
       };
 
       let error;
@@ -246,16 +299,75 @@ const Events = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="ticket_url">Ticket URL (optional)</Label>
-                  <Input
-                    id="ticket_url"
-                    type="url"
-                    value={formData.ticket_url}
-                    onChange={(e) => setFormData({ ...formData, ticket_url: e.target.value })}
-                    placeholder="https://tickets.example.com"
-                  />
+                <div className="space-y-4">
+                  <Label>Ticketing Method</Label>
+                  <RadioGroup
+                    value={formData.ticket_type}
+                    onValueChange={(value: "external" | "stripe") => 
+                      setFormData({ ...formData, ticket_type: value })
+                    }
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="external" id="external" />
+                      <Label htmlFor="external" className="font-normal cursor-pointer">
+                        External Link (Eventbrite, etc.)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="stripe" id="stripe" />
+                      <Label htmlFor="stripe" className="font-normal cursor-pointer">
+                        Sell Tickets via Stripe
+                      </Label>
+                    </div>
+                  </RadioGroup>
                 </div>
+
+                {formData.ticket_type === "external" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="ticket_url">Ticket URL</Label>
+                    <Input
+                      id="ticket_url"
+                      type="url"
+                      value={formData.ticket_url}
+                      onChange={(e) => setFormData({ ...formData, ticket_url: e.target.value })}
+                      placeholder="https://tickets.example.com"
+                    />
+                  </div>
+                )}
+
+                {formData.ticket_type === "stripe" && (
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="ticket_price">Ticket Price</Label>
+                      <Input
+                        id="ticket_price"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={formData.ticket_price}
+                        onChange={(e) => setFormData({ ...formData, ticket_price: e.target.value })}
+                        placeholder="25.00"
+                        required={formData.ticket_type === "stripe"}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="ticket_currency">Currency</Label>
+                      <Select
+                        value={formData.ticket_currency}
+                        onValueChange={(value) => setFormData({ ...formData, ticket_currency: value })}
+                      >
+                        <SelectTrigger id="ticket_currency">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="usd">USD ($)</SelectItem>
+                          <SelectItem value="eur">EUR (€)</SelectItem>
+                          <SelectItem value="gbp">GBP (£)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="description">Description (optional)</Label>
                   <Textarea
@@ -350,12 +462,31 @@ const Events = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {event.ticket_url && (
+                        {event.ticket_type === "external" && event.ticket_url && (
                           <Button variant="outline" size="sm" asChild>
                             <a href={event.ticket_url} target="_blank" rel="noopener noreferrer">
                               <ExternalLink className="h-4 w-4 mr-2" />
                               View Tickets
                             </a>
+                          </Button>
+                        )}
+                        {event.ticket_type === "stripe" && event.stripe_price_id && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={async () => {
+                              const { data, error } = await supabase.functions.invoke(
+                                "create-event-ticket-payment",
+                                { body: { eventId: event.id } }
+                              );
+                              if (error) {
+                                toast.error("Failed to create checkout");
+                              } else if (data?.url) {
+                                window.open(data.url, "_blank");
+                              }
+                            }}
+                          >
+                            Buy Tickets ${event.ticket_price}
                           </Button>
                         )}
                         <Button
