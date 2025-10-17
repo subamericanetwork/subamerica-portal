@@ -1231,6 +1231,53 @@ export type Database = {
           },
         ]
       }
+      tips: {
+        Row: {
+          admin_email_sent: boolean | null
+          amount: number
+          artist_id: string
+          artist_name: string
+          artist_slug: string
+          created_at: string | null
+          id: string
+          stripe_session_id: string
+          tipper_email: string
+          tipper_email_sent: boolean | null
+        }
+        Insert: {
+          admin_email_sent?: boolean | null
+          amount: number
+          artist_id: string
+          artist_name: string
+          artist_slug: string
+          created_at?: string | null
+          id?: string
+          stripe_session_id: string
+          tipper_email: string
+          tipper_email_sent?: boolean | null
+        }
+        Update: {
+          admin_email_sent?: boolean | null
+          amount?: number
+          artist_id?: string
+          artist_name?: string
+          artist_slug?: string
+          created_at?: string | null
+          id?: string
+          stripe_session_id?: string
+          tipper_email?: string
+          tipper_email_sent?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tips_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           granted_at: string | null
