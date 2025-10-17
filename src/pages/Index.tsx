@@ -163,7 +163,9 @@ const Index = () => {
           <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
             <Card className="p-6 gradient-card space-y-4">
               <p className="text-foreground/90 leading-relaxed">
-                <strong className="text-primary">Muse Platforms, Inc.</strong> — Parent company and innovation lab developing technology for creative independence.
+                <a href="https://museplatforms.com/utm_campaign=sub" target="_blank" rel="noopener noreferrer">
+                  <strong className="text-primary hover:underline">Muse Platforms, Inc.</strong>
+                </a> — Parent company and innovation lab developing technology for creative independence.
               </p>
               <p className="text-foreground/90 leading-relaxed">
                 <strong className="text-primary">IndieStack</strong> — Technology infrastructure powering Subamerica and partner networks (SaaS / white-label).
