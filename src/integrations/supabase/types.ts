@@ -151,6 +151,7 @@ export type Database = {
           created_at: string | null
           followers_count: number | null
           id: string
+          is_visible: boolean | null
           last_updated: string | null
           metrics: Json | null
           platform: string
@@ -163,6 +164,7 @@ export type Database = {
           created_at?: string | null
           followers_count?: number | null
           id?: string
+          is_visible?: boolean | null
           last_updated?: string | null
           metrics?: Json | null
           platform: string
@@ -175,6 +177,7 @@ export type Database = {
           created_at?: string | null
           followers_count?: number | null
           id?: string
+          is_visible?: boolean | null
           last_updated?: string | null
           metrics?: Json | null
           platform?: string

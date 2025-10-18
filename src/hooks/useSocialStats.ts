@@ -8,6 +8,7 @@ export interface SocialStat {
   followers_count: number;
   profile_url?: string | null;
   metrics?: any;
+  is_visible: boolean;
   last_updated: string;
   updated_by?: string | null;
   created_at: string;
@@ -182,7 +183,8 @@ export const useSocialStats = (artistId?: string) => {
     platform: string, 
     followers_count: number,
     profile_url?: string,
-    metrics?: { [key: string]: number | string }
+    metrics?: { [key: string]: number | string },
+    is_visible?: boolean
   ) => {
     if (!artistId) return;
     
@@ -194,6 +196,7 @@ export const useSocialStats = (artistId?: string) => {
         followers_count,
         profile_url,
         metrics: metrics || {},
+        is_visible: is_visible !== undefined ? is_visible : true,
         last_updated: new Date().toISOString(),
       }, {
         onConflict: 'artist_id,platform'

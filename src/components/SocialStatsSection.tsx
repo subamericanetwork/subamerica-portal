@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { 
   Accordion,
   AccordionContent,
@@ -25,7 +26,7 @@ interface PlatformFormProps {
   platform: typeof SOCIAL_PLATFORMS[0];
   existingStat?: SocialStat;
   savingPlatform: string | null;
-  onUpdate: (platformKey: string, followers: number, url: string, metrics: any) => void;
+  onUpdate: (platformKey: string, followers: number, url: string, metrics: any, isVisible: boolean) => void;
 }
 
 const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: PlatformFormProps) => {
@@ -33,6 +34,7 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
     followers_count: existingStat?.followers_count || 0,
     profile_url: existingStat?.profile_url || '',
     metrics: existingStat?.metrics || {},
+    is_visible: existingStat?.is_visible !== undefined ? existingStat.is_visible : true,
   });
 
   useEffect(() => {
@@ -41,6 +43,7 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
         followers_count: existingStat.followers_count || 0,
         profile_url: existingStat.profile_url || '',
         metrics: existingStat.metrics || {},
+        is_visible: existingStat.is_visible !== undefined ? existingStat.is_visible : true,
       });
     }
   }, [existingStat]);
@@ -75,6 +78,24 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
+            <div className="space-y-0.5">
+              <Label htmlFor={`${platform.key}-visible`} className="text-sm font-medium">
+                Show on Port
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Display this platform on your public port page
+              </p>
+            </div>
+            <Switch
+              id={`${platform.key}-visible`}
+              checked={formData.is_visible}
+              onCheckedChange={(checked) => 
+                setFormData(prev => ({ ...prev, is_visible: checked }))
+              }
+            />
+          </div>
+
           {platform.fields.map((field) => (
             <div key={field.key} className="space-y-2">
               <Label htmlFor={`${platform.key}-${field.key}`}>
@@ -111,7 +132,8 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
               platform.key,
               formData.followers_count,
               formData.profile_url,
-              formData.metrics
+              formData.metrics,
+              formData.is_visible
             )}
             disabled={savingPlatform === platform.key || formData.followers_count <= 0}
           >
@@ -149,7 +171,8 @@ export const SocialStatsSection = ({ artistId }: SocialStatsSectionProps) => {
     platformKey: string,
     followers_count: number,
     profile_url: string,
-    metrics: { [key: string]: any }
+    metrics: { [key: string]: any },
+    is_visible: boolean
   ) => {
     setSavingPlatform(platformKey);
     
@@ -157,7 +180,8 @@ export const SocialStatsSection = ({ artistId }: SocialStatsSectionProps) => {
       platformKey,
       followers_count,
       profile_url || undefined,
-      metrics
+      metrics,
+      is_visible
     );
 
     setSavingPlatform(null);
