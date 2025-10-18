@@ -145,7 +145,7 @@ const getArtistWelcomeHTML = (data: RegistrationData) => `
         
         <div class="feature">
           <span class="feature-icon">📡</span>
-          <strong>Go Live</strong><br/>
+          <strong>Go Live (Coming Soon)</strong><br/>
           Stream live performances and events to your audience
         </div>
         
