@@ -9,6 +9,7 @@ import AdminRoute from "@/components/AdminRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Features from "./pages/Features";
 import Profile from "./pages/Profile";
 import Videos from "./pages/Videos";
 import Events from "./pages/Events";
@@ -33,6 +34,7 @@ const App = () => (
         <AuthProvider>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/features" element={<Features />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

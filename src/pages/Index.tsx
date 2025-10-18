@@ -49,11 +49,11 @@ const Index = () => {
             </Button>
             <Button 
               size="lg" 
-              variant="outline"
+              variant="ghost"
               className="text-lg"
-              onClick={() => navigate("/watch")}
+              onClick={() => navigate("/features")}
             >
-              Watch Now
+              Explore Features
             </Button>
           </div>
         </div>
@@ -198,6 +198,15 @@ const Index = () => {
               <Button 
                 size="lg" 
                 className="text-lg glow-primary"
+                onClick={() => navigate("/features")}
+              >
+                View All Features
+                <ArrowRight className="h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline"
+                className="text-lg"
                 onClick={() => navigate("/watch")}
               >
                 Watch Now
@@ -210,16 +219,6 @@ const Index = () => {
               >
                 <a href="mailto:roger@subamerica.net">
                   Partnerships
-                </a>
-              </Button>
-              <Button 
-                size="lg" 
-                variant="outline"
-                className="text-lg"
-                asChild
-              >
-                <a href="mailto:donna@subamerica.net">
-                  Press
                 </a>
               </Button>
             </div>

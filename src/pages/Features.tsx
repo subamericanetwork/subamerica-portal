@@ -1,563 +1,145 @@
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Video, Calendar, ShoppingBag, DollarSign, Share2, BarChart3, 
-  Palette, Globe, Zap, Shield, Users, Sparkles, Music, Target,
-  TrendingUp, Heart, Settings, FileText, Eye, CheckCircle2
+  ArrowRight, Video, Calendar, ShoppingBag, DollarSign, Globe, Palette, Share2, HelpCircle,
+  BarChart3, Shield, Zap, Users, TrendingUp, CheckCircle2, X, Home, Play, Sparkles
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import logo from "@/assets/subamerica-logo-small.jpg";
 
 const Features = () => {
+  const navigate = useNavigate();
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-background/50">
-      <div className="container max-w-5xl mx-auto px-4 py-12 space-y-12">
-        {/* Header */}
-        <div className="text-center space-y-4">
-          <Badge variant="outline" className="mb-4">Platform Overview</Badge>
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight">
-            Subamerica Artist Portal
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-            A comprehensive platform empowering artists to broadcast, monetize, and connect with their audience—all in one place.
-          </p>
-        </div>
-
-        <Separator />
-
-        {/* Mission Statement */}
-        <section className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Target className="h-6 w-6 text-primary" />
-            <h2 className="text-3xl font-bold">Our Mission</h2>
-          </div>
-          <p className="text-lg text-muted-foreground leading-relaxed">
-            Subamerica exists to empower artists with complete control over their creative output, distribution, and revenue. 
-            We believe in putting artists first—providing the tools, infrastructure, and support needed to build sustainable 
-            careers without compromising artistic vision or financial independence.
-          </p>
-        </section>
-
-        <Separator />
-
-        {/* Core Features */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-6 w-6 text-primary" />
-            <h2 className="text-3xl font-bold">Core Features</h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            {/* Video Management */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Video className="h-5 w-5 text-primary" />
-                  <CardTitle>Professional Video Streaming</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Host and stream your content with enterprise-grade infrastructure.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>HD video hosting with adaptive streaming</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Music videos, live performances, and documentaries</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Closed captions support for accessibility</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Featured video spotlighting</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Livepush integration for live streaming</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Events Management */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-primary" />
-                  <CardTitle>Event Management & Ticketing</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Promote shows and sell tickets directly to your fans.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Integrated event calendar</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Built-in ticket sales via Stripe</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Event posters and descriptions</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Venue and date management</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>External ticketing platform integration</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Merchandise */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5 text-primary" />
-                  <CardTitle>Merchandise & Products</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Sell physical and digital products with complete control.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Product catalog with multiple images</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Apparel variants (sizes, colors)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Digital downloads and music sales</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Printify integration for print-on-demand</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Featured products showcase</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            {/* Monetization */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  <CardTitle>Direct Monetization</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Multiple revenue streams, all under your control.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Fan tipping with custom amounts</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Product sales with Stripe integration</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Event ticket revenue</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Payment history and tracking</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Secure payment processing</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        <Separator />
-
-        {/* Portfolio & Branding */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Palette className="h-6 w-6 text-primary" />
-            <h2 className="text-3xl font-bold">Portfolio & Branding</h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-primary" />
-                  <CardTitle>Custom Artist Port</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Your personalized landing page that showcases everything you do.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Unique artist slug (subamerica.tv/your-name)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Custom backgrounds (solid colors, gradients, videos)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Typography and color customization</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Bio (short and long versions)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Scene and location information</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Globe className="h-5 w-5 text-primary" />
-                  <CardTitle>Custom Domain Support</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Use your own domain for maximum brand control.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Connect custom domains to your port</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Automatic domain verification</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>SSL security included</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Maintain your brand identity</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <Share2 className="h-5 w-5 text-primary" />
-                  <CardTitle>Social Media Integration</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Connect all your social platforms and showcase your reach.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Link to Instagram, Spotify, YouTube, and more</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Display follower counts and engagement metrics</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Granular visibility controls per platform</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Choose which stats to display publicly</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  <CardTitle>FAQ Management</CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <p className="text-muted-foreground">Answer common questions and improve discoverability.</p>
-                <ul className="space-y-1 text-sm">
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Create custom FAQ sections</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Control visibility and ordering</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
-                    <span>Improve SEO with rich content</span>
-                  </li>
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        <Separator />
-
-        {/* Analytics & Insights */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-6 w-6 text-primary" />
-            <h2 className="text-3xl font-bold">Analytics & Insights</h2>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Track Your Growth</CardTitle>
-              <CardDescription>
-                Understand your audience and measure your impact with built-in analytics.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ul className="grid gap-3 md:grid-cols-2">
-                <li className="flex items-start gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">SEO Completeness Tracker</p>
-                    <p className="text-sm text-muted-foreground">Monitor and optimize your discoverability</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Users className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Social Media Reach Dashboard</p>
-                    <p className="text-sm text-muted-foreground">Aggregate stats across all platforms</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <DollarSign className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Payment History</p>
-                    <p className="text-sm text-muted-foreground">Track all transactions and revenue</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-2">
-                  <Video className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-medium">Video Performance</p>
-                    <p className="text-sm text-muted-foreground">Manage and organize your content library</p>
-                  </div>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </section>
-
-        <Separator />
-
-        {/* Platform Benefits */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Heart className="h-6 w-6 text-primary" />
-            <h2 className="text-3xl font-bold">Why Choose Subamerica</h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            <Card>
-              <CardHeader>
-                <Music className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Artist First</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Every decision is made with artists' needs at the forefront. You retain full ownership and creative control.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Zap className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>All-in-One Platform</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  No need for multiple services. Streaming, ticketing, merchandise, and payments all integrated seamlessly.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Shield className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Secure & Reliable</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Enterprise-grade security with Stripe payment processing and robust infrastructure for 99.9% uptime.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Settings className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Complete Customization</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Your brand, your way. Customize every aspect of your presence from colors to content to domain.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <DollarSign className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Direct Revenue</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Keep more of what you earn. No middlemen taking excessive cuts from your hard work.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <Users className="h-8 w-8 text-primary mb-2" />
-                <CardTitle>Community Focused</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Build authentic connections with your fans through direct engagement and transparent communication.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        <Separator />
-
-        {/* Technical Capabilities */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Zap className="h-6 w-6 text-primary" />
-            <h2 className="text-3xl font-bold">Technical Capabilities</h2>
-          </div>
-
-          <Card>
-            <CardContent className="pt-6">
-              <ul className="grid gap-4 md:grid-cols-2">
-                <li className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Shield className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Secure Authentication</p>
-                    <p className="text-sm text-muted-foreground">Protected artist accounts with role-based access</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Globe className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Global CDN</p>
-                    <p className="text-sm text-muted-foreground">Fast content delivery worldwide</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Video className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Adaptive Streaming</p>
-                    <p className="text-sm text-muted-foreground">HLS video with automatic quality adjustment</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Zap className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Real-time Updates</p>
-                    <p className="text-sm text-muted-foreground">Instant content synchronization across devices</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <DollarSign className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Stripe Integration</p>
-                    <p className="text-sm text-muted-foreground">PCI-compliant payment processing</p>
-                  </div>
-                </li>
-                <li className="flex items-start gap-3">
-                  <div className="rounded-full bg-primary/10 p-2">
-                    <Settings className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="font-medium">API Integrations</p>
-                    <p className="text-sm text-muted-foreground">Livepush, Printify, and more</p>
-                  </div>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
-        </section>
-
-        <Separator />
-
-        {/* Getting Started */}
-        <section className="space-y-6">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl font-bold">Ready to Take Control?</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Join the growing community of independent artists who are building sustainable careers on their own terms.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <a 
-                href="/auth" 
-                className="inline-flex items-center justify-center rounded-md bg-primary px-8 py-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 transition-colors"
-              >
-                Get Started Free
-              </a>
-              <a 
-                href="/" 
-                className="inline-flex items-center justify-center rounded-md border border-input bg-background px-8 py-3 text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-              >
-                Learn More
-              </a>
+    <div className="min-h-screen bg-background">
+      {/* Navigation Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Subamerica" className="h-8" />
+              <span className="text-lg font-semibold">Artist Portal</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" onClick={() => navigate("/")}><Home className="h-4 w-4" />Home</Button>
+              <Button onClick={() => navigate("/auth")}>Get Started<ArrowRight className="h-4 w-4" /></Button>
             </div>
           </div>
-        </section>
-
-        {/* Footer Note */}
-        <div className="text-center text-sm text-muted-foreground pt-8 border-t">
-          <p>Platform powered by Subamerica • Built for artists, by artists</p>
         </div>
-      </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="section-spacing gradient-hero">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
+            <Badge variant="outline" className="text-sm px-4 py-2"><Sparkles className="h-4 w-4 mr-2" />All-in-One Creator Platform</Badge>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight">Everything You Need to<span className="block text-primary mt-2">Build Your Creative Empire</span></h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">Stream videos, sell tickets, launch merch, accept tips, and build your brand—all from one powerful platform designed for independent artists.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Start Building Free<ArrowRight className="h-5 w-5" /></Button>
+              <Button size="lg" variant="outline" className="text-lg" onClick={() => navigate("/watch")}><Play className="h-5 w-5" />Watch Demo</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feature Highlights */}
+      <section className="section-spacing border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <span className="eyebrow">Core Capabilities</span>
+            <h2 className="text-3xl md:text-4xl font-bold mt-2">Your Complete Creator Toolkit</h2>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {[
+              { icon: Video, title: "Video Streaming", desc: "Professional HLS streaming with global CDN", features: ["Adaptive quality", "Unlimited uploads", "Analytics tracking"] },
+              { icon: Calendar, title: "Event Ticketing", desc: "Sell tickets directly to your fans", features: ["QR code tickets", "Stripe integration", "Keep 80-90%"] },
+              { icon: ShoppingBag, title: "Merch Store", desc: "Sell products with zero inventory", features: ["Print-on-demand", "Auto fulfillment", "Global shipping"] },
+              { icon: DollarSign, title: "Direct Tips", desc: "Get paid directly by supporters", features: ["Custom amounts", "Instant payouts", "Fan messages"] }
+            ].map((feature, idx) => (
+              <Card key={idx} className="gradient-card hover-scale transition-smooth">
+                <CardHeader>
+                  <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle>{feature.title}</CardTitle>
+                  <CardDescription>{feature.desc}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    {feature.features.map((f, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />{f}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Table */}
+      <section className="section-spacing border-t border-border">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <span className="eyebrow">Why Choose Us</span>
+            <h2 className="text-3xl md:text-4xl font-bold mt-2">The Subamerica Difference</h2>
+          </div>
+          <Card className="max-w-5xl mx-auto gradient-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="border-b border-border">
+                  <tr><th className="text-left p-6 font-semibold">Feature</th><th className="text-center p-6 font-semibold">Traditional Platforms</th><th className="text-center p-6 font-semibold text-primary">Subamerica</th></tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {[
+                    ["Revenue Share", "50-70% platform fee", "Keep 80-90%"],
+                    ["Custom Domain", "Not available or expensive", "Included"],
+                    ["Direct Fan Payments", "Limited or restricted", "Tips, products, tickets"],
+                    ["Content Ownership", "Platform owns rights", "Full ownership"],
+                    ["Monetization Tools", "Scattered across platforms", "All-in-one dashboard"]
+                  ].map(([feature, old, new_], idx) => (
+                    <tr key={idx} className="hover:bg-accent/50 transition-colors">
+                      <td className="p-6 font-medium">{feature}</td>
+                      <td className="p-6 text-center text-destructive"><div className="flex items-center justify-center gap-2"><X className="h-5 w-5" /><span>{old}</span></div></td>
+                      <td className="p-6 text-center text-primary"><div className="flex items-center justify-center gap-2"><CheckCircle2 className="h-5 w-5" /><span className="font-semibold">{new_}</span></div></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Card>
+        </div>
+      </section>
+
+      <Separator className="my-12" />
+
+      {/* Final CTA */}
+      <section className="section-spacing">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center space-y-8 gradient-card p-12 rounded-2xl">
+            <h2 className="text-3xl md:text-5xl font-bold">Ready to Build Your Port?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">Join independent artists worldwide who are taking control of their creative careers with Subamerica.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Get Started Free<ArrowRight className="h-5 w-5" /></Button>
+              <Button size="lg" variant="outline" className="text-lg" onClick={() => navigate("/")}>Back to Home</Button>
+            </div>
+            <p className="text-sm text-muted-foreground pt-4">No credit card required • Full access to all features • Keep 80-90% of revenue</p>
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-border py-8 mt-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-muted-foreground text-sm">
+            <p>© {new Date().getFullYear()} Subamerica. Indie Underground. Built by Muse Platforms.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
