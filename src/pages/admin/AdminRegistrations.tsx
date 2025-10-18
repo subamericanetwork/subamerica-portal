@@ -46,6 +46,7 @@ const AdminRegistrations = () => {
         .order("created_at", { ascending: false });
 
       if (artistsError) throw artistsError;
+      console.log("Fetched artists:", artistsData?.length, artistsData);
       setArtists((artistsData || []) as Artist[]);
 
       // Fetch user roles
@@ -54,6 +55,7 @@ const AdminRegistrations = () => {
         .select("user_id, role");
 
       if (rolesError) throw rolesError;
+      console.log("Fetched user roles:", rolesData);
       setUserRoles((rolesData || []) as UserRole[]);
     } catch (error) {
       console.error("Error fetching registrations:", error);
