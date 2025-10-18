@@ -26,7 +26,7 @@ const Index = () => {
             </h1>
             <p className="eyebrow">Indie Underground — Stream fearless art, sound, and stories 24/7</p>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Cultural network and showcase brand: the Indie Underground. Broadcasting worldwide from New York City across web, mobile, and connected TV.
+              Build your artist portal on Subamerica.net — the creator-first platform to upload, stream, and monetize your music, art, and performance media worldwide.
             </p>
           </div>
 
