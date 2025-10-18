@@ -547,8 +547,8 @@ const Merch = () => {
                         {product.description}
                       </p>
                     )}
-                    {product.sku && (
-                      <p className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</p>
+                    {(product as any).sku && (
+                      <p className="text-xs text-muted-foreground mt-1">SKU: {(product as any).sku}</p>
                     )}
                   </div>
 
