@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,8 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tv, MonitorPlay, ExternalLink, Radio } from "lucide-react";
 
 const Watch = () => {
+  const playerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     document.title = "Watch Subamerica Live - Indie Underground 24/7 Stream";
     
@@ -15,6 +17,28 @@ const Watch = () => {
         'Watch Subamerica live 24/7 - streaming fearless indie art, music videos, and stories. Available on Roku, Google TV, Fire TV, Apple TV, and web.'
       );
     }
+
+    // Load Livepush player script
+    const script = document.createElement('script');
+    script.src = 'https://player.livepush.io/js/player.js';
+    script.async = true;
+    script.onload = () => {
+      if (playerRef.current && (window as any).LivepushPlayer) {
+        new (window as any).LivepushPlayer(playerRef.current, {
+          streamId: 'emvJyyEvXzer9Rw-',
+          autoplay: true,
+          muted: false,
+          controls: true,
+        });
+      }
+    };
+    document.head.appendChild(script);
+
+    return () => {
+      if (document.head.contains(script)) {
+        document.head.removeChild(script);
+      }
+    };
   }, []);
 
   const platformLinks = {
@@ -48,15 +72,10 @@ const Watch = () => {
           {/* Live Player */}
           <div className="relative w-full max-w-5xl mx-auto">
             <AspectRatio ratio={16/9} className="bg-black rounded-lg overflow-hidden border border-border shadow-2xl">
-              <iframe
-                src="https://player.livepush.io/live/emvJyyEvXzer9Rw-?autoplay=true&muted=false"
-                width="100%"
-                height="100%"
-                allowFullScreen
-                allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope; clipboard-write"
-                className="absolute inset-0"
-                title="Subamerica Live Stream"
-                frameBorder="0"
+              <div 
+                ref={playerRef}
+                className="absolute inset-0 w-full h-full"
+                id="livepush-player"
               />
             </AspectRatio>
             <p className="text-center text-sm text-muted-foreground mt-4">
