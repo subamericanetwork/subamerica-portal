@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Eye, EyeOff, ShoppingBag, Trash2, Pencil, ImageIcon, Info } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
@@ -372,13 +373,23 @@ const Merch = () => {
                 
                 <div className="space-y-2">
                   <Label htmlFor="type">Type</Label>
-                  <Input
-                    id="type"
+                  <Select
                     value={formData.type}
-                    onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                    placeholder="Apparel"
+                    onValueChange={(value) => setFormData({ ...formData, type: value })}
                     required
-                  />
+                  >
+                    <SelectTrigger id="type">
+                      <SelectValue placeholder="Select product type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Apparel">Apparel</SelectItem>
+                      <SelectItem value="Swag">Swag</SelectItem>
+                      <SelectItem value="Music (.mp3)">Music (.mp3)</SelectItem>
+                      <SelectItem value="Vinyl">Vinyl</SelectItem>
+                      <SelectItem value="Video (.mp4)">Video (.mp4)</SelectItem>
+                      <SelectItem value="Art">Art</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
                 <div className="space-y-2">
