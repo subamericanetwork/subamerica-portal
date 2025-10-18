@@ -168,6 +168,7 @@ const Port = () => {
             .single();
 
           if (artistError) throw artistError;
+          console.log('Port.tsx - Artist data (custom domain):', artistData);
           setArtist(artistData as Artist);
         } else {
           // Query by slug (original behavior)
@@ -185,6 +186,7 @@ const Port = () => {
           }
           
           artistId = artistData.id;
+          console.log('Port.tsx - Artist data (slug):', artistData);
           setArtist(artistData as Artist);
           
           // Check if port is published and get background settings
