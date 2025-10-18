@@ -331,7 +331,7 @@ const Merch = () => {
                     }}
                   />
                   <p className="text-xs text-muted-foreground">
-                    {editingProduct?.images?.length || 0} existing + {imageFiles.length} new = {(editingProduct?.images?.length || 0) + imageFiles.length} / 4 images
+                    Upload high-quality product photos. First image will be the main display image. {editingProduct?.images?.length || 0} existing + {imageFiles.length} new = {(editingProduct?.images?.length || 0) + imageFiles.length} / 4 images
                   </p>
                   
                   {/* Show existing images */}
@@ -366,7 +366,7 @@ const Merch = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="title">Product Name</Label>
+                  <Label htmlFor="title">Product Name *</Label>
                   <Input
                     id="title"
                     value={formData.title}
@@ -374,21 +374,22 @@ const Merch = () => {
                     placeholder="Tour Tee"
                     required
                   />
+                  <p className="text-xs text-muted-foreground">Give your product a clear, memorable name</p>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="sku">SKU (Optional)</Label>
+                  <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
                   <Input
                     id="sku"
                     value={formData.sku}
                     onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
-                    placeholder="Enter unique SKU for inventory tracking"
+                    placeholder="TOUR-TEE-BLK-M"
                   />
-                  <p className="text-xs text-muted-foreground">Stock Keeping Unit - helps you track inventory</p>
+                  <p className="text-xs text-muted-foreground">Optional unique identifier for inventory tracking (e.g., PRODUCT-COLOR-SIZE)</p>
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
+                  <Label htmlFor="type">Product Type *</Label>
                   <Select
                     value={formData.type}
                     onValueChange={(value) => {
@@ -412,6 +413,7 @@ const Merch = () => {
                       <SelectItem value="Art">Art</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">Choose the category that best describes your product. Select "Apparel" to enable size/color variants</p>
                 </div>
 
                 {formData.type === "Apparel" && (
@@ -536,7 +538,7 @@ const Merch = () => {
                 )}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="price">Price ({formData.currency.toUpperCase()})</Label>
+                  <Label htmlFor="price">Price *</Label>
                   <Input
                     id="price"
                     type="number"
@@ -546,6 +548,7 @@ const Merch = () => {
                     placeholder="28.00"
                     required
                   />
+                  <p className="text-xs text-muted-foreground">Set the selling price in your chosen currency (use decimals for cents)</p>
                 </div>
                 
                 <div className="space-y-2">
@@ -562,7 +565,7 @@ const Merch = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label>Payment Type</Label>
+                  <Label>Payment Type *</Label>
                   <RadioGroup
                     value={formData.payment_type}
                     onValueChange={(value: "external" | "stripe") => setFormData({ ...formData, payment_type: value })}
@@ -571,18 +574,20 @@ const Merch = () => {
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="external" id="external" />
                       <Label htmlFor="external" className="font-normal cursor-pointer">
-                        External Link (you handle payments)
+                        External Link - Direct customers to your own store or website
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="stripe" id="stripe" />
                       <Label htmlFor="stripe" className="font-normal cursor-pointer">
-                        Stripe (integrated checkout)
+                        Stripe Checkout - Accept payments directly (requires Stripe integration)
                       </Label>
                     </div>
                   </RadioGroup>
-                  {editingProduct && (
-                    <p className="text-xs text-muted-foreground">Payment type cannot be changed after creation</p>
+                  {editingProduct ? (
+                    <p className="text-xs text-muted-foreground">Payment type cannot be changed after product creation</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Choose how customers will purchase this product. This cannot be changed later.</p>
                   )}
                 </div>
                 
@@ -612,7 +617,7 @@ const Merch = () => {
                 
                 {formData.payment_type === "external" && (
                   <div className="space-y-2">
-                    <Label htmlFor="link">Product Link</Label>
+                    <Label htmlFor="link">Product Link *</Label>
                     <Input
                       id="link"
                       type="url"
@@ -621,18 +626,19 @@ const Merch = () => {
                       placeholder="https://your-store.com/product"
                       required
                     />
-                    <p className="text-xs text-muted-foreground">Where customers can purchase this product</p>
+                    <p className="text-xs text-muted-foreground">Enter the full URL where customers can purchase this product (must start with https://)</p>
                   </div>
                 )}
                 
                 <div className="space-y-2">
-                  <Label htmlFor="pitch">Pitch (optional)</Label>
+                  <Label htmlFor="pitch">Pitch Line</Label>
                   <Input
                     id="pitch"
                     value={formData.pitch}
                     onChange={(e) => setFormData({ ...formData, pitch: e.target.value })}
-                    placeholder="Limited run tee"
+                    placeholder="Limited edition tour merch - only 100 made!"
                   />
+                  <p className="text-xs text-muted-foreground">Optional short promotional tagline to catch attention (e.g., "Limited run", "Exclusive design")</p>
                 </div>
                 
                 <div className="pt-4">
