@@ -168,7 +168,6 @@ const Port = () => {
             .single();
 
           if (artistError) throw artistError;
-          console.log('Port.tsx - Artist data (custom domain):', artistData);
           setArtist(artistData as Artist);
         } else {
           // Query by slug (original behavior)
@@ -186,11 +185,6 @@ const Port = () => {
           }
           
           artistId = artistData.id;
-          console.log('=== PORT PAGE DEBUG ===');
-          console.log('Artist data:', JSON.stringify(artistData, null, 2));
-          console.log('City:', artistData.city);
-          console.log('State:', artistData.state);
-          console.log('Country:', artistData.country);
           setArtist(artistData as Artist);
           
           // Check if port is published and get background settings
@@ -601,24 +595,14 @@ const Port = () => {
                 {String(artist.bio_short)}
               </p>
             )}
-            {(() => {
-              const city = (artist as any).city;
-              const state = (artist as any).state;
-              const country = (artist as any).country;
-              console.log('Rendering location check:', { city, state, country });
-              
-              if (city || state || country) {
-                return (
-                  <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>
-                      {[city, state, country].filter(Boolean).join(', ')}
-                    </span>
-                  </div>
-                );
-              }
-              return null;
-            })()}
+            {((artist as any).city || (artist as any).state || (artist as any).country) && (
+              <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>
+                  {[(artist as any).city, (artist as any).state, (artist as any).country].filter(Boolean).join(', ')}
+                </span>
+              </div>
+            )}
           </div>
 
         </div>
