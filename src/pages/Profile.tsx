@@ -16,6 +16,7 @@ import { FAQManagement } from "@/components/FAQManagement";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { CustomDomainSettings } from "@/components/CustomDomainSettings";
 import { useAuth } from "@/contexts/AuthContext";
+import { SocialStatsSection } from "@/components/SocialStatsSection";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -466,6 +467,11 @@ const Profile = () => {
             faqs={faqs}
             onUpdate={() => setRefreshKey(prev => prev + 1)}
           />
+        )}
+
+        {/* Social Media Analytics */}
+        {artist && (
+          <SocialStatsSection artistId={artist.id} />
         )}
 
         {/* Address Information */}

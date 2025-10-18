@@ -145,6 +145,53 @@ export type Database = {
           },
         ]
       }
+      artist_social_stats: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          followers_count: number | null
+          id: string
+          last_updated: string | null
+          metrics: Json | null
+          platform: string
+          profile_url: string | null
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          followers_count?: number | null
+          id?: string
+          last_updated?: string | null
+          metrics?: Json | null
+          platform: string
+          profile_url?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          followers_count?: number | null
+          id?: string
+          last_updated?: string | null
+          metrics?: Json | null
+          platform?: string
+          profile_url?: string | null
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_social_stats_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artists: {
         Row: {
           address_line1: string | null

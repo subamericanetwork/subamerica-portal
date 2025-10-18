@@ -26,6 +26,8 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { SocialMediaReachCard } from "@/components/SocialMediaReachCard";
+import { useSocialStats } from "@/hooks/useSocialStats";
 
 interface Tip {
   id: string;
@@ -48,6 +50,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [tips, setTips] = useState<Tip[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const { stats: socialStats, loading: socialStatsLoading } = useSocialStats(artist?.id);
   const [loadingPayments, setLoadingPayments] = useState(true);
 
   useEffect(() => {
@@ -307,6 +310,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Social Media Reach */}
+        <SocialMediaReachCard stats={socialStats} loading={socialStatsLoading} />
 
         {/* Content Stats & Port Status Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
