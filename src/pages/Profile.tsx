@@ -244,25 +244,6 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* SEO Completeness Indicator */}
-        {artist && (
-          <SEOCompleteness
-            artist={artist}
-            faqs={faqs}
-            portSettings={portSettings}
-          />
-        )}
-
-        {/* Custom Domain Settings */}
-        {artist && (
-          <CustomDomainSettings 
-            artistId={artist.id}
-            slug={artist.slug}
-            currentDomain={portSettings?.custom_domain}
-            isVerified={portSettings?.custom_domain_verified}
-          />
-        )}
-
         {/* Profile Photo */}
         <Card>
           <CardHeader>
@@ -333,82 +314,6 @@ const Profile = () => {
               <p className="text-xs text-muted-foreground text-right">
                 {charCount}/{maxChars} characters
               </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Address Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Address Information</CardTitle>
-            <CardDescription>
-              We respect your privacy. Only your city, state, and country will be displayed on your public page.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="address_line1">Address Line 1</Label>
-              <Input
-                id="address_line1"
-                type="text"
-                value={address.address_line1}
-                onChange={(e) => setAddress({ ...address, address_line1: e.target.value })}
-                placeholder="Street address"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
-              <Input
-                id="address_line2"
-                type="text"
-                value={address.address_line2}
-                onChange={(e) => setAddress({ ...address, address_line2: e.target.value })}
-                placeholder="Apartment, suite, etc."
-              />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                <Input
-                  id="city"
-                  type="text"
-                  value={address.city}
-                  onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                  placeholder="City"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="state">State/Province</Label>
-                <Input
-                  id="state"
-                  type="text"
-                  value={address.state}
-                  onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                  placeholder="State or Province"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                <Input
-                  id="country"
-                  type="text"
-                  value={address.country}
-                  onChange={(e) => setAddress({ ...address, country: e.target.value })}
-                  placeholder="Country"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="postal_code">Postal Code</Label>
-                <Input
-                  id="postal_code"
-                  type="text"
-                  value={address.postal_code}
-                  onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
-                  placeholder="ZIP or Postal Code"
-                />
-              </div>
             </div>
           </CardContent>
         </Card>
@@ -544,6 +449,15 @@ const Profile = () => {
           </CardContent>
         </Card>
 
+        {/* SEO Completeness Indicator */}
+        {artist && (
+          <SEOCompleteness
+            artist={artist}
+            faqs={faqs}
+            portSettings={portSettings}
+          />
+        )}
+
         {/* FAQ Management */}
         {artist && (
           <FAQManagement
@@ -553,6 +467,82 @@ const Profile = () => {
             onUpdate={() => setRefreshKey(prev => prev + 1)}
           />
         )}
+
+        {/* Address Information */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Address Information</CardTitle>
+            <CardDescription>
+              We respect your privacy. Only your city, state, and country will be displayed on your public page.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="address_line1">Address Line 1</Label>
+              <Input
+                id="address_line1"
+                type="text"
+                value={address.address_line1}
+                onChange={(e) => setAddress({ ...address, address_line1: e.target.value })}
+                placeholder="Street address"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="address_line2">Address Line 2 (Optional)</Label>
+              <Input
+                id="address_line2"
+                type="text"
+                value={address.address_line2}
+                onChange={(e) => setAddress({ ...address, address_line2: e.target.value })}
+                placeholder="Apartment, suite, etc."
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  type="text"
+                  value={address.city}
+                  onChange={(e) => setAddress({ ...address, city: e.target.value })}
+                  placeholder="City"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="state">State/Province</Label>
+                <Input
+                  id="state"
+                  type="text"
+                  value={address.state}
+                  onChange={(e) => setAddress({ ...address, state: e.target.value })}
+                  placeholder="State or Province"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input
+                  id="country"
+                  type="text"
+                  value={address.country}
+                  onChange={(e) => setAddress({ ...address, country: e.target.value })}
+                  placeholder="Country"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="postal_code">Postal Code</Label>
+                <Input
+                  id="postal_code"
+                  type="text"
+                  value={address.postal_code}
+                  onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
+                  placeholder="ZIP or Postal Code"
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Background Settings */}
         {artist && user && (
@@ -571,6 +561,16 @@ const Profile = () => {
             initialTextMdColor={portSettings?.text_md_color}
             initialTextLgColor={portSettings?.text_lg_color}
             onSave={() => setRefreshKey(prev => prev + 1)}
+          />
+        )}
+
+        {/* Custom Domain Settings */}
+        {artist && (
+          <CustomDomainSettings 
+            artistId={artist.id}
+            slug={artist.slug}
+            currentDomain={portSettings?.custom_domain}
+            isVerified={portSettings?.custom_domain_verified}
           />
         )}
 
