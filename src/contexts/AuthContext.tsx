@@ -86,6 +86,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           supabase.from("port_settings").insert({ artist_id: artistData.data.id }),
           supabase.from("qr_settings").insert({ artist_id: artistData.data.id }),
         ]);
+
+        // Send registration emails asynchronously (don't block signup)
+        supabase.functions.invoke('send-registration-email', {
+          body: {
+            user_id: data.user.id,
+            email: email,
+            display_name: displayName,
+            slug: slug,
+            created_at: new Date().toISOString()
+          }
+        }).then(({ error: emailError }) => {
+          if (emailError) {
+            console.error("Failed to send registration emails:", emailError);
+          } else {
+            console.log("Registration emails sent successfully");
+          }
+        });
       }
 
       return { error: null };
