@@ -1,8 +1,7 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const SENDGRID_API_KEY = Deno.env.get("SENDGRID_API_KEY");
 const ADMIN_EMAIL = "colleen.nagle@subamerica.net";
-const FROM_EMAIL = "noreply@subamerica.net";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,189 +16,239 @@ interface RegistrationData {
   created_at: string;
 }
 
-serve(async (req) => {
+const sendEmail = async (to: string, subject: string, html: string) => {
+  const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${SENDGRID_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      personalizations: [{ to: [{ email: to }] }],
+      from: { email: "noreply@subamerica.net", name: "Subamerica" },
+      subject,
+      content: [{ type: "text/html", value: html }],
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`SendGrid error: ${error}`);
+  }
+
+  return response;
+};
+
+const getAdminEmailHTML = (data: RegistrationData) => `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: #1a1a1a; color: white; padding: 20px; text-align: center; }
+      .content { padding: 20px; background: #f9f9f9; }
+      .info-row { margin: 10px 0; padding: 10px; background: white; border-left: 4px solid #9b87f5; }
+      .label { font-weight: bold; color: #666; }
+      .value { color: #333; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🎵 New Artist Registration</h1>
+      </div>
+      <div class="content">
+        <p>A new artist has joined Subamerica!</p>
+        
+        <div class="info-row">
+          <span class="label">Artist Name:</span>
+          <span class="value">${data.display_name}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Email:</span>
+          <span class="value">${data.email}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Port URL:</span>
+          <span class="value">subamerica.net/${data.slug}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">User ID:</span>
+          <span class="value">${data.user_id}</span>
+        </div>
+        
+        <div class="info-row">
+          <span class="label">Registered:</span>
+          <span class="value">${new Date(data.created_at).toLocaleString()}</span>
+        </div>
+      </div>
+    </div>
+  </body>
+  </html>
+`;
+
+const getArtistWelcomeHTML = (data: RegistrationData) => `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <style>
+      body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+      .container { max-width: 600px; margin: 0 auto; }
+      .header { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: 40px 20px; text-align: center; }
+      .logo { font-size: 32px; font-weight: bold; margin-bottom: 10px; }
+      .content { padding: 30px 20px; background: white; }
+      .welcome { font-size: 24px; color: #9b87f5; margin-bottom: 20px; }
+      .feature { margin: 15px 0; padding: 15px; background: #f9f9f9; border-radius: 8px; }
+      .feature-icon { font-size: 20px; margin-right: 10px; }
+      .cta-button { display: inline-block; background: #9b87f5; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; margin: 20px 0; font-weight: bold; }
+      .footer { padding: 20px; background: #f9f9f9; text-align: center; color: #666; font-size: 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <div class="logo">🎵 SUBAMERICA</div>
+        <p style="margin: 0; opacity: 0.9;">Your Independent Artist Platform</p>
+      </div>
+      
+      <div class="content">
+        <h1 class="welcome">Welcome to Subamerica, ${data.display_name}! 🎉</h1>
+        
+        <p>We're thrilled to have you join our community of independent artists. Your artist port is now live at:</p>
+        <p style="text-align: center; font-size: 18px; color: #9b87f5; font-weight: bold;">
+          subamerica.net/${data.slug}
+        </p>
+        
+        <p>Here's what you can do with your Subamerica account:</p>
+        
+        <div class="feature">
+          <span class="feature-icon">📹</span>
+          <strong>Upload & Showcase Videos</strong><br/>
+          Share your music videos, live performances, and creative content
+        </div>
+        
+        <div class="feature">
+          <span class="feature-icon">🎨</span>
+          <strong>Build Your Artist Port</strong><br/>
+          Customize your page with your brand, bio, and social links
+        </div>
+        
+        <div class="feature">
+          <span class="feature-icon">👕</span>
+          <strong>Sell Merchandise</strong><br/>
+          Connect your merch and earn directly from your fans
+        </div>
+        
+        <div class="feature">
+          <span class="feature-icon">📡</span>
+          <strong>Go Live</strong><br/>
+          Stream live performances and events to your audience
+        </div>
+        
+        <div style="text-align: center;">
+          <a href="https://subamerica.net/dashboard" class="cta-button">
+            Go to Your Dashboard →
+          </a>
+        </div>
+        
+        <p style="margin-top: 30px;">
+          <strong>Next Steps:</strong>
+        </p>
+        <ul>
+          <li>Complete your artist profile in the dashboard</li>
+          <li>Upload your first video</li>
+          <li>Customize your port settings</li>
+          <li>Share your port link with fans</li>
+        </ul>
+        
+        <p>
+          Need help getting started? Check out our 
+          <a href="https://subamerica.net/features" style="color: #9b87f5;">features page</a> 
+          or reach out to us at support@subamerica.net
+        </p>
+      </div>
+      
+      <div class="footer">
+        <p>Welcome to the underground. Let's build something amazing together.</p>
+        <p style="margin-top: 10px; font-size: 12px;">
+          © ${new Date().getFullYear()} Subamerica. All rights reserved.
+        </p>
+      </div>
+    </div>
+  </body>
+  </html>
+`;
+
+const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const registrationData: RegistrationData = await req.json();
-    console.log("Processing registration email for:", registrationData.display_name);
+    const data: RegistrationData = await req.json();
+    
+    console.log("Processing registration email for:", data.email);
 
-    if (!SENDGRID_API_KEY) {
-      throw new Error("SENDGRID_API_KEY is not configured");
-    }
-
-    // Prepare admin notification email
-    const adminEmail = {
-      personalizations: [
-        {
-          to: [{ email: ADMIN_EMAIL }],
-          subject: `New Artist Registration - ${registrationData.display_name}`,
-        },
-      ],
-      from: { email: FROM_EMAIL, name: "Subamerica Platform" },
-      content: [
-        {
-          type: "text/html",
-          value: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #333;">New Artist Registration</h2>
-              <p>A new artist has joined Subamerica!</p>
-              
-              <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
-                <p><strong>Display Name:</strong> ${registrationData.display_name}</p>
-                <p><strong>Email:</strong> ${registrationData.email}</p>
-                <p><strong>Port URL:</strong> subamerica.net/${registrationData.slug}</p>
-                <p><strong>User ID:</strong> ${registrationData.user_id}</p>
-                <p><strong>Registered:</strong> ${new Date(registrationData.created_at).toLocaleString()}</p>
-              </div>
-              
-              <p style="color: #666; font-size: 14px;">
-                This is an automated notification from the Subamerica platform.
-              </p>
-            </div>
-          `,
-        },
-      ],
-    };
-
-    // Prepare artist welcome email
-    const artistEmail = {
-      personalizations: [
-        {
-          to: [{ email: registrationData.email }],
-          subject: `Welcome to Subamerica, ${registrationData.display_name}! 🎵`,
-        },
-      ],
-      from: { email: FROM_EMAIL, name: "Subamerica" },
-      content: [
-        {
-          type: "text/html",
-          value: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center; border-radius: 10px 10px 0 0;">
-                <h1 style="color: white; margin: 0;">Welcome to Subamerica! 🎵</h1>
-              </div>
-              
-              <div style="padding: 30px 20px; background-color: #ffffff;">
-                <p style="font-size: 16px; color: #333;">Hey ${registrationData.display_name},</p>
-                
-                <p style="font-size: 16px; color: #333; line-height: 1.6;">
-                  We're thrilled to have you join the Subamerica community! You've just unlocked the ultimate platform 
-                  for independent artists to upload, stream, and earn.
-                </p>
-                
-                <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin: 25px 0;">
-                  <h3 style="color: #333; margin-top: 0;">🚀 Get Started:</h3>
-                  <ul style="color: #555; line-height: 1.8;">
-                    <li><strong>Build Your Port:</strong> Create your artist profile and customize your page</li>
-                    <li><strong>Upload Videos:</strong> Share your music videos and performances</li>
-                    <li><strong>Sell Merch:</strong> Set up your merchandise store</li>
-                    <li><strong>Go Live:</strong> Stream your performances to fans worldwide</li>
-                  </ul>
-                </div>
-                
-                <div style="text-align: center; margin: 30px 0;">
-                  <a href="https://subamerica.net/dashboard" 
-                     style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
-                            color: white; padding: 15px 40px; text-decoration: none; border-radius: 5px; 
-                            font-weight: bold; font-size: 16px;">
-                    Go to Your Dashboard
-                  </a>
-                </div>
-                
-                <p style="font-size: 14px; color: #666; margin-top: 30px;">
-                  Your artist port is live at: 
-                  <a href="https://subamerica.net/${registrationData.slug}" style="color: #667eea;">
-                    subamerica.net/${registrationData.slug}
-                  </a>
-                </p>
-                
-                <div style="border-top: 2px solid #eee; margin-top: 30px; padding-top: 20px;">
-                  <p style="font-size: 14px; color: #666;">
-                    Need help getting started? Check out our 
-                    <a href="https://subamerica.net/features" style="color: #667eea;">features page</a> 
-                    or reach out to our support team.
-                  </p>
-                  
-                  <p style="font-size: 14px; color: #666; margin-top: 15px;">
-                    Let's make some noise! 🎸
-                  </p>
-                  
-                  <p style="font-size: 14px; color: #666; margin-top: 15px;">
-                    <strong>The Subamerica Team</strong>
-                  </p>
-                </div>
-              </div>
-              
-              <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-radius: 0 0 10px 10px;">
-                <p style="font-size: 12px; color: #999; margin: 0;">
-                  © ${new Date().getFullYear()} Subamerica. All rights reserved.
-                </p>
-              </div>
-            </div>
-          `,
-        },
-      ],
-    };
-
-    // Send admin notification
-    console.log("Sending admin notification email...");
-    const adminResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${SENDGRID_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(adminEmail),
-    });
-
-    if (!adminResponse.ok) {
-      const errorText = await adminResponse.text();
-      console.error("Failed to send admin email:", errorText);
-    } else {
-      console.log("Admin notification email sent successfully");
+    // Send admin notification email
+    try {
+      await sendEmail(
+        ADMIN_EMAIL,
+        `New Artist Registration - ${data.display_name}`,
+        getAdminEmailHTML(data)
+      );
+      console.log("Admin notification sent successfully");
+    } catch (error) {
+      console.error("Failed to send admin notification:", error);
+      // Continue even if admin email fails
     }
 
     // Send artist welcome email
-    console.log("Sending artist welcome email...");
-    const artistResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${SENDGRID_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(artistEmail),
-    });
-
-    if (!artistResponse.ok) {
-      const errorText = await artistResponse.text();
-      console.error("Failed to send artist email:", errorText);
-    } else {
+    try {
+      await sendEmail(
+        data.email,
+        `Welcome to Subamerica, ${data.display_name}! 🎵`,
+        getArtistWelcomeHTML(data)
+      );
       console.log("Artist welcome email sent successfully");
+    } catch (error) {
+      console.error("Failed to send artist welcome email:", error);
+      // Log error but don't fail the request
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        admin_email_sent: adminResponse.ok,
-        artist_email_sent: artistResponse.ok,
+      JSON.stringify({ 
+        success: true, 
+        message: "Registration emails sent" 
       }),
       {
         status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...corsHeaders,
+        },
       }
     );
   } catch (error: any) {
     console.error("Error in send-registration-email function:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        success: false 
+      }),
       {
         status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json", 
+          ...corsHeaders 
+        },
       }
     );
   }
-});
+};
+
+serve(handler);
