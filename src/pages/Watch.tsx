@@ -25,43 +25,59 @@ const Watch = () => {
       const videoElement = videoRef.current;
       const streamUrl = 'https://hls-m5ixdesk-livepush.akamaized.net/live_cdn/nsDTmMQ796J8Qk/emvJyyEvXzer9Rw-/index.m3u8';
 
+      console.log('Initializing player...');
+
       // Check if HLS is natively supported (Safari)
       if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        console.log('Using native HLS support');
         videoElement.src = streamUrl;
-        videoElement.addEventListener('loadedmetadata', () => {
-          videoElement.play().catch(err => console.log('Autoplay prevented:', err));
-        });
       } else {
         // Use HLS.js for other browsers
+        console.log('Loading HLS.js...');
         const Hls = (await import('hls.js')).default;
         
         if (Hls.isSupported()) {
+          console.log('HLS.js supported, creating player...');
           const hls = new Hls({
+            debug: true,
             enableWorker: true,
-            lowLatencyMode: true,
-            maxBufferLength: 30,
-            maxMaxBufferLength: 60,
+            lowLatencyMode: false,
           });
           
           hlsRef.current = hls;
           
+          hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+            console.log('Media attached');
+          });
+
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('Manifest parsed, starting playback');
+          });
+
           hls.on(Hls.Events.ERROR, (event, data) => {
-            console.error('HLS error:', data);
+            console.error('HLS error:', data.type, data.details, data.fatal);
             if (data.fatal) {
-              if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
-                console.log('Network error, trying to recover...');
-                hls.startLoad();
+              switch(data.type) {
+                case Hls.ErrorTypes.NETWORK_ERROR:
+                  console.log('Fatal network error, trying to recover...');
+                  hls.startLoad();
+                  break;
+                case Hls.ErrorTypes.MEDIA_ERROR:
+                  console.log('Fatal media error, trying to recover...');
+                  hls.recoverMediaError();
+                  break;
+                default:
+                  console.log('Unrecoverable error');
+                  hls.destroy();
+                  break;
               }
             }
           });
 
           hls.loadSource(streamUrl);
           hls.attachMedia(videoElement);
-          
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            console.log('Stream loaded successfully');
-            videoElement.play().catch(err => console.log('Autoplay prevented:', err));
-          });
+        } else {
+          console.error('HLS.js not supported');
         }
       }
     };
@@ -109,10 +125,8 @@ const Watch = () => {
             <AspectRatio ratio={16/9} className="bg-black rounded-lg overflow-hidden border border-border shadow-2xl">
               <video
                 ref={videoRef}
-                className="absolute inset-0 w-full h-full"
+                className="absolute inset-0 w-full h-full bg-black"
                 controls
-                autoPlay
-                muted
                 playsInline
               />
             </AspectRatio>
