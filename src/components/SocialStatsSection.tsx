@@ -197,7 +197,7 @@ export const SocialStatsSection = ({ artistId }: SocialStatsSectionProps) => {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          Social Media Analytics
+          Social Media Links and Analytics
         </CardTitle>
         <CardDescription>
           Track your social media reach and growth. These stats help showcase your reach on your Port.
