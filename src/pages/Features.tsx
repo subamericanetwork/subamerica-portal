@@ -35,8 +35,13 @@ const Features = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8 animate-fade-in">
             <Badge variant="outline" className="text-sm px-4 py-2"><Sparkles className="h-4 w-4 mr-2" />All-in-One Creator Platform</Badge>
-            <h1 className="text-4xl md:text-6xl font-bold leading-tight">Everything You Need to<span className="block text-primary mt-2">Build Your Creative Empire</span></h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">Stream videos, sell tickets, launch merch, accept tips, and build your brand—all from one powerful platform designed for independent artists.</p>
+            <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+              <span className="text-primary">Tools That Power the Underground</span>
+              <span className="block mt-2">Everything Independent Artists Need to Upload, Stream, and Earn on Subamerica</span>
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+              Build your artist port, upload videos, sell merch, and stream your work worldwide — all from one creator-first dashboard. Subamerica gives independent artists the tools to own their art, connect with fans, and earn instantly.
+            </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Start Building Free<ArrowRight className="h-5 w-5" /></Button>
               <Button size="lg" variant="outline" className="text-lg" onClick={() => navigate("/watch")}><Play className="h-5 w-5" />Watch Demo</Button>
