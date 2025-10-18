@@ -530,14 +530,30 @@ const PortPreview = () => {
                       {product.price && (
                         <p className="text-sm text-primary font-bold">{product.currency?.toUpperCase()}{product.price}</p>
                       )}
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="w-full"
-                        onClick={() => setSelectedProduct(product)}
-                      >
-                        View Product
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => {
+                            if (product.payment_type === "stripe" && product.stripe_price_id) {
+                              handlePurchase(product.stripe_price_id, 'product', product.id);
+                            } else if (product.link) {
+                              window.open(product.link, '_blank');
+                            }
+                          }}
+                          disabled={purchasingItem === product.id}
+                        >
+                          {purchasingItem === product.id ? 'Processing...' : 
+                           product.payment_type === "stripe" ? 'Buy Now' : 'View on Store'}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          Details
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
