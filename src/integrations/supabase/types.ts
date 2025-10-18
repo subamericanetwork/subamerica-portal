@@ -657,6 +657,47 @@ export type Database = {
           },
         ]
       }
+      printify_products: {
+        Row: {
+          created_at: string | null
+          id: string
+          print_provider_id: number | null
+          printify_blueprint_id: string | null
+          printify_product_id: string
+          product_id: string
+          shop_id: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          print_provider_id?: number | null
+          printify_blueprint_id?: string | null
+          printify_product_id: string
+          product_id: string
+          shop_id?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          print_provider_id?: number | null
+          printify_blueprint_id?: string | null
+          printify_product_id?: string
+          product_id?: string
+          shop_id?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "printify_products_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           artist_id: string

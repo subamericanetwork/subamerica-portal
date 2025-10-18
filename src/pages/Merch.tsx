@@ -31,6 +31,9 @@ const Merch = () => {
   const [purchasingProductId, setPurchasingProductId] = useState<string | null>(null);
   const [variants, setVariants] = useState<Variant[]>([]);
   const [newVariant, setNewVariant] = useState<Variant>({ size: "", color: "", stock: undefined });
+  const [isImporting, setIsImporting] = useState(false);
+  const [printifyShopId, setPrintifyShopId] = useState("");
+  const [showPrintifyDialog, setShowPrintifyDialog] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     type: "",
@@ -257,6 +260,42 @@ const Merch = () => {
     }
   };
 
+  const handleImportFromPrintify = async () => {
+    if (!printifyShopId.trim()) {
+      toast.error("Please enter your Printify Shop ID");
+      return;
+    }
+
+    if (!artist) {
+      toast.error("Artist profile not found");
+      return;
+    }
+
+    setIsImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("printify-sync-products", {
+        body: { shop_id: printifyShopId },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        toast.success(data.message || "Products imported successfully!");
+        setShowPrintifyDialog(false);
+        setPrintifyShopId("");
+        // Refresh the page to show new products
+        window.location.reload();
+      } else {
+        toast.error(data.error || "Failed to import products");
+      }
+    } catch (error: any) {
+      console.error("Error importing from Printify:", error);
+      toast.error(error.message || "Failed to import products from Printify");
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   const handleDelete = async (productId: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
 
@@ -296,16 +335,24 @@ const Merch = () => {
               Manage your merchandise collection
             </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </DialogTrigger>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowPrintifyDialog(true)}
+            >
+              Import from Printify
+            </Button>
+            <Button onClick={() => setIsDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
+          </div>
+        </div>
+
+        <Dialog open={isDialogOpen} onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) resetForm();
+        }}>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingProduct ? "Edit Product" : "Add Product"}</DialogTitle>
@@ -651,8 +698,7 @@ const Merch = () => {
                 </div>
               </form>
             </DialogContent>
-          </Dialog>
-        </div>
+        </Dialog>
 
         <Alert>
           <Info className="h-4 w-4" />
@@ -785,6 +831,48 @@ const Merch = () => {
             ))}
           </div>
         )}
+
+        {/* Printify Import Dialog */}
+        <Dialog open={showPrintifyDialog} onOpenChange={setShowPrintifyDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Import from Printify</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="printify-shop-id">Printify Shop ID</Label>
+                <Input
+                  id="printify-shop-id"
+                  placeholder="e.g., 12345678"
+                  value={printifyShopId}
+                  onChange={(e) => setPrintifyShopId(e.target.value)}
+                  className="mt-1"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Find your Shop ID in your Printify account settings
+                </p>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPrintifyDialog(false);
+                    setPrintifyShopId("");
+                  }}
+                  disabled={isImporting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleImportFromPrintify}
+                  disabled={isImporting}
+                >
+                  {isImporting ? "Importing..." : "Import Products"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
       </TooltipProvider>
     </DashboardLayout>
