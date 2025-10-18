@@ -49,13 +49,14 @@ const Watch = () => {
           <div className="relative w-full max-w-5xl mx-auto">
             <AspectRatio ratio={16/9} className="bg-black rounded-lg overflow-hidden border border-border shadow-2xl">
               <iframe
-                src="https://player.livepush.io/live/emvJyyEvXzer9Rw-"
+                src="https://player.livepush.io/live/emvJyyEvXzer9Rw-?autoplay=true&muted=false"
                 width="100%"
                 height="100%"
                 allowFullScreen
-                allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope"
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media; accelerometer; gyroscope; clipboard-write"
                 className="absolute inset-0"
                 title="Subamerica Live Stream"
+                frameBorder="0"
               />
             </AspectRatio>
             <p className="text-center text-sm text-muted-foreground mt-4">
