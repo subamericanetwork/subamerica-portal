@@ -19,7 +19,7 @@ const Index = () => {
               className="h-48 mx-auto"
             />
             <h1 className="text-2xl md:text-3xl text-primary font-bold flex items-center justify-center gap-3">
-              Creator Portal
+              Artist Portal
               <span className="text-sm font-semibold px-3 py-1 rounded-full bg-coral/10 border border-coral/30" style={{ color: 'hsl(var(--coral))' }}>
                 BETA
               </span>
