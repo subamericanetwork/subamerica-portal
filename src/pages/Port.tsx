@@ -595,11 +595,11 @@ const Port = () => {
                 {String(artist.bio_short)}
               </p>
             )}
-            {(artist.city || artist.state || artist.country) && (
+            {((artist as any).city || (artist as any).state || (artist as any).country) && (
               <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4" />
                 <span>
-                  {[artist.city, artist.state, artist.country].filter(Boolean).join(', ')}
+                  {[(artist as any).city, (artist as any).state, (artist as any).country].filter(Boolean).join(', ')}
                 </span>
               </div>
             )}
