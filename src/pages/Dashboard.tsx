@@ -48,7 +48,7 @@ const Dashboard = () => {
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              Welcome to your Creator Portal! Get started by adding videos, events, or merch. Once you're ready, preview and publish your Port to make it live.
+              Welcome to your Artist Portal! Get started by adding videos, events, or merch. Once you're ready, preview and publish your Port to make it live.
             </AlertDescription>
           </Alert>
         )}

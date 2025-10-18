@@ -408,7 +408,7 @@ const Port = () => {
 
     return () => {
       // Reset to default on unmount
-      document.title = 'Subamerica Creator Portal - Manage Your Artist Port';
+      document.title = 'Subamerica Artist Portal - Manage Your Artist Port';
     };
   }, [artist]);
 

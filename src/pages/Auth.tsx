@@ -139,7 +139,7 @@ const Auth = () => {
             className="h-32 mx-auto"
           />
           <p className="text-primary text-2xl font-semibold">
-            Creator Portal
+            Artist Portal
           </p>
           <p className="text-muted-foreground text-lg">
             Manage your artist profile, share your content, and connect with your audience

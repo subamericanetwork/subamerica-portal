@@ -70,7 +70,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           alt="Subamerica" 
           className="h-12 w-auto"
         />
-        <p className="text-xs text-muted-foreground mt-1">Creator Portal</p>
+        <p className="text-xs text-muted-foreground mt-1">Artist Portal</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
