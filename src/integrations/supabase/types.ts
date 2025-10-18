@@ -669,6 +669,7 @@ export type Database = {
           inventory: string | null
           is_surface: boolean | null
           link: string
+          long_description: string | null
           payment_type: string | null
           pitch: string | null
           price: number | null
@@ -690,6 +691,7 @@ export type Database = {
           inventory?: string | null
           is_surface?: boolean | null
           link?: string
+          long_description?: string | null
           payment_type?: string | null
           pitch?: string | null
           price?: number | null
@@ -711,6 +713,7 @@ export type Database = {
           inventory?: string | null
           is_surface?: boolean | null
           link?: string
+          long_description?: string | null
           payment_type?: string | null
           pitch?: string | null
           price?: number | null

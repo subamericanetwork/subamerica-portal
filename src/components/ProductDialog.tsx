@@ -19,6 +19,7 @@ interface Product {
   type: string;
   price: number | null;
   description: string | null;
+  long_description?: string | null;
   images: string[] | null;
   link: string | null;
   payment_type: string | null;
@@ -137,8 +138,8 @@ export function ProductDialog({ product, open, onOpenChange, onPurchase, purchas
 
           {/* Product Details Section */}
           <div className="space-y-4">
-            {product.description && (
-              <p className="text-muted-foreground">{product.description}</p>
+            {product.long_description && (
+              <p className="text-muted-foreground whitespace-pre-wrap">{product.long_description}</p>
             )}
 
             {product.price && (

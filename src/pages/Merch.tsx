@@ -37,6 +37,7 @@ const Merch = () => {
     price: "",
     pitch: "",
     description: "",
+    long_description: "",
     link: "",
     payment_type: "external" as "external" | "stripe",
     currency: "usd",
@@ -50,6 +51,7 @@ const Merch = () => {
       price: "", 
       pitch: "", 
       description: "", 
+      long_description: "",
       link: "",
       payment_type: "external",
       currency: "usd",
@@ -69,6 +71,7 @@ const Merch = () => {
       price: product.price?.toString() || "",
       pitch: product.pitch || "",
       description: product.description || "",
+      long_description: product.long_description || "",
       link: product.link || "",
       payment_type: product.payment_type || "external",
       currency: product.currency || "usd",
@@ -160,6 +163,7 @@ const Merch = () => {
         price: parseFloat(formData.price),
         pitch: formData.pitch || null,
         description: formData.description || null,
+        long_description: formData.long_description || null,
         link: formData.link,
         images: imageUrls.length > 0 ? imageUrls : null,
         is_surface: editingProduct?.is_surface || false,
@@ -583,14 +587,27 @@ const Merch = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description (optional)</Label>
+                  <Label htmlFor="description">Short Description (for cards)</Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Describe your product..."
-                    rows={3}
+                    placeholder="Brief product summary shown on cards..."
+                    rows={2}
                   />
+                  <p className="text-xs text-muted-foreground">Appears on product cards and listings</p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="long_description">Detailed Description (for product page)</Label>
+                  <Textarea
+                    id="long_description"
+                    value={formData.long_description}
+                    onChange={(e) => setFormData({ ...formData, long_description: e.target.value })}
+                    placeholder="Full product details, features, materials, sizing info..."
+                    rows={5}
+                  />
+                  <p className="text-xs text-muted-foreground">Shown in the product detail dialog</p>
                 </div>
                 
                 {formData.payment_type === "external" && (
