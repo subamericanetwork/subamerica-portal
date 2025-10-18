@@ -79,6 +79,10 @@ serve(async (req) => {
 
     // Store tip in database
     logStep("Storing tip in database");
+    
+    // Get the actual amount from Stripe session (this is in cents)
+    const actualAmount = session.amount_total || parseInt(tipAmount);
+    
     const { error: insertError } = await supabaseClient
       .from("tips")
       .insert({
@@ -86,7 +90,7 @@ serve(async (req) => {
         artist_id: artistId,
         artist_name: artistName,
         artist_slug: artistSlug,
-        amount: parseFloat(tipAmount), // Already in cents from metadata
+        amount: actualAmount, // Use the actual amount from Stripe (already in cents)
         tipper_email: tipperEmail,
       });
 
