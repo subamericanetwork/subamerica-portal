@@ -319,77 +319,10 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* Social Links */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Social Media Links</CardTitle>
-            <CardDescription>
-              Connect your social media profiles. Enter the full URL for each platform you use.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="tiktok">TikTok</Label>
-              <Input
-                id="tiktok"
-                type="url"
-                value={socials.tiktok}
-                onChange={(e) => setSocials({ ...socials, tiktok: e.target.value })}
-                placeholder="https://tiktok.com/@yourusername"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="youtube">YouTube</Label>
-              <Input
-                id="youtube"
-                type="url"
-                value={socials.youtube}
-                onChange={(e) => setSocials({ ...socials, youtube: e.target.value })}
-                placeholder="https://youtube.com/@yourusername"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="instagram">Instagram</Label>
-              <Input
-                id="instagram"
-                type="url"
-                value={socials.instagram}
-                onChange={(e) => setSocials({ ...socials, instagram: e.target.value })}
-                placeholder="https://instagram.com/yourusername"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="facebook">Facebook</Label>
-              <Input
-                id="facebook"
-                type="url"
-                value={socials.facebook}
-                onChange={(e) => setSocials({ ...socials, facebook: e.target.value })}
-                placeholder="https://facebook.com/yourusername"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="linkedin">LinkedIn</Label>
-              <Input
-                id="linkedin"
-                type="url"
-                value={socials.linkedin}
-                onChange={(e) => setSocials({ ...socials, linkedin: e.target.value })}
-                placeholder="https://linkedin.com/in/yourusername"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="twitter">X (Twitter)</Label>
-              <Input
-                id="twitter"
-                type="url"
-                value={socials.twitter}
-                onChange={(e) => setSocials({ ...socials, twitter: e.target.value })}
-                placeholder="https://x.com/yourusername"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Social Media Analytics - Consolidated Section */}
+        {artist && (
+          <SocialStatsSection artistId={artist.id} />
+        )}
 
         {/* Artist Images */}
         <Card>
@@ -467,11 +400,6 @@ const Profile = () => {
             faqs={faqs}
             onUpdate={() => setRefreshKey(prev => prev + 1)}
           />
-        )}
-
-        {/* Social Media Analytics */}
-        {artist && (
-          <SocialStatsSection artistId={artist.id} />
         )}
 
         {/* Address Information */}
