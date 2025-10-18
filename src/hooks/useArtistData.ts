@@ -12,6 +12,9 @@ interface Artist {
   scene: string | null;
   brand: any;
   socials: any;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
 }
 
 interface Video {
