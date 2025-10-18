@@ -18,8 +18,11 @@ const Index = () => {
               alt="Subamerica logo" 
               className="h-48 mx-auto"
             />
-            <h1 className="text-2xl md:text-3xl text-primary font-bold">
+            <h1 className="text-2xl md:text-3xl text-primary font-bold flex items-center justify-center gap-3">
               Creator Portal
+              <span className="text-sm font-semibold px-3 py-1 rounded-full bg-coral/10 border border-coral/30" style={{ color: 'hsl(var(--coral))' }}>
+                BETA
+              </span>
             </h1>
             <p className="eyebrow">Indie Underground — Stream fearless art, sound, and stories 24/7</p>
             <p className="text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
