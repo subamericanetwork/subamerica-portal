@@ -19,6 +19,7 @@ import PortPreview from "./pages/PortPreview";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 import AdminVideos from "./pages/admin/AdminVideos";
+import AdminPayments from "./pages/admin/AdminPayments";
 import Watch from "./pages/Watch";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
           <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
           <Route path="/preview" element={<ProtectedRoute><PortPreview /></ProtectedRoute>} />
           <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
+          <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
