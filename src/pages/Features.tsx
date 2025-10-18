@@ -37,7 +37,7 @@ const Features = () => {
             <Badge variant="outline" className="text-sm px-4 py-2"><Sparkles className="h-4 w-4 mr-2" />All-in-One Creator Platform</Badge>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight">
               <span className="text-primary">Tools That Power the Underground</span>
-              <span className="block mt-2">Everything Independent Artists Need to Upload, Stream, and Earn on Subamerica</span>
+              <span className="block mt-2 text-3xl md:text-5xl">Everything Independent Artists Need to Upload, Stream, and Earn on Subamerica</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
               Build your artist port, upload videos, sell merch, and stream your work worldwide — all from one creator-first dashboard. Subamerica gives independent artists the tools to own their art, connect with fans, and earn instantly.
