@@ -66,22 +66,21 @@ async function handleProductOrder(supabaseClient: any, session: any, metadata: a
     const adminEmailData = {
       personalizations: [{
         to: [{ email: adminEmail }],
-        subject: `New Printify Order - ${metadata.product_name}`,
+        subject: `New Product Order - ${metadata.product_name}`,
       }],
       from: { email: fromEmail },
       content: [{
         type: "text/html",
         value: `
-          <h2>New Printify Product Order!</h2>
+          <h2>New Product Order Received!</h2>
           <p><strong>Product:</strong> ${metadata.product_name}</p>
           <p><strong>Variant:</strong> ${metadata.product_variant || "N/A"}</p>
           <p><strong>Quantity:</strong> ${metadata.quantity || 1}</p>
           <p><strong>Total Amount:</strong> $${totalDollars}</p>
           <p><strong>Customer:</strong> ${customerName || "N/A"} (${customerEmail})</p>
           <p><strong>Transaction ID:</strong> ${session.id}</p>
-          ${metadata.printify_product_id ? `<p><strong>Printify Product ID:</strong> ${metadata.printify_product_id}</p>` : ''}
+          ${metadata.printify_product_id ? `<p><strong>Printify Product ID:</strong> ${metadata.printify_product_id}</p><p><em>Please fulfill this order in your Printify dashboard.</em></p>` : '<p><em>Please process and fulfill this order.</em></p>'}
           <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
-          <p><em>Please fulfill this order in your Printify dashboard.</em></p>
         `,
       }],
     };
