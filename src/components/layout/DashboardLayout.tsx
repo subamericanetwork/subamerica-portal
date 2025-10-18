@@ -13,7 +13,7 @@ import {
   LogOut,
   Menu,
   Shield,
-  Receipt
+  QrCode
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -53,8 +53,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
-    { name: "Monetization", href: "/monetization", icon: DollarSign },
-    { name: "Payment History", href: "/payment-history", icon: Receipt },
+    { name: "Payments", href: "/payments", icon: DollarSign },
+    { name: "Monetization", href: "/monetization", icon: QrCode },
     { name: "Preview Port", href: "/preview", icon: Eye },
   ];
 

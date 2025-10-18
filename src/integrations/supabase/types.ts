@@ -158,6 +158,10 @@ export type Database = {
           display_name: string
           email: string
           id: string
+          payout_paypal_email: string | null
+          payout_primary_method: string | null
+          payout_venmo_email: string | null
+          payout_zelle_email: string | null
           postal_code: string | null
           pronouns: string | null
           scene: string | null
@@ -187,6 +191,10 @@ export type Database = {
           display_name: string
           email: string
           id?: string
+          payout_paypal_email?: string | null
+          payout_primary_method?: string | null
+          payout_venmo_email?: string | null
+          payout_zelle_email?: string | null
           postal_code?: string | null
           pronouns?: string | null
           scene?: string | null
@@ -216,6 +224,10 @@ export type Database = {
           display_name?: string
           email?: string
           id?: string
+          payout_paypal_email?: string | null
+          payout_primary_method?: string | null
+          payout_venmo_email?: string | null
+          payout_zelle_email?: string | null
           postal_code?: string | null
           pronouns?: string | null
           scene?: string | null
@@ -549,44 +561,6 @@ export type Database = {
             columns: ["video_id"]
             isOneToOne: true
             referencedRelation: "videos"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      payments: {
-        Row: {
-          artist_id: string
-          created_at: string | null
-          heartland_link: string | null
-          id: string
-          mode: Database["public"]["Enums"]["pay_mode"] | null
-          paypal_link: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          artist_id: string
-          created_at?: string | null
-          heartland_link?: string | null
-          id?: string
-          mode?: Database["public"]["Enums"]["pay_mode"] | null
-          paypal_link?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          artist_id?: string
-          created_at?: string | null
-          heartland_link?: string | null
-          id?: string
-          mode?: Database["public"]["Enums"]["pay_mode"] | null
-          paypal_link?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "payments_artist_id_fkey"
-            columns: ["artist_id"]
-            isOneToOne: true
-            referencedRelation: "artists"
             referencedColumns: ["id"]
           },
         ]

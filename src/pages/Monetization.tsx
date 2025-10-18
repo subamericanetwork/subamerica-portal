@@ -16,9 +16,6 @@ import { toast } from "sonner";
 const Monetization = () => {
   const { artist, loading: artistLoading } = useArtistData();
   const [loading, setLoading] = useState(false);
-  const [paymentData, setPaymentData] = useState({
-    paypal_link: "",
-  });
   const [qrData, setQrData] = useState({
     default_action: "tip",
     fallback_action: "tip",
@@ -35,19 +32,6 @@ const Monetization = () => {
     if (!artist) return;
 
     try {
-      // Fetch payment data
-      const { data: paymentInfo } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("artist_id", artist.id)
-        .single();
-
-      if (paymentInfo) {
-        setPaymentData({
-          paypal_link: paymentInfo.paypal_link || "",
-        });
-      }
-
       // Fetch QR settings
       const { data: qrInfo } = await supabase
         .from("qr_settings")
@@ -66,29 +50,6 @@ const Monetization = () => {
       if (import.meta.env.DEV) {
         if (import.meta.env.DEV) console.error("Error fetching monetization data:", error);
       }
-    }
-  };
-
-  const handleSavePayments = async () => {
-    if (!artist) return;
-    setLoading(true);
-
-    try {
-      const { error } = await supabase
-        .from("payments")
-        .upsert({
-          artist_id: artist.id,
-          paypal_link: paymentData.paypal_link || null,
-        }, {
-          onConflict: 'artist_id'
-        });
-
-      if (error) throw error;
-      toast.success("Payment links saved successfully!");
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save payment links");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -146,8 +107,6 @@ const Monetization = () => {
     );
   }
 
-  const hasPaymentLinks = paymentData.paypal_link;
-
   return (
     <DashboardLayout>
       <TooltipProvider>
@@ -162,66 +121,10 @@ const Monetization = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <div className="space-y-1">
-              <p><strong>Payment Flow:</strong> Tips and purchases are processed through Stripe. SubAmerica collects all funds and pays you 80% within 3-5 business days. Track your earnings in Payment History.</p>
-              <p><strong>QR Codes:</strong> Generate trackable QR codes for TV/broadcasts. Choose what action happens when fans scan (tip, tickets, merch, etc.). UTM parameters help track QR scans.</p>
-            </div>
+            <strong>QR Codes for TV & Broadcasts:</strong> Generate trackable QR codes that fans can scan during your performances. 
+            Choose what action happens when they scan (tip, tickets, merch, etc.). UTM parameters help you track where scans come from.
           </AlertDescription>
         </Alert>
-
-        {/* Payment Settings */}
-        <Card className="border-primary/20">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Payment Settings</CardTitle>
-                <CardDescription>
-                  Configure alternative payment options (optional)
-                </CardDescription>
-              </div>
-              {hasPaymentLinks && (
-                <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
-                  <CheckCircle className="h-3 w-3 mr-1" />
-                  Configured
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
-              <p className="text-sm">
-                <strong>Stripe Integration Active:</strong> All tips and purchases are automatically processed through Stripe. You'll receive 80% of each transaction within 3-5 business days.
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="paypal">PayPal Link (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="paypal"
-                  placeholder="https://paypal.me/..."
-                  value={paymentData.paypal_link}
-                  onChange={(e) => setPaymentData({ ...paymentData, paypal_link: e.target.value })}
-                  className="font-mono text-sm"
-                />
-                {paymentData.paypal_link && (
-                  <Button variant="outline" size="icon" asChild>
-                    <a href={paymentData.paypal_link} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Optional alternative payment method for fans who prefer PayPal
-              </p>
-            </div>
-
-            <Button onClick={handleSavePayments} disabled={loading}>
-              {loading ? "Saving..." : "Save Payment Settings"}
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* QR Code Settings */}
         <Card className="border-primary/20">

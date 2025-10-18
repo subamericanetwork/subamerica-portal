@@ -14,7 +14,7 @@ import Videos from "./pages/Videos";
 import Events from "./pages/Events";
 import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
-import PaymentHistory from "./pages/PaymentHistory";
+import Payments from "./pages/Payments";
 import PortPreview from "./pages/PortPreview";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
@@ -39,7 +39,7 @@ const App = () => (
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
           <Route path="/merch" element={<ProtectedRoute><Merch /></ProtectedRoute>} />
           <Route path="/monetization" element={<ProtectedRoute><Monetization /></ProtectedRoute>} />
-          <Route path="/payment-history" element={<ProtectedRoute><PaymentHistory /></ProtectedRoute>} />
+          <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
           <Route path="/preview" element={<ProtectedRoute><PortPreview /></ProtectedRoute>} />
           <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />

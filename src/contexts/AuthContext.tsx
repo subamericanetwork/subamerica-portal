@@ -85,7 +85,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         await Promise.all([
           supabase.from("port_settings").insert({ artist_id: artistData.data.id }),
           supabase.from("qr_settings").insert({ artist_id: artistData.data.id }),
-          supabase.from("payments").insert({ artist_id: artistData.data.id }),
         ]);
       }
 
