@@ -61,6 +61,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const adminNavigation = [
     { name: "Admin: Videos", href: "/admin/videos", icon: Shield },
     { name: "Admin: Payments", href: "/admin/payments", icon: DollarSign },
+    { name: "Admin: Registrations", href: "/admin/registrations", icon: User },
   ];
 
   const isActive = (path: string) => location.pathname === path;
