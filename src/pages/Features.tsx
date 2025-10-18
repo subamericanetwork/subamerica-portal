@@ -59,7 +59,7 @@ const Features = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {[
-              { icon: Video, title: "Video Streaming (Coming Soon!)", desc: "Professional HLS streaming with global CDN", features: ["Adaptive quality", "Unlimited uploads", "Analytics tracking"] },
+              { icon: Video, title: "Video Streaming", subtitle: "(Coming Soon!)", desc: "Professional HLS streaming with global CDN", features: ["Adaptive quality", "Unlimited uploads", "Analytics tracking"] },
               { icon: Calendar, title: "Event Ticketing", desc: "Sell tickets directly to your fans", features: ["QR code tickets", "Stripe integration", "Keep 80-90%"] },
               { icon: ShoppingBag, title: "Merch Store", desc: "Sell products with zero inventory", features: ["Print-on-demand", "Auto fulfillment", "Global shipping"] },
               { icon: DollarSign, title: "Direct Tips", desc: "Get paid directly by supporters", features: ["Custom amounts", "Instant payouts", "Fan messages"] }
@@ -69,7 +69,10 @@ const Features = () => {
                   <div className="w-12 h-12 rounded-lg bg-primary/20 flex items-center justify-center mb-4">
                     <feature.icon className="h-6 w-6 text-primary" />
                   </div>
-                  <CardTitle>{feature.title}</CardTitle>
+                  <CardTitle>
+                    {feature.title}
+                    {feature.subtitle && <span className="text-[calc(1em-8px)] ml-1">{feature.subtitle}</span>}
+                  </CardTitle>
                   <CardDescription>{feature.desc}</CardDescription>
                 </CardHeader>
                 <CardContent>
