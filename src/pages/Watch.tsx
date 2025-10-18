@@ -7,6 +7,7 @@ import { Tv, MonitorPlay, ExternalLink, Radio } from "lucide-react";
 
 const Watch = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<any>(null);
 
   useEffect(() => {
     document.title = "Watch Subamerica Live - Indie Underground 24/7 Stream";
@@ -18,41 +19,61 @@ const Watch = () => {
       );
     }
 
-    // Load and initialize HLS player
     const initPlayer = async () => {
       if (!videoRef.current) return;
 
       const videoElement = videoRef.current;
       const streamUrl = 'https://hls-m5ixdesk-livepush.akamaized.net/live_cdn/nsDTmMQ796J8Qk/emvJyyEvXzer9Rw-/index.m3u8';
 
-      // Check if HLS is natively supported
+      // Check if HLS is natively supported (Safari)
       if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
         videoElement.src = streamUrl;
+        videoElement.addEventListener('loadedmetadata', () => {
+          videoElement.play().catch(err => console.log('Autoplay prevented:', err));
+        });
       } else {
-        // Use HLS.js for browsers that don't support HLS natively
+        // Use HLS.js for other browsers
         const Hls = (await import('hls.js')).default;
         
         if (Hls.isSupported()) {
           const hls = new Hls({
             enableWorker: true,
             lowLatencyMode: true,
+            maxBufferLength: 30,
+            maxMaxBufferLength: 60,
           });
           
+          hlsRef.current = hls;
+          
+          hls.on(Hls.Events.ERROR, (event, data) => {
+            console.error('HLS error:', data);
+            if (data.fatal) {
+              if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+                console.log('Network error, trying to recover...');
+                hls.startLoad();
+              }
+            }
+          });
+
           hls.loadSource(streamUrl);
           hls.attachMedia(videoElement);
           
           hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            console.log('Stream loaded successfully');
             videoElement.play().catch(err => console.log('Autoplay prevented:', err));
           });
-
-          return () => {
-            hls.destroy();
-          };
         }
       }
     };
 
     initPlayer();
+
+    return () => {
+      if (hlsRef.current) {
+        hlsRef.current.destroy();
+        hlsRef.current = null;
+      }
+    };
   }, []);
 
   const platformLinks = {
