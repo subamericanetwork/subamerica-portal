@@ -19,44 +19,69 @@ interface Tip {
   payout_reference: string | null;
 }
 
+interface Order {
+  id: string;
+  created_at: string;
+  customer_email: string;
+  customer_name: string | null;
+  product_name: string;
+  product_variant: string | null;
+  quantity: number;
+  total_amount: number;
+  fulfillment_status: string;
+  tracking_number: string | null;
+  shipping_carrier: string | null;
+}
+
 const PaymentHistory = () => {
   const { artist, loading: artistLoading } = useArtistData();
   const [tips, setTips] = useState<Tip[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPending, setTotalPending] = useState(0);
   const [totalPaid, setTotalPaid] = useState(0);
 
   useEffect(() => {
     if (artist) {
-      fetchTips();
+      fetchPayments();
     }
   }, [artist]);
 
-  const fetchTips = async () => {
+  const fetchPayments = async () => {
     if (!artist) return;
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch tips
+      const { data: tipsData, error: tipsError } = await supabase
         .from("tips")
         .select("*")
         .eq("artist_id", artist.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (tipsError) throw tipsError;
+      setTips((tipsData || []) as Tip[]);
 
-      setTips((data || []) as Tip[]);
+      // Fetch orders
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("artist_id", artist.id)
+        .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+      setOrders((ordersData || []) as Order[]);
       
       // Calculate totals
-      const pending = data?.filter(t => t.payout_status === 'pending' || t.payout_status === 'processing')
+      const pending = tipsData?.filter(t => t.payout_status === 'pending' || t.payout_status === 'processing')
         .reduce((sum, t) => sum + (t.artist_share || 0), 0) || 0;
-      const paid = data?.filter(t => t.payout_status === 'paid')
+      const paid = tipsData?.filter(t => t.payout_status === 'paid')
         .reduce((sum, t) => sum + (t.artist_share || 0), 0) || 0;
       
       setTotalPending(pending);
       setTotalPaid(paid);
     } catch (error) {
-      console.error("Error fetching tips:", error);
+      console.error("Error fetching payments:", error);
     } finally {
       setLoading(false);
     }
@@ -65,17 +90,19 @@ const PaymentHistory = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
+      case 'delivered':
         return (
           <Badge className="bg-green-500/20 text-green-500 border-green-500/30">
             <CheckCircle className="h-3 w-3 mr-1" />
-            Paid
+            {status === 'paid' ? 'Paid' : 'Delivered'}
           </Badge>
         );
       case 'processing':
+      case 'shipped':
         return (
           <Badge className="bg-blue-500/20 text-blue-500 border-blue-500/30">
             <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-            Processing
+            {status === 'processing' ? 'Processing' : 'Shipped'}
           </Badge>
         );
       default:
@@ -166,21 +193,16 @@ const PaymentHistory = () => {
           </CardHeader>
         </Card>
 
-        {/* Transaction Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>All Transactions</CardTitle>
-            <CardDescription>
-              Complete history of tips received and payout status
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {tips.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No tips received yet</p>
-              </div>
-            ) : (
+        {/* Tips Table */}
+        {tips.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Tips</CardTitle>
+              <CardDescription>
+                All tips received and payout status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
@@ -226,9 +248,90 @@ const PaymentHistory = () => {
                   </TableBody>
                 </Table>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Orders Table */}
+        {orders.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Orders</CardTitle>
+              <CardDescription>
+                Printify product orders and fulfillment tracking
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead>Quantity</TableHead>
+                      <TableHead>Total</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Tracking</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {orders.map((order) => (
+                      <TableRow key={order.id}>
+                        <TableCell className="font-mono text-sm">
+                          {format(new Date(order.created_at), 'MMM d, yyyy')}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{order.customer_name || 'N/A'}</span>
+                            <span className="text-xs text-muted-foreground">{order.customer_email}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{order.product_name}</span>
+                            {order.product_variant && (
+                              <span className="text-xs text-muted-foreground">{order.product_variant}</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{order.quantity}</TableCell>
+                        <TableCell className="font-semibold">
+                          ${(order.total_amount / 100).toFixed(2)}
+                        </TableCell>
+                        <TableCell>
+                          {getStatusBadge(order.fulfillment_status)}
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {order.tracking_number ? (
+                            <div className="flex flex-col">
+                              <span className="font-medium">{order.tracking_number}</span>
+                              {order.shipping_carrier && (
+                                <span className="text-xs text-muted-foreground">{order.shipping_carrier}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* No data message */}
+        {tips.length === 0 && orders.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50 text-muted-foreground" />
+              <p className="text-muted-foreground">No payments or orders yet</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

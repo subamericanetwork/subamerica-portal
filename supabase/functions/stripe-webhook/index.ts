@@ -12,6 +12,152 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
+async function handleProductOrder(supabaseClient: any, session: any, metadata: any, customerEmail: string, customerName: string | null) {
+  logStep("Processing product order", { productId: metadata.product_id });
+
+  const { error: insertError } = await supabaseClient
+    .from("orders")
+    .insert({
+      stripe_session_id: session.id,
+      artist_id: metadata.artist_id,
+      customer_email: customerEmail,
+      customer_name: customerName,
+      product_id: metadata.product_id,
+      product_name: metadata.product_name || "Unknown Product",
+      product_variant: metadata.product_variant || null,
+      quantity: parseInt(metadata.quantity || "1"),
+      total_amount: session.amount_total || 0,
+      printify_product_id: metadata.printify_product_id || null,
+    });
+
+  if (insertError) {
+    logStep("Order insert error", { error: insertError });
+    throw insertError;
+  }
+
+  logStep("Order stored successfully");
+
+  const sendgridApiKey = Deno.env.get("SENDGRID_API_KEY");
+  if (!sendgridApiKey) {
+    logStep("SENDGRID_API_KEY not configured, skipping emails");
+    return;
+  }
+
+  const fromEmail = "colleen.nagle@subamerica.net";
+  const totalDollars = (session.amount_total / 100).toFixed(2);
+
+  // Get admin email
+  const { data: adminPrefs } = await supabaseClient
+    .from("admin_notification_preferences")
+    .select("email_address, email_enabled")
+    .limit(1)
+    .single();
+
+  const adminEmail = adminPrefs?.email_address || "colleen.nagle@subamerica.net";
+  const shouldSendAdminEmail = adminPrefs?.email_enabled !== false;
+
+  let adminEmailSent = false;
+  let customerEmailSent = false;
+
+  // Send admin notification
+  if (shouldSendAdminEmail) {
+    logStep("Sending admin order notification");
+    
+    const adminEmailData = {
+      personalizations: [{
+        to: [{ email: adminEmail }],
+        subject: `New Printify Order - ${metadata.product_name}`,
+      }],
+      from: { email: fromEmail },
+      content: [{
+        type: "text/html",
+        value: `
+          <h2>New Printify Product Order!</h2>
+          <p><strong>Product:</strong> ${metadata.product_name}</p>
+          <p><strong>Variant:</strong> ${metadata.product_variant || "N/A"}</p>
+          <p><strong>Quantity:</strong> ${metadata.quantity || 1}</p>
+          <p><strong>Total Amount:</strong> $${totalDollars}</p>
+          <p><strong>Customer:</strong> ${customerName || "N/A"} (${customerEmail})</p>
+          <p><strong>Transaction ID:</strong> ${session.id}</p>
+          ${metadata.printify_product_id ? `<p><strong>Printify Product ID:</strong> ${metadata.printify_product_id}</p>` : ''}
+          <p><strong>Timestamp:</strong> ${new Date().toLocaleString()}</p>
+          <p><em>Please fulfill this order in your Printify dashboard.</em></p>
+        `,
+      }],
+    };
+
+    const adminEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${sendgridApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(adminEmailData),
+    });
+
+    if (adminEmailResponse.ok) {
+      logStep("Admin order email sent successfully");
+      adminEmailSent = true;
+    } else {
+      const error = await adminEmailResponse.text();
+      logStep("Admin order email failed", { status: adminEmailResponse.status, error });
+    }
+  }
+
+  // Send customer confirmation
+  logStep("Sending customer order confirmation");
+  
+  const customerEmailData = {
+    personalizations: [{
+      to: [{ email: customerEmail }],
+      subject: `Order Confirmation - ${metadata.product_name}`,
+    }],
+    from: { email: fromEmail },
+    content: [{
+      type: "text/html",
+      value: `
+        <h2>Thank You for Your Order!</h2>
+        <p>Your order has been received and will be processed shortly.</p>
+        <h3>Order Details:</h3>
+        <p><strong>Product:</strong> ${metadata.product_name}</p>
+        <p><strong>Variant:</strong> ${metadata.product_variant || "N/A"}</p>
+        <p><strong>Quantity:</strong> ${metadata.quantity || 1}</p>
+        <p><strong>Total:</strong> $${totalDollars}</p>
+        <p><strong>Order ID:</strong> ${session.id}</p>
+        <p>You will receive a shipping confirmation email once your order has been fulfilled.</p>
+        <p>Thank you for your support!</p>
+        <p>- The SubAmerica Team</p>
+      `,
+    }],
+  };
+
+  const customerEmailResponse = await fetch("https://api.sendgrid.com/v3/mail/send", {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${sendgridApiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(customerEmailData),
+  });
+
+  if (customerEmailResponse.ok) {
+    logStep("Customer order email sent successfully");
+    customerEmailSent = true;
+  } else {
+    const error = await customerEmailResponse.text();
+    logStep("Customer order email failed", { status: customerEmailResponse.status, error });
+  }
+
+  // Update email sent status
+  await supabaseClient
+    .from("orders")
+    .update({
+      admin_email_sent: adminEmailSent,
+      customer_email_sent: customerEmailSent,
+    })
+    .eq("stripe_session_id", session.id);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -55,20 +201,12 @@ serve(async (req) => {
     // Extract metadata
     const metadata = session.metadata;
     if (!metadata || !metadata.artist_id) {
-      logStep("No tip metadata found, skipping");
+      logStep("No metadata found, skipping");
       return new Response(JSON.stringify({ received: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
     }
-
-    const artistId = metadata.artist_id;
-    const artistName = metadata.artist_name || "Unknown Artist";
-    const artistSlug = metadata.artist_slug || "";
-    const tipAmount = metadata.tip_amount || "0";
-    const tipperEmail = session.customer_details?.email || "unknown@email.com";
-
-    logStep("Extracted tip data", { artistId, artistName, tipAmount, tipperEmail });
 
     // Initialize Supabase client
     const supabaseClient = createClient(
@@ -76,6 +214,27 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
+
+    const artistId = metadata.artist_id;
+    const customerEmail = session.customer_details?.email || "unknown@email.com";
+    const customerName = session.customer_details?.name || null;
+
+    // Check if this is a product order (Printify) or a tip
+    if (metadata.product_id) {
+      await handleProductOrder(supabaseClient, session, metadata, customerEmail, customerName);
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    // Handle tip payment
+    const artistName = metadata.artist_name || "Unknown Artist";
+    const artistSlug = metadata.artist_slug || "";
+    const tipAmount = metadata.tip_amount || "0";
+    const tipperEmail = customerEmail;
+
+    logStep("Extracted tip data", { artistId, artistName, tipAmount, tipperEmail });
 
     // Store tip in database
     logStep("Storing tip in database");

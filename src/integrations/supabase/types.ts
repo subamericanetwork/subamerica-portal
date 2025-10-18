@@ -565,6 +565,74 @@ export type Database = {
           },
         ]
       }
+      orders: {
+        Row: {
+          admin_email_sent: boolean | null
+          artist_id: string
+          created_at: string
+          customer_email: string
+          customer_email_sent: boolean | null
+          customer_name: string | null
+          fulfillment_status: string
+          id: string
+          printify_product_id: string | null
+          product_id: string | null
+          product_name: string
+          product_variant: string | null
+          quantity: number
+          shipping_carrier: string | null
+          stripe_session_id: string
+          total_amount: number
+          tracking_number: string | null
+        }
+        Insert: {
+          admin_email_sent?: boolean | null
+          artist_id: string
+          created_at?: string
+          customer_email: string
+          customer_email_sent?: boolean | null
+          customer_name?: string | null
+          fulfillment_status?: string
+          id?: string
+          printify_product_id?: string | null
+          product_id?: string | null
+          product_name: string
+          product_variant?: string | null
+          quantity?: number
+          shipping_carrier?: string | null
+          stripe_session_id: string
+          total_amount: number
+          tracking_number?: string | null
+        }
+        Update: {
+          admin_email_sent?: boolean | null
+          artist_id?: string
+          created_at?: string
+          customer_email?: string
+          customer_email_sent?: boolean | null
+          customer_name?: string | null
+          fulfillment_status?: string
+          id?: string
+          printify_product_id?: string | null
+          product_id?: string | null
+          product_name?: string
+          product_variant?: string | null
+          quantity?: number
+          shipping_carrier?: string | null
+          stripe_session_id?: string
+          total_amount?: number
+          tracking_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       port_settings: {
         Row: {
           artist_id: string

@@ -50,6 +50,47 @@ serve(async (req) => {
       }
     }
 
+    // Prepare metadata
+    let metadata: Record<string, string> = {
+      type: type,
+      item_id: itemId,
+    };
+
+    // If it's a product purchase, fetch product details for email notifications
+    if (type === 'product' && itemId) {
+      const { data: product } = await supabaseClient
+        .from('products')
+        .select('id, title, artist_id, variants')
+        .eq('id', itemId)
+        .single();
+
+      if (product) {
+        metadata.product_id = product.id;
+        metadata.product_name = product.title;
+        metadata.artist_id = product.artist_id;
+        metadata.quantity = '1';
+        
+        // Check if it's a Printify product
+        const { data: printifyProduct } = await supabaseClient
+          .from('printify_products')
+          .select('printify_product_id')
+          .eq('product_id', product.id)
+          .single();
+
+        if (printifyProduct) {
+          metadata.printify_product_id = printifyProduct.printify_product_id;
+        }
+
+        // Add variant info if available
+        if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+          const firstVariant = product.variants[0];
+          if (firstVariant.size || firstVariant.color) {
+            metadata.product_variant = `${firstVariant.size || ''} ${firstVariant.color || ''}`.trim();
+          }
+        }
+      }
+    }
+
     // Create checkout session
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
@@ -61,10 +102,7 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      metadata: {
-        type: type, // 'event' or 'product'
-        item_id: itemId,
-      },
+      metadata: metadata,
       success_url: `${req.headers.get("origin")}?purchase=success`,
       cancel_url: `${req.headers.get("origin")}?purchase=cancelled`,
     });
