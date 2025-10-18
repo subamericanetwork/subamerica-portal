@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +6,8 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tv, MonitorPlay, ExternalLink, Radio } from "lucide-react";
 
 const Watch = () => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
   useEffect(() => {
     document.title = "Watch Subamerica Live - Indie Underground 24/7 Stream";
     
@@ -15,6 +17,42 @@ const Watch = () => {
         'Watch Subamerica live 24/7 - streaming fearless indie art, music videos, and stories. Available on Roku, Google TV, Fire TV, Apple TV, and web.'
       );
     }
+
+    // Load and initialize HLS player
+    const initPlayer = async () => {
+      if (!videoRef.current) return;
+
+      const videoElement = videoRef.current;
+      const streamUrl = 'https://hls-m5ixdesk-livepush.akamaized.net/live_cdn/nsDTmMQ796J8Qk/emvJyyEvXzer9Rw-/index.m3u8';
+
+      // Check if HLS is natively supported
+      if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        videoElement.src = streamUrl;
+      } else {
+        // Use HLS.js for browsers that don't support HLS natively
+        const Hls = (await import('hls.js')).default;
+        
+        if (Hls.isSupported()) {
+          const hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+          });
+          
+          hls.loadSource(streamUrl);
+          hls.attachMedia(videoElement);
+          
+          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            videoElement.play().catch(err => console.log('Autoplay prevented:', err));
+          });
+
+          return () => {
+            hls.destroy();
+          };
+        }
+      }
+    };
+
+    initPlayer();
   }, []);
 
   const platformLinks = {
@@ -48,16 +86,13 @@ const Watch = () => {
           {/* Live Player */}
           <div className="relative w-full max-w-5xl mx-auto">
             <AspectRatio ratio={16/9} className="bg-black rounded-lg overflow-hidden border border-border shadow-2xl">
-              <iframe
-                src="https://player.livepush.io/live/emvJyyEvXzer9Rw-"
-                width="100%"
-                height="100%"
-                allowFullScreen
-                allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
-                className="absolute inset-0"
-                title="Subamerica Live Stream"
-                style={{ border: 'none' }}
-                sandbox="allow-same-origin allow-scripts allow-presentation"
+              <video
+                ref={videoRef}
+                className="absolute inset-0 w-full h-full"
+                controls
+                autoPlay
+                muted
+                playsInline
               />
             </AspectRatio>
             <p className="text-center text-sm text-muted-foreground mt-4">
