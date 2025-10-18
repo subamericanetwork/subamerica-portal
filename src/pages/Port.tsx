@@ -20,6 +20,9 @@ interface Artist {
     profile_photo?: string;
     images?: string[];
   } | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
 }
 
 interface Video {
@@ -160,7 +163,7 @@ const Port = () => {
           // Fetch artist data by artistId
           const { data: artistData, error: artistError } = await supabase
             .from("artists")
-            .select("id, display_name, bio_short, scene, socials, brand")
+            .select("id, display_name, bio_short, scene, socials, brand, city, state, country")
             .eq("id", artistId)
             .single();
 
@@ -172,7 +175,7 @@ const Port = () => {
 
           const { data: artistData, error: artistError } = await supabase
             .from("artists")
-            .select("id, display_name, bio_short, scene, socials, brand")
+            .select("id, display_name, bio_short, scene, socials, brand, city, state, country")
             .eq("slug", slug)
             .maybeSingle();
 
@@ -591,6 +594,14 @@ const Port = () => {
               <p className="text-muted-foreground mt-4 max-w-2xl mx-auto">
                 {String(artist.bio_short)}
               </p>
+            )}
+            {(artist.city || artist.state || artist.country) && (
+              <div className="flex items-center justify-center gap-2 mt-2 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4" />
+                <span>
+                  {[artist.city, artist.state, artist.country].filter(Boolean).join(', ')}
+                </span>
+              </div>
             )}
           </div>
 
