@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.printify-sync-products]
 verify_jwt = true
+
+[functions.send-registration-email]
+verify_jwt = false
