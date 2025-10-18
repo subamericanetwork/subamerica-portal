@@ -26,7 +26,7 @@ interface PlatformFormProps {
   platform: typeof SOCIAL_PLATFORMS[0];
   existingStat?: SocialStat;
   savingPlatform: string | null;
-  onUpdate: (platformKey: string, followers: number, url: string, metrics: any, isVisible: boolean) => void;
+  onUpdate: (platformKey: string, followers: number, url: string, metrics: any, isVisible: boolean, showStats: boolean) => void;
 }
 
 const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: PlatformFormProps) => {
@@ -35,6 +35,7 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
     profile_url: existingStat?.profile_url || '',
     metrics: existingStat?.metrics || {},
     is_visible: existingStat?.is_visible !== undefined ? existingStat.is_visible : true,
+    show_stats: existingStat?.show_stats !== undefined ? existingStat.show_stats : true,
   });
 
   useEffect(() => {
@@ -44,6 +45,7 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
         profile_url: existingStat.profile_url || '',
         metrics: existingStat.metrics || {},
         is_visible: existingStat.is_visible !== undefined ? existingStat.is_visible : true,
+        show_stats: existingStat.show_stats !== undefined ? existingStat.show_stats : true,
       });
     }
   }, [existingStat]);
@@ -78,22 +80,44 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
       </AccordionTrigger>
       <AccordionContent>
         <div className="space-y-4 pt-2">
-          <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/50">
-            <div className="space-y-0.5">
-              <Label htmlFor={`${platform.key}-visible`} className="text-sm font-medium">
-                Show on Port
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Display this platform on your public port page
-              </p>
+          <div className="space-y-3 p-3 border rounded-lg bg-muted/50">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor={`${platform.key}-visible`} className="text-sm font-medium">
+                  Show Link on Port
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Display platform icon and link on your public port page
+                </p>
+              </div>
+              <Switch
+                id={`${platform.key}-visible`}
+                checked={formData.is_visible}
+                onCheckedChange={(checked) => 
+                  setFormData(prev => ({ ...prev, is_visible: checked }))
+                }
+              />
             </div>
-            <Switch
-              id={`${platform.key}-visible`}
-              checked={formData.is_visible}
-              onCheckedChange={(checked) => 
-                setFormData(prev => ({ ...prev, is_visible: checked }))
-              }
-            />
+            
+            {formData.is_visible && (
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="space-y-0.5">
+                  <Label htmlFor={`${platform.key}-stats`} className="text-sm font-medium">
+                    Show Stats on Port
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Display follower count and analytics publicly
+                  </p>
+                </div>
+                <Switch
+                  id={`${platform.key}-stats`}
+                  checked={formData.show_stats}
+                  onCheckedChange={(checked) => 
+                    setFormData(prev => ({ ...prev, show_stats: checked }))
+                  }
+                />
+              </div>
+            )}
           </div>
 
           {platform.fields.map((field) => (
@@ -133,7 +157,8 @@ const PlatformForm = ({ platform, existingStat, savingPlatform, onUpdate }: Plat
               formData.followers_count,
               formData.profile_url,
               formData.metrics,
-              formData.is_visible
+              formData.is_visible,
+              formData.show_stats
             )}
             disabled={savingPlatform === platform.key || formData.followers_count <= 0}
           >
@@ -172,7 +197,8 @@ export const SocialStatsSection = ({ artistId }: SocialStatsSectionProps) => {
     followers_count: number,
     profile_url: string,
     metrics: { [key: string]: any },
-    is_visible: boolean
+    is_visible: boolean,
+    show_stats: boolean
   ) => {
     setSavingPlatform(platformKey);
     
@@ -181,7 +207,8 @@ export const SocialStatsSection = ({ artistId }: SocialStatsSectionProps) => {
       followers_count,
       profile_url || undefined,
       metrics,
-      is_visible
+      is_visible,
+      show_stats
     );
 
     setSavingPlatform(null);

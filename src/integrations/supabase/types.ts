@@ -156,6 +156,7 @@ export type Database = {
           metrics: Json | null
           platform: string
           profile_url: string | null
+          show_stats: boolean | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -169,6 +170,7 @@ export type Database = {
           metrics?: Json | null
           platform: string
           profile_url?: string | null
+          show_stats?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -182,6 +184,7 @@ export type Database = {
           metrics?: Json | null
           platform?: string
           profile_url?: string | null
+          show_stats?: boolean | null
           updated_at?: string | null
           updated_by?: string | null
         }
