@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { FAQSection } from "@/components/FAQSection";
 import { PortFooterActions } from "@/components/PortFooterActions";
 import { ProductDialog } from "@/components/ProductDialog";
+import { PortSocialStats } from "@/components/PortSocialStats";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 
@@ -806,39 +807,7 @@ const Port = () => {
         {/* Footer with Social Links */}
         <footer id="footer" className="border-t border-border pt-8 mt-16">
           <div className="text-center space-y-4">
-            {artist.socials && Object.entries(artist.socials).filter(([_, url]) => url && typeof url === 'string').length > 0 && (
-              <div className="flex items-center justify-center gap-4 py-2">
-                {Object.entries(artist.socials)
-                  .filter(([_, url]) => url && typeof url === 'string')
-                  .map(([platform, url]) => {
-                  const getSocialIcon = () => {
-                    switch(platform.toLowerCase()) {
-                      case 'instagram': return <Instagram className="h-4 w-4" />;
-                      case 'facebook': return <Facebook className="h-4 w-4" />;
-                      case 'twitter': case 'x': return <Twitter className="h-4 w-4" />;
-                      case 'youtube': return <Youtube className="h-4 w-4" />;
-                      case 'linkedin': return <Linkedin className="h-4 w-4" />;
-                      case 'spotify': case 'soundcloud': case 'apple music': return <Music2 className="h-4 w-4" />;
-                      case 'website': return <Globe className="h-4 w-4" />;
-                      default: return <ExternalLink className="h-4 w-4" />;
-                    }
-                  };
-                  
-                  return (
-                    <a 
-                      key={String(platform)}
-                      href={String(url)} 
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-smooth capitalize text-sm font-medium"
-                    >
-                      {getSocialIcon()}
-                      <span>{String(platform)}</span>
-                    </a>
-                  );
-                })}
-              </div>
-            )}
+            <PortSocialStats artistId={artist.id} />
             <p className="text-sm text-muted-foreground">© {String(new Date().getFullYear())} {String(artist.display_name)}</p>
             <p className="text-xs text-muted-foreground">
               Site Design & Maintenance{' '}
