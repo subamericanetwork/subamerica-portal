@@ -242,7 +242,7 @@ const Index = () => {
             </div>
             <div className="kpi-card" role="listitem">
               <span className="kpi-value">Artist-First</span>
-              <span className="text-sm text-muted-foreground">Up to 90% creator revenue</span>
+              <span className="text-sm text-muted-foreground">80/20 split of the revenue</span>
             </div>
           </div>
         </div>
