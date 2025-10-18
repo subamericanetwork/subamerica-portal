@@ -1276,9 +1276,14 @@ export type Database = {
           amount: number
           artist_id: string
           artist_name: string
+          artist_share: number | null
           artist_slug: string
           created_at: string | null
           id: string
+          payout_date: string | null
+          payout_notes: string | null
+          payout_reference: string | null
+          payout_status: string | null
           stripe_session_id: string
           tipper_email: string
           tipper_email_sent: boolean | null
@@ -1288,9 +1293,14 @@ export type Database = {
           amount: number
           artist_id: string
           artist_name: string
+          artist_share?: number | null
           artist_slug: string
           created_at?: string | null
           id?: string
+          payout_date?: string | null
+          payout_notes?: string | null
+          payout_reference?: string | null
+          payout_status?: string | null
           stripe_session_id: string
           tipper_email: string
           tipper_email_sent?: boolean | null
@@ -1300,9 +1310,14 @@ export type Database = {
           amount?: number
           artist_id?: string
           artist_name?: string
+          artist_share?: number | null
           artist_slug?: string
           created_at?: string | null
           id?: string
+          payout_date?: string | null
+          payout_notes?: string | null
+          payout_reference?: string | null
+          payout_status?: string | null
           stripe_session_id?: string
           tipper_email?: string
           tipper_email_sent?: boolean | null

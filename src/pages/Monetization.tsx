@@ -17,7 +17,6 @@ const Monetization = () => {
   const { artist, loading: artistLoading } = useArtistData();
   const [loading, setLoading] = useState(false);
   const [paymentData, setPaymentData] = useState({
-    heartland_link: "",
     paypal_link: "",
   });
   const [qrData, setQrData] = useState({
@@ -45,7 +44,6 @@ const Monetization = () => {
 
       if (paymentInfo) {
         setPaymentData({
-          heartland_link: paymentInfo.heartland_link || "",
           paypal_link: paymentInfo.paypal_link || "",
         });
       }
@@ -80,7 +78,6 @@ const Monetization = () => {
         .from("payments")
         .upsert({
           artist_id: artist.id,
-          heartland_link: paymentData.heartland_link || null,
           paypal_link: paymentData.paypal_link || null,
         }, {
           onConflict: 'artist_id'
@@ -149,7 +146,7 @@ const Monetization = () => {
     );
   }
 
-  const hasPaymentLinks = paymentData.heartland_link || paymentData.paypal_link;
+  const hasPaymentLinks = paymentData.paypal_link;
 
   return (
     <DashboardLayout>
@@ -166,20 +163,20 @@ const Monetization = () => {
           <Info className="h-4 w-4" />
           <AlertDescription>
             <div className="space-y-1">
-              <p><strong>Payment Flow:</strong> Heartland is your primary payment link (used for tips and purchases). PayPal serves as a fallback option for fans.</p>
+              <p><strong>Payment Flow:</strong> Tips and purchases are processed through Stripe. SubAmerica collects all funds and pays you 80% within 3-5 business days. Track your earnings in Payment History.</p>
               <p><strong>QR Codes:</strong> Generate trackable QR codes for TV/broadcasts. Choose what action happens when fans scan (tip, tickets, merch, etc.). UTM parameters help track QR scans.</p>
             </div>
           </AlertDescription>
         </Alert>
 
-        {/* Payment Links */}
+        {/* Payment Settings */}
         <Card className="border-primary/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Payment Links</CardTitle>
+                <CardTitle>Payment Settings</CardTitle>
                 <CardDescription>
-                  Add your Heartland and PayPal payment links
+                  Configure alternative payment options (optional)
                 </CardDescription>
               </div>
               {hasPaymentLinks && (
@@ -191,31 +188,14 @@ const Monetization = () => {
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="heartland">Heartland Hosted Checkout Link</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="heartland"
-                  placeholder="https://heartlandpay.link/..."
-                  value={paymentData.heartland_link}
-                  onChange={(e) => setPaymentData({ ...paymentData, heartland_link: e.target.value })}
-                  className="font-mono text-sm"
-                />
-                {paymentData.heartland_link && (
-                  <Button variant="outline" size="icon" asChild>
-                    <a href={paymentData.heartland_link} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Your primary payment method for tips and purchases
+            <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
+              <p className="text-sm">
+                <strong>Stripe Integration Active:</strong> All tips and purchases are automatically processed through Stripe. You'll receive 80% of each transaction within 3-5 business days.
               </p>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="paypal">PayPal Fallback Link</Label>
+              <Label htmlFor="paypal">PayPal Link (Optional)</Label>
               <div className="flex gap-2">
                 <Input
                   id="paypal"
@@ -233,12 +213,12 @@ const Monetization = () => {
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Backup payment option for fans
+                Optional alternative payment method for fans who prefer PayPal
               </p>
             </div>
 
             <Button onClick={handleSavePayments} disabled={loading}>
-              {loading ? "Saving..." : "Save Payment Links"}
+              {loading ? "Saving..." : "Save Payment Settings"}
             </Button>
           </CardContent>
         </Card>

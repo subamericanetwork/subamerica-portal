@@ -12,7 +12,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  Shield
+  Shield,
+  Receipt
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -53,6 +54,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
     { name: "Monetization", href: "/monetization", icon: DollarSign },
+    { name: "Payment History", href: "/payment-history", icon: Receipt },
     { name: "Preview Port", href: "/preview", icon: Eye },
   ];
 
