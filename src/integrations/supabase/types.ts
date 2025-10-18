@@ -147,17 +147,23 @@ export type Database = {
       }
       artists: {
         Row: {
+          address_line1: string | null
+          address_line2: string | null
           bio_long: string | null
           bio_short: string | null
           brand: Json | null
+          city: string | null
+          country: string | null
           created_at: string | null
           display_name: string
           email: string
           id: string
+          postal_code: string | null
           pronouns: string | null
           scene: string | null
           slug: string
           socials: Json | null
+          state: string | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_expires_at: string | null
@@ -170,17 +176,23 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
           bio_long?: string | null
           bio_short?: string | null
           brand?: Json | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           display_name: string
           email: string
           id?: string
+          postal_code?: string | null
           pronouns?: string | null
           scene?: string | null
           slug: string
           socials?: Json | null
+          state?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_expires_at?: string | null
@@ -193,17 +205,23 @@ export type Database = {
           user_id: string
         }
         Update: {
+          address_line1?: string | null
+          address_line2?: string | null
           bio_long?: string | null
           bio_short?: string | null
           brand?: Json | null
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           display_name?: string
           email?: string
           id?: string
+          postal_code?: string | null
           pronouns?: string | null
           scene?: string | null
           slug?: string
           socials?: Json | null
+          state?: string | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_expires_at?: string | null
