@@ -85,11 +85,11 @@ const Payments = () => {
 
       setTips(data || []);
       
-      // Calculate totals (amounts are already in dollars)
+      // Calculate totals (convert cents to dollars)
       const pending = data?.filter(t => t.payout_status === 'pending')
-        .reduce((sum, t) => sum + (t.artist_share || 0), 0) || 0;
+        .reduce((sum, t) => sum + (t.artist_share || 0), 0) / 100 || 0;
       const paid = data?.filter(t => t.payout_status === 'paid')
-        .reduce((sum, t) => sum + (t.artist_share || 0), 0) || 0;
+        .reduce((sum, t) => sum + (t.artist_share || 0), 0) / 100 || 0;
       
       setTotalPending(pending);
       setTotalPaid(paid);
@@ -362,9 +362,9 @@ const Payments = () => {
                           {new Date(tip.created_at).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="font-medium">{tip.tipper_email}</TableCell>
-                        <TableCell className="text-right">${(tip.amount || 0).toFixed(2)}</TableCell>
+                        <TableCell className="text-right">${((tip.amount || 0) / 100).toFixed(2)}</TableCell>
                         <TableCell className="text-right font-semibold">
-                          ${(tip.artist_share || 0).toFixed(2)}
+                          ${((tip.artist_share || 0) / 100).toFixed(2)}
                         </TableCell>
                         <TableCell>{getStatusBadge(tip.payout_status)}</TableCell>
                         <TableCell>
