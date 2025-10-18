@@ -59,7 +59,7 @@ const Features = () => {
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {[
-              { icon: Video, title: "Video Streaming", desc: "Professional HLS streaming with global CDN", features: ["Adaptive quality", "Unlimited uploads", "Analytics tracking"] },
+              { icon: Video, title: "Video Streaming (Coming Soon!)", desc: "Professional HLS streaming with global CDN", features: ["Adaptive quality", "Unlimited uploads", "Analytics tracking"] },
               { icon: Calendar, title: "Event Ticketing", desc: "Sell tickets directly to your fans", features: ["QR code tickets", "Stripe integration", "Keep 80-90%"] },
               { icon: ShoppingBag, title: "Merch Store", desc: "Sell products with zero inventory", features: ["Print-on-demand", "Auto fulfillment", "Global shipping"] },
               { icon: DollarSign, title: "Direct Tips", desc: "Get paid directly by supporters", features: ["Custom amounts", "Instant payouts", "Fan messages"] }
