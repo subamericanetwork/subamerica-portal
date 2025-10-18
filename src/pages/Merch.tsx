@@ -20,7 +20,8 @@ const Merch = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [purchasingProductId, setPurchasingProductId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     type: "",
@@ -30,6 +31,7 @@ const Merch = () => {
     link: "",
     payment_type: "external" as "external" | "stripe",
     currency: "usd",
+    sku: "",
   });
 
   const resetForm = () => {
@@ -41,9 +43,10 @@ const Merch = () => {
       description: "", 
       link: "",
       payment_type: "external",
-      currency: "usd"
+      currency: "usd",
+      sku: "",
     });
-    setImageFile(null);
+    setImageFiles([]);
     setEditingProduct(null);
   };
 
@@ -58,6 +61,7 @@ const Merch = () => {
       link: product.link || "",
       payment_type: product.payment_type || "external",
       currency: product.currency || "usd",
+      sku: product.sku || "",
     });
     setIsDialogOpen(true);
   };
@@ -69,9 +73,10 @@ const Merch = () => {
     setIsSubmitting(true);
 
     try {
-      // Upload image if provided
-      let imageUrl = editingProduct?.images?.[0] || null;
-      if (imageFile) {
+      let imageUrls: string[] = editingProduct?.images || [];
+
+      // Upload new images if selected (up to 4 total)
+      if (imageFiles.length > 0) {
         const { data: userData } = await supabase.auth.getUser();
         if (!userData.user) {
           toast.error("User not authenticated");
@@ -79,24 +84,27 @@ const Merch = () => {
           return;
         }
 
-        const fileExt = imageFile.name.split('.').pop();
-        const filePath = `${userData.user.id}/products/${crypto.randomUUID()}.${fileExt}`;
+        const uploadPromises = imageFiles.map(async (file) => {
+          const fileExt = file.name.split('.').pop();
+          const filePath = `${userData.user.id}/products/${crypto.randomUUID()}.${fileExt}`;
 
-        const { error: uploadError } = await supabase.storage
-          .from('videos')
-          .upload(filePath, imageFile);
+          const { error: uploadError } = await supabase.storage
+            .from('videos')
+            .upload(filePath, file);
 
-        if (uploadError) {
-          toast.error(`Image upload failed: ${uploadError.message}`);
-          setIsSubmitting(false);
-          return;
-        }
+          if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('videos')
-          .getPublicUrl(filePath);
+          const { data: { publicUrl } } = supabase.storage
+            .from('videos')
+            .getPublicUrl(filePath);
 
-        imageUrl = publicUrl;
+          return publicUrl;
+        });
+
+        const newImageUrls = await Promise.all(uploadPromises);
+        
+        // Merge with existing images, keeping max 4
+        imageUrls = [...imageUrls, ...newImageUrls].slice(0, 4);
       }
 
       // Create Stripe product and price if payment type is Stripe
@@ -141,11 +149,12 @@ const Merch = () => {
         pitch: formData.pitch || null,
         description: formData.description || null,
         link: formData.link,
-        images: imageUrl ? [imageUrl] : null,
+        images: imageUrls.length > 0 ? imageUrls : null,
         is_surface: editingProduct?.is_surface || false,
         payment_type: formData.payment_type,
         stripe_price_id: stripePriceId,
         currency: formData.currency,
+        sku: formData.sku || null,
       };
 
       let error;
@@ -163,7 +172,12 @@ const Merch = () => {
       }
 
       if (error) {
-        toast.error(error.message);
+        // Handle unique constraint violation for SKU
+        if (error.code === '23505' && error.message.includes('sku')) {
+          toast.error('This SKU already exists. Please use a unique SKU.');
+        } else {
+          toast.error(error.message);
+        }
       } else {
         toast.success(editingProduct ? "Product updated successfully!" : "Product added successfully!");
         resetForm();
@@ -178,11 +192,6 @@ const Merch = () => {
   };
 
   const handleToggleSurface = async (productId: string, currentStatus: boolean) => {
-    if (!currentStatus && surfaceProducts.length >= 6) {
-      toast.error("Maximum 6 products can be surfaced");
-      return;
-    }
-
     const { error } = await supabase
       .from("products")
       .update({ is_surface: !currentStatus })
@@ -193,6 +202,41 @@ const Merch = () => {
     } else {
       toast.success(currentStatus ? "Removed from surface" : "Added to surface!");
       window.location.reload();
+    }
+  };
+
+  const handleBuyNow = async (product: any) => {
+    if (product.payment_type === "external") {
+      window.open(product.link, '_blank');
+      return;
+    }
+
+    if (!product.stripe_price_id) {
+      toast.error("Payment not configured for this product");
+      return;
+    }
+
+    setPurchasingProductId(product.id);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+        body: {
+          priceId: product.stripe_price_id,
+          type: 'product',
+          itemId: product.id,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
+      }
+    } catch (error: any) {
+      console.error("Error creating checkout:", error);
+      toast.error("Failed to start checkout. Please try again.");
+    } finally {
+      setPurchasingProductId(null);
     }
   };
 
@@ -232,7 +276,7 @@ const Merch = () => {
           <div>
             <h1 className="text-3xl font-bold">Merch</h1>
             <p className="text-muted-foreground mt-1">
-              Select up to 6 items to surface on your Port
+              Manage your merchandise collection
             </p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -254,15 +298,56 @@ const Merch = () => {
               </DialogHeader>
               <form onSubmit={handleSubmitProduct} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="image">Product Image {editingProduct && "(optional - leave blank to keep current)"}</Label>
+                  <Label htmlFor="images">Product Images (Up to 4)</Label>
                   <Input
-                    id="image"
+                    id="images"
                     type="file"
                     accept="image/png,image/jpeg,image/jpg,image/webp,image/gif"
-                    onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                    multiple
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (files.length + (editingProduct?.images?.length || 0) > 4) {
+                        toast.error("You can upload a maximum of 4 images per product");
+                        return;
+                      }
+                      setImageFiles(files);
+                    }}
                   />
-                  <p className="text-xs text-muted-foreground">Accepts PNG, JPEG, WebP, and GIF</p>
+                  <p className="text-xs text-muted-foreground">
+                    {editingProduct?.images?.length || 0} existing + {imageFiles.length} new = {(editingProduct?.images?.length || 0) + imageFiles.length} / 4 images
+                  </p>
+                  
+                  {/* Show existing images */}
+                  {editingProduct?.images && editingProduct.images.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {editingProduct.images.map((img: string, idx: number) => (
+                        <img 
+                          key={idx}
+                          src={img} 
+                          alt={`Product ${idx + 1}`} 
+                          className="w-full h-20 object-cover rounded"
+                        />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Show new image previews */}
+                  {imageFiles.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {imageFiles.map((file, idx) => (
+                        <div key={idx} className="relative">
+                          <img 
+                            src={URL.createObjectURL(file)} 
+                            alt={`New ${idx + 1}`} 
+                            className="w-full h-20 object-cover rounded"
+                          />
+                          <Badge variant="secondary" className="absolute top-1 right-1 text-xs">New</Badge>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="title">Product Name</Label>
                   <Input
@@ -273,6 +358,18 @@ const Merch = () => {
                     required
                   />
                 </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="sku">SKU (Optional)</Label>
+                  <Input
+                    id="sku"
+                    value={formData.sku}
+                    onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                    placeholder="Enter unique SKU for inventory tracking"
+                  />
+                  <p className="text-xs text-muted-foreground">Stock Keeping Unit - helps you track inventory</p>
+                </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="type">Type</Label>
                   <Input
@@ -283,6 +380,7 @@ const Merch = () => {
                     required
                   />
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="price">Price ({formData.currency.toUpperCase()})</Label>
                   <Input
@@ -295,6 +393,7 @@ const Merch = () => {
                     required
                   />
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
                   <Input
@@ -307,6 +406,7 @@ const Merch = () => {
                   />
                   <p className="text-xs text-muted-foreground">3-letter currency code (e.g., usd, eur, gbp)</p>
                 </div>
+                
                 <div className="space-y-2">
                   <Label>Payment Type</Label>
                   <RadioGroup
@@ -331,6 +431,7 @@ const Merch = () => {
                     <p className="text-xs text-muted-foreground">Payment type cannot be changed after creation</p>
                   )}
                 </div>
+                
                 <div className="space-y-2">
                   <Label htmlFor="description">Description (optional)</Label>
                   <Textarea
@@ -341,6 +442,7 @@ const Merch = () => {
                     rows={3}
                   />
                 </div>
+                
                 {formData.payment_type === "external" && (
                   <div className="space-y-2">
                     <Label htmlFor="link">Product Link</Label>
@@ -355,6 +457,7 @@ const Merch = () => {
                     <p className="text-xs text-muted-foreground">Where customers can purchase this product</p>
                   </div>
                 )}
+                
                 <div className="space-y-2">
                   <Label htmlFor="pitch">Pitch (optional)</Label>
                   <Input
@@ -364,6 +467,7 @@ const Merch = () => {
                     placeholder="Limited run tee"
                   />
                 </div>
+                
                 <div className="pt-4">
                   <Button type="submit" className="w-full" disabled={isSubmitting}>
                     {isSubmitting 
@@ -380,29 +484,9 @@ const Merch = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <div className="space-y-1">
-              <p><strong>What is "Surface"?</strong> Only products marked as "Surface" appear on your Port. You can add unlimited products but only 6 can be surfaced at once.</p>
-              <p><strong>Why 6 items?</strong> This limit ensures your Port stays focused on your best merchandise without overwhelming visitors.</p>
-              <p><strong>Tips:</strong> Add clear product images and descriptions. Link to your store for purchases. Toggle the eye icon to surface/unsurface items.</p>
-            </div>
+            <strong>Surface your products:</strong> Toggle the "Surface" switch on any product to feature it prominently on your Port page. Surfaced items appear in a special showcase section for maximum visibility.
           </AlertDescription>
         </Alert>
-
-        <Card className="border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold">Currently Surfaced</h3>
-                <p className="text-sm text-muted-foreground">
-                  Items visible on your public Port page
-                </p>
-              </div>
-              <Badge variant={surfaceCount >= 6 ? "destructive" : "outline"}>
-                {surfaceCount} / 6
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
 
         {products.length === 0 ? (
           <Card className="gradient-card">
@@ -452,56 +536,76 @@ const Merch = () => {
                         {product.description}
                       </p>
                     )}
+                    {product.sku && (
+                      <p className="text-xs text-muted-foreground mt-1">SKU: {product.sku}</p>
+                    )}
                   </div>
 
-                  <div className="flex gap-2">
-                    {product.is_surface ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleToggleSurface(product.id, product.is_surface!)}
-                          >
-                            <EyeOff className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Remove from Port</p>
-                        </TooltipContent>
-                      </Tooltip>
+                  <Button
+                    className="w-full"
+                    onClick={() => handleBuyNow(product)}
+                    disabled={purchasingProductId === product.id}
+                  >
+                    {purchasingProductId === product.id ? (
+                      "Processing..."
+                    ) : product.payment_type === "stripe" ? (
+                      "Buy Now"
                     ) : (
+                      "View on Store"
+                    )}
+                  </Button>
+
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="flex gap-2">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
-                            size="sm"
-                            disabled={surfaceCount >= 6}
-                            onClick={() => handleToggleSurface(product.id, product.is_surface!)}
+                            size="icon"
+                            onClick={() => handleEdit(product)}
                           >
-                            <Eye className="h-4 w-4" />
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{surfaceCount >= 6 ? "Maximum 6 items can be surfaced" : "Add to Port"}</p>
-                        </TooltipContent>
+                        <TooltipContent>Edit product</TooltipContent>
                       </Tooltip>
-                    )}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(product)}
-                    >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive"
-                      onClick={() => handleDelete(product.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDelete(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete product</TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant={product.is_surface ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => handleToggleSurface(product.id, product.is_surface)}
+                        >
+                          {product.is_surface ? (
+                            <>
+                              <Eye className="h-4 w-4 mr-1" />
+                              Surface
+                            </>
+                          ) : (
+                            <>
+                              <EyeOff className="h-4 w-4 mr-1" />
+                              Hidden
+                            </>
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {product.is_surface ? "Remove from Port" : "Show on Port"}
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
                 </CardContent>
               </Card>
