@@ -16,6 +16,12 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+interface Variant {
+  size?: string;
+  color?: string;
+  stock?: number;
+}
+
 const Merch = () => {
   const { artist, products, surfaceProducts, loading } = useArtistData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -23,6 +29,8 @@ const Merch = () => {
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [purchasingProductId, setPurchasingProductId] = useState<string | null>(null);
+  const [variants, setVariants] = useState<Variant[]>([]);
+  const [newVariant, setNewVariant] = useState<Variant>({ size: "", color: "", stock: undefined });
   const [formData, setFormData] = useState({
     title: "",
     type: "",
@@ -49,6 +57,8 @@ const Merch = () => {
     });
     setImageFiles([]);
     setEditingProduct(null);
+    setVariants([]);
+    setNewVariant({ size: "", color: "", stock: undefined });
   };
 
   const handleEdit = (product: any) => {
@@ -64,6 +74,7 @@ const Merch = () => {
       currency: product.currency || "usd",
       sku: product.sku || "",
     });
+    setVariants(product.variants || []);
     setIsDialogOpen(true);
   };
 
@@ -156,6 +167,7 @@ const Merch = () => {
         stripe_price_id: stripePriceId,
         currency: formData.currency,
         sku: formData.sku || null,
+        variants: formData.type === "Apparel" && variants.length > 0 ? (variants as any) : null,
       };
 
       let error;
@@ -375,7 +387,13 @@ const Merch = () => {
                   <Label htmlFor="type">Type</Label>
                   <Select
                     value={formData.type}
-                    onValueChange={(value) => setFormData({ ...formData, type: value })}
+                    onValueChange={(value) => {
+                      setFormData({ ...formData, type: value });
+                      if (value !== "Apparel") {
+                        setVariants([]);
+                        setNewVariant({ size: "", color: "", stock: undefined });
+                      }
+                    }}
                     required
                   >
                     <SelectTrigger id="type">
@@ -391,6 +409,127 @@ const Merch = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {formData.type === "Apparel" && (
+                  <div className="space-y-4 p-4 border rounded-md bg-muted/20">
+                    <div className="space-y-2">
+                      <Label>Variants</Label>
+                      <p className="text-sm text-muted-foreground">Add all size and color combinations available for this product</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor="variant-size">Size</Label>
+                        <Select
+                          value={newVariant.size}
+                          onValueChange={(value) => setNewVariant({ ...newVariant, size: value })}
+                        >
+                          <SelectTrigger id="variant-size">
+                            <SelectValue placeholder="Select size" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="XS">XS</SelectItem>
+                            <SelectItem value="S">S</SelectItem>
+                            <SelectItem value="M">M</SelectItem>
+                            <SelectItem value="L">L</SelectItem>
+                            <SelectItem value="XL">XL</SelectItem>
+                            <SelectItem value="XXL">XXL</SelectItem>
+                            <SelectItem value="XXXL">XXXL</SelectItem>
+                            <SelectItem value="One Size">One Size</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="variant-color">Color</Label>
+                        <Input
+                          id="variant-color"
+                          value={newVariant.color}
+                          onChange={(e) => setNewVariant({ ...newVariant, color: e.target.value })}
+                          placeholder="e.g., Red, Blue"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="variant-stock">Stock (Optional)</Label>
+                        <Input
+                          id="variant-stock"
+                          type="number"
+                          value={newVariant.stock || ""}
+                          onChange={(e) => setNewVariant({ ...newVariant, stock: e.target.value ? parseInt(e.target.value) : undefined })}
+                          placeholder="e.g., 10"
+                        />
+                      </div>
+
+                      <div className="flex items-end">
+                        <Button
+                          type="button"
+                          onClick={() => {
+                            if (!newVariant.size && !newVariant.color) {
+                              toast.error("Please specify at least size or color");
+                              return;
+                            }
+
+                            const isDuplicate = variants.some(
+                              (v) => v.size === newVariant.size && v.color === newVariant.color
+                            );
+
+                            if (isDuplicate) {
+                              toast.error("This size/color combination already exists");
+                              return;
+                            }
+
+                            setVariants([...variants, newVariant]);
+                            setNewVariant({ size: "", color: "", stock: undefined });
+                            toast.success("Variant added");
+                          }}
+                          className="w-full"
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          Add Variant
+                        </Button>
+                      </div>
+                    </div>
+
+                    {variants.length > 0 && (
+                      <div className="space-y-2">
+                        <Label>Added Variants ({variants.length})</Label>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {variants.map((variant, index) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between p-2 bg-background border rounded-md"
+                            >
+                              <div className="flex items-center gap-2 text-sm">
+                                <span className="font-medium">
+                                  {variant.size && <span>Size: {variant.size}</span>}
+                                  {variant.size && variant.color && <span className="mx-1">•</span>}
+                                  {variant.color && <span>Color: {variant.color}</span>}
+                                </span>
+                                {variant.stock && (
+                                  <span className="text-muted-foreground">
+                                    (Stock: {variant.stock})
+                                  </span>
+                                )}
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                  setVariants(variants.filter((_, i) => i !== index));
+                                  toast.success("Variant removed");
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <Label htmlFor="price">Price ({formData.currency.toUpperCase()})</Label>
