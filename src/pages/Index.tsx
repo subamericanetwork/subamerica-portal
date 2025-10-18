@@ -49,7 +49,7 @@ const Index = () => {
             </Button>
             <Button 
               size="lg" 
-              variant="ghost"
+              variant="outline"
               className="text-lg"
               onClick={() => navigate("/features")}
             >
