@@ -21,6 +21,29 @@ import { Badge } from "@/components/ui/badge";
 import logo from "@/assets/subamerica-logo-small.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  SidebarInset,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -66,7 +89,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  const NavigationContent = ({ mobile = false }: { mobile?: boolean }) => (
+  const MobileNavigationContent = () => (
     <>
       <div className="p-6 border-b border-border">
         <img 
@@ -84,7 +107,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             <Link
               key={item.name}
               to={item.href}
-              onClick={() => mobile && setMobileMenuOpen(false)}
+              onClick={() => setMobileMenuOpen(false)}
               className={cn(
                 "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-smooth",
                 isActive(item.href)
@@ -114,7 +137,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <Link
                   key={item.name}
                   to={item.href}
-                  onClick={() => mobile && setMobileMenuOpen(false)}
+                  onClick={() => setMobileMenuOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-smooth",
                     isActive(item.href)
@@ -149,35 +172,177 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     </>
   );
 
+  const DesktopSidebar = () => {
+    const { state } = useSidebar();
+    const collapsed = state === "collapsed";
+
+    const NavItem = ({ item }: { item: typeof navigation[0] }) => {
+      const Icon = item.icon;
+      const active = isActive(item.href);
+      
+      const button = (
+        <SidebarMenuButton asChild isActive={active}>
+          <Link to={item.href} className="flex items-center gap-3">
+            <Icon className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>{item.name}</span>}
+          </Link>
+        </SidebarMenuButton>
+      );
+
+      if (collapsed) {
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {button}
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {item.name}
+            </TooltipContent>
+          </Tooltip>
+        );
+      }
+
+      return button;
+    };
+
+    return (
+      <Sidebar collapsible="icon" className={collapsed ? "w-14" : "w-64"}>
+        <SidebarHeader className="border-b border-border p-4">
+          <div className="flex items-center justify-between">
+            <img 
+              src={logo} 
+              alt="Subamerica" 
+              className={cn("transition-all", collapsed ? "h-8 w-8" : "h-12 w-auto")}
+            />
+            <SidebarTrigger className="ml-auto" />
+          </div>
+          {!collapsed && <p className="text-xs text-muted-foreground mt-1">Artist Portal</p>}
+        </SidebarHeader>
+
+        <SidebarContent>
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {navigation.map((item) => (
+                  <SidebarMenuItem key={item.name}>
+                    <NavItem item={item} />
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {isAdmin && (
+            <SidebarGroup>
+              {!collapsed && (
+                <SidebarGroupLabel className="flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    <Shield className="h-3 w-3 mr-1" />
+                    Admin
+                  </Badge>
+                </SidebarGroupLabel>
+              )}
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {adminNavigation.map((item) => (
+                    <SidebarMenuItem key={item.name}>
+                      <NavItem item={item} />
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+          )}
+        </SidebarContent>
+
+        <SidebarFooter className="border-t border-border p-2">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton>
+                      <Settings className="h-4 w-4" />
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Settings</TooltipContent>
+                </Tooltip>
+              ) : (
+                <SidebarMenuButton>
+                  <Settings className="h-4 w-4" />
+                  <span>Settings</span>
+                </SidebarMenuButton>
+              )}
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              {collapsed ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <SidebarMenuButton onClick={signOut}>
+                      <LogOut className="h-4 w-4" />
+                    </SidebarMenuButton>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">Sign Out</TooltipContent>
+                </Tooltip>
+              ) : (
+                <SidebarMenuButton onClick={signOut}>
+                  <LogOut className="h-4 w-4" />
+                  <span>Sign Out</span>
+                </SidebarMenuButton>
+              )}
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
+    );
+  };
+
+  const isMobile = useIsMobile();
+
   return (
-    <div className="min-h-screen flex">
-      {/* Mobile Header with Hamburger */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center px-4 z-40">
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
-            <div className="flex flex-col h-full">
-              <NavigationContent mobile />
-            </div>
-          </SheetContent>
-        </Sheet>
-        <img src={logo} alt="Subamerica" className="h-8 w-auto ml-4" />
-      </header>
+    <TooltipProvider>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          {isMobile ? (
+            <>
+              {/* Mobile Header with Hamburger */}
+              <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center px-4 z-40">
+                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <Menu className="h-6 w-6" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-64 p-0">
+                    <div className="flex flex-col h-full">
+                      <MobileNavigationContent />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+                <img src={logo} alt="Subamerica" className="h-8 w-auto ml-4" />
+              </header>
 
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 border-r border-border bg-card flex-col">
-        <NavigationContent />
-      </aside>
+              {/* Main content for mobile */}
+              <main className="flex-1 overflow-auto pt-16">
+                {children}
+              </main>
+            </>
+          ) : (
+            <>
+              {/* Desktop Collapsible Sidebar */}
+              <DesktopSidebar />
 
-      {/* Main content */}
-      <main className="flex-1 overflow-auto pt-16 md:pt-0">
-        {children}
-      </main>
-    </div>
+              {/* Main content for desktop */}
+              <SidebarInset>
+                <main className="flex-1 overflow-auto">
+                  {children}
+                </main>
+              </SidebarInset>
+            </>
+          )}
+        </div>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 };
 
