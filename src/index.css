@@ -109,6 +109,31 @@ All colors MUST be HSL.
     font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   }
 
+  /* Custom scrollbar styles */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(180 85% 50% / 0.5) hsl(180 100% 8% / 0.3);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: hsl(180 100% 8% / 0.3);
+    border-radius: 5px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background: hsl(180 85% 50% / 0.5);
+    border-radius: 5px;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: hsl(180 85% 50% / 0.7);
+  }
+
   h1, h2, h3, h4, h5, h6 {
     @apply font-semibold tracking-tight;
   }
