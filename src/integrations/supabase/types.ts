@@ -200,8 +200,14 @@ export type Database = {
       }
       artist_verification_requests: {
         Row: {
+          admin_review_notes: string | null
+          admin_reviewed_at: string | null
+          admin_reviewed_by: string | null
           artist_id: string
           created_at: string | null
+          final_review_notes: string | null
+          final_reviewed_at: string | null
+          final_reviewed_by: string | null
           id: string
           notes: string | null
           rejection_reason: string | null
@@ -211,10 +217,18 @@ export type Database = {
           status: string
           updated_at: string | null
           verification_evidence: Json | null
+          verification_method: string | null
+          verified_platforms: string[] | null
         }
         Insert: {
+          admin_review_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
           artist_id: string
           created_at?: string | null
+          final_review_notes?: string | null
+          final_reviewed_at?: string | null
+          final_reviewed_by?: string | null
           id?: string
           notes?: string | null
           rejection_reason?: string | null
@@ -224,10 +238,18 @@ export type Database = {
           status?: string
           updated_at?: string | null
           verification_evidence?: Json | null
+          verification_method?: string | null
+          verified_platforms?: string[] | null
         }
         Update: {
+          admin_review_notes?: string | null
+          admin_reviewed_at?: string | null
+          admin_reviewed_by?: string | null
           artist_id?: string
           created_at?: string | null
+          final_review_notes?: string | null
+          final_reviewed_at?: string | null
+          final_reviewed_by?: string | null
           id?: string
           notes?: string | null
           rejection_reason?: string | null
@@ -237,6 +259,8 @@ export type Database = {
           status?: string
           updated_at?: string | null
           verification_evidence?: Json | null
+          verification_method?: string | null
+          verified_platforms?: string[] | null
         }
         Relationships: [
           {
@@ -877,6 +901,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      production_managers: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       products: {
         Row: {

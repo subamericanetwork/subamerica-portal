@@ -31,6 +31,7 @@ const AdminVerification = () => {
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
   const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
@@ -78,35 +79,31 @@ const AdminVerification = () => {
   };
 
   const handleApprove = async (request: VerificationRequest) => {
+    if (!adminNotes.trim()) {
+      toast.error('Please provide review notes before approving');
+      return;
+    }
+
     setProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
-      // Update artist as verified
-      const { error: artistError } = await supabase
-        .from('artists')
-        .update({
-          is_verified: true,
-          verified_at: new Date().toISOString(),
-          verified_by: user?.id
-        })
-        .eq('id', request.artist_id);
 
-      if (artistError) throw artistError;
-
-      // Update request status
+      // Update request to admin_approved (will need Roger's final approval)
       const { error: requestError } = await supabase
         .from('artist_verification_requests')
         .update({
-          status: 'approved',
-          reviewed_at: new Date().toISOString(),
-          reviewed_by: user?.id
+          status: 'admin_approved',
+          admin_reviewed_at: new Date().toISOString(),
+          admin_reviewed_by: user?.id,
+          admin_review_notes: adminNotes
         })
         .eq('id', request.id);
 
       if (requestError) throw requestError;
 
-      toast.success(`${request.artists.display_name} has been verified!`);
+      toast.success('Request sent to Roger for final approval');
+      setSelectedRequest(null);
+      setAdminNotes("");
       fetchRequests();
     } catch (error) {
       console.error('Error approving verification:', error);
@@ -390,6 +387,19 @@ const AdminVerification = () => {
               {selectedRequest.status === 'pending' && (
                 <div className="space-y-4">
                   <div>
+                    <Label htmlFor="admin_notes" className="text-sm font-medium mb-2 block">
+                      Your Review Notes (Required for Approval)
+                    </Label>
+                    <Textarea
+                      id="admin_notes"
+                      value={adminNotes}
+                      onChange={(e) => setAdminNotes(e.target.value)}
+                      placeholder="Add notes about this verification request to help with final review..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div>
                     <Label htmlFor="rejection_reason" className="text-sm font-medium mb-2 block">
                       Rejection Reason (if rejecting)
                     </Label>
@@ -406,10 +416,10 @@ const AdminVerification = () => {
                     <Button
                       variant="default"
                       onClick={() => handleApprove(selectedRequest)}
-                      disabled={processing}
+                      disabled={processing || !adminNotes.trim()}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Approve Verification
+                      Send to Roger for Final Approval
                     </Button>
                     <Button
                       variant="destructive"
@@ -421,6 +431,14 @@ const AdminVerification = () => {
                     </Button>
                   </div>
                 </div>
+              )}
+              
+              {selectedRequest.status === 'admin_approved' && (
+                <Alert>
+                  <AlertDescription>
+                    This request has been approved by an admin and is awaiting final approval from Roger.
+                  </AlertDescription>
+                </Alert>
               )}
             </div>
           )}

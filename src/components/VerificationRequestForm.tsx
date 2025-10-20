@@ -32,6 +32,8 @@ export const VerificationRequestForm = ({
   const [isEligible, setIsEligible] = useState(false);
   const [qualifyingPlatforms, setQualifyingPlatforms] = useState<SocialStat[]>([]);
   const [missingUrls, setMissingUrls] = useState<string[]>([]);
+  const [verificationMethod, setVerificationMethod] = useState<'platform_verified' | 'follower_threshold'>('follower_threshold');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
   const [evidence, setEvidence] = useState({
     additional_notes: ""
   });
@@ -64,9 +66,14 @@ export const VerificationRequestForm = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!isEligible) {
+
+    if (verificationMethod === 'follower_threshold' && !isEligible) {
       toast.error('You must have 1,000+ followers on TikTok, Instagram, or LinkedIn to apply');
+      return;
+    }
+
+    if (verificationMethod === 'platform_verified' && selectedPlatforms.length === 0) {
+      toast.error('Please select at least one platform where you have a verification badge');
       return;
     }
     
@@ -77,8 +84,13 @@ export const VerificationRequestForm = ({
         .from('artist_verification_requests')
         .insert([{
           artist_id: artistId,
+          verification_method: verificationMethod,
+          verified_platforms: selectedPlatforms,
+          notes: evidence.additional_notes,
           verification_evidence: {
             ...evidence,
+            verification_method: verificationMethod,
+            verified_platforms: selectedPlatforms,
             social_stats: JSON.parse(JSON.stringify(socialStats)),
             qualifying_platforms: JSON.parse(JSON.stringify(qualifyingPlatforms))
           },
@@ -258,7 +270,95 @@ export const VerificationRequestForm = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Choose Verification Method</h3>
+            
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-accent/5">
+                <input
+                  type="radio"
+                  name="verification_method"
+                  value="platform_verified"
+                  checked={verificationMethod === 'platform_verified'}
+                  onChange={(e) => setVerificationMethod(e.target.value as 'platform_verified')}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <div className="font-medium">Platform Verification Badge (Fast-Track)</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    You have a verified badge on LinkedIn, Instagram, or X/Twitter
+                  </div>
+                  
+                  {verificationMethod === 'platform_verified' && (
+                    <div className="mt-3 space-y-2">
+                      {['linkedin', 'instagram', 'twitter'].map(platform => {
+                        const stat = socialStats.find(s => s.platform === platform);
+                        const isSelected = selectedPlatforms.includes(platform);
+                        
+                        return (
+                          <label key={platform} className="flex items-start gap-2 p-3 bg-muted/50 rounded">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedPlatforms([...selectedPlatforms, platform]);
+                                } else {
+                                  setSelectedPlatforms(selectedPlatforms.filter(p => p !== platform));
+                                }
+                              }}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium capitalize">{platform} Verified Badge</div>
+                              {stat?.profile_url ? (
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  Profile: <a href={stat.profile_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{stat.profile_url}</a>
+                                </div>
+                              ) : (
+                                <div className="text-sm text-destructive mt-1">
+                                  No profile URL set. Add it in Social Media & Analytics first.
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-accent/5">
+                <input
+                  type="radio"
+                  name="verification_method"
+                  value="follower_threshold"
+                  checked={verificationMethod === 'follower_threshold'}
+                  onChange={(e) => setVerificationMethod(e.target.value as 'follower_threshold')}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <div className="font-medium">Follower Threshold (Standard Review)</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    You have 1,000+ followers on qualifying platforms
+                  </div>
+                  
+                  {verificationMethod === 'follower_threshold' && qualifyingPlatforms.length > 0 && (
+                    <div className="mt-3 space-y-1">
+                      {qualifyingPlatforms.map(stat => (
+                        <div key={stat.platform} className="text-sm p-2 bg-muted/50 rounded">
+                          <span className="font-medium capitalize">{stat.platform}:</span> {stat.followers_count?.toLocaleString()} followers
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </label>
+            </div>
+          </div>
+
           <div>
             <Label htmlFor="additional_notes">Additional Notes (Optional)</Label>
             <Textarea
