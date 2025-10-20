@@ -6,6 +6,7 @@ import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
 
 interface Artist {
   id: string;
@@ -49,7 +50,7 @@ function Header() {
     <header className="fixed top-0 z-40 w-full border-b border-border bg-background/70 backdrop-blur-sm">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="h-7 w-7 rounded bg-primary" aria-hidden />
+          <img src={subamericaLogo} alt="Subamerica" className="h-7 w-7 rounded object-cover" />
           <span className="eyebrow text-primary">Subamerica</span>
         </div>
         <p className="text-xs text-muted-foreground md:text-sm">
