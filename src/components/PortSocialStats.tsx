@@ -32,6 +32,7 @@ export const PortSocialStats = ({ artistId }: PortSocialStatsProps) => {
 
   useEffect(() => {
     const fetchStats = async () => {
+      console.log("PortSocialStats - Fetching stats for artistId:", artistId);
       try {
         const { data, error } = await supabase
           .from("artist_social_stats")
@@ -40,16 +41,28 @@ export const PortSocialStats = ({ artistId }: PortSocialStatsProps) => {
           .eq("is_visible", true)
           .order("platform");
 
-        if (error) throw error;
+        console.log("PortSocialStats - Query result:", { data, error });
+        
+        if (error) {
+          console.error("PortSocialStats - Error fetching social stats:", error);
+          throw error;
+        }
+        
+        console.log("PortSocialStats - Successfully fetched stats:", data);
         setStats(data || []);
       } catch (error) {
-        console.error("Error fetching social stats:", error);
+        console.error("PortSocialStats - Exception caught:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    if (artistId) {
+      fetchStats();
+    } else {
+      console.warn("PortSocialStats - No artistId provided");
+      setLoading(false);
+    }
   }, [artistId]);
 
   if (loading || stats.length === 0) {
