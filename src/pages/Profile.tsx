@@ -435,6 +435,17 @@ const Profile = () => {
           </div>
         </div>
 
+        {/* Hero Banner */}
+        {artist && user && (
+          <HeroBannerSettings
+            key={refreshKey}
+            artistId={artist.id}
+            userId={user.id}
+            initialHeroBanner={artist.brand?.hero_banner}
+            onSave={() => setRefreshKey(prev => prev + 1)}
+          />
+        )}
+
         {/* Profile Photo */}
         <Card>
           <CardHeader>
@@ -580,17 +591,6 @@ const Profile = () => {
             artistName={artist.display_name}
             faqs={faqs}
             onUpdate={() => setRefreshKey(prev => prev + 1)}
-          />
-        )}
-
-        {/* Hero Banner */}
-        {artist && user && (
-          <HeroBannerSettings
-            key={refreshKey}
-            artistId={artist.id}
-            userId={user.id}
-            initialHeroBanner={artist.brand?.hero_banner}
-            onSave={() => setRefreshKey(prev => prev + 1)}
           />
         )}
 
