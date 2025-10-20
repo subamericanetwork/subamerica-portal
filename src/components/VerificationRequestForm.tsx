@@ -8,8 +8,9 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { CheckCircle, Clock, XCircle, Info } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Info, ExternalLink } from "lucide-react";
 import { SocialStat } from "@/hooks/useSocialStats";
+import { Link } from "react-router-dom";
 
 interface VerificationRequestFormProps {
   artistId: string;
@@ -30,9 +31,9 @@ export const VerificationRequestForm = ({
   const [socialStats, setSocialStats] = useState<SocialStat[]>([]);
   const [isEligible, setIsEligible] = useState(false);
   const [qualifyingPlatforms, setQualifyingPlatforms] = useState<SocialStat[]>([]);
+  const [missingUrls, setMissingUrls] = useState<string[]>([]);
   const [evidence, setEvidence] = useState({
     spotify_url: "",
-    instagram_url: "",
     youtube_url: "",
     other_urls: "",
     additional_notes: ""
@@ -50,7 +51,14 @@ export const VerificationRequestForm = ({
         setSocialStats(data);
         const qualifying = data.filter(stat => stat.followers_count >= 1000);
         setQualifyingPlatforms(qualifying);
-        setIsEligible(qualifying.length > 0);
+        
+        // Check for missing profile URLs on qualifying platforms
+        const missing = qualifying
+          .filter(stat => !stat.profile_url)
+          .map(stat => stat.platform);
+        setMissingUrls(missing);
+        
+        setIsEligible(qualifying.length > 0 && missing.length === 0);
       }
     };
     
@@ -193,62 +201,110 @@ export const VerificationRequestForm = ({
           </Alert>
         )}
 
-        <Alert className="mb-6">
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            Provide links to your official social media and streaming profiles to support your verification request.
-          </AlertDescription>
-        </Alert>
+        {missingUrls.length > 0 && (
+          <Alert variant="destructive" className="mb-6">
+            <XCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Missing Profile URLs</strong>
+              <p className="mt-2">
+                You have 1,000+ followers on {missingUrls.join(', ')}, but no profile URL saved. 
+                Please add your profile URL in Social Media & Analytics.
+              </p>
+              <Link to="/profile">
+                <Button variant="link" className="p-0 h-auto mt-2">
+                  Go to Social Media & Analytics →
+                </Button>
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {socialStats.length > 0 && (
+          <div className="mb-6 p-4 border rounded-lg bg-muted/50">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Info className="h-4 w-4" />
+              Profile URLs for Verification
+            </h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              Your verification request will use these profiles from your Social Media & Analytics:
+            </p>
+            <div className="space-y-2">
+              {socialStats.map(stat => (
+                <div key={stat.platform} className="flex items-start justify-between gap-2 text-sm">
+                  <div className="flex-1">
+                    <div className="font-medium capitalize">{stat.platform}</div>
+                    {stat.profile_url ? (
+                      <a 
+                        href={stat.profile_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline flex items-center gap-1 text-xs"
+                      >
+                        {stat.profile_url}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">No URL added</span>
+                    )}
+                  </div>
+                  <Badge variant={stat.followers_count >= 1000 ? "default" : "secondary"} className="text-xs">
+                    {stat.followers_count.toLocaleString()} followers
+                  </Badge>
+                </div>
+              ))}
+            </div>
+            <Link to="/profile">
+              <Button variant="link" className="p-0 h-auto mt-3 text-sm">
+                Edit Social Stats →
+              </Button>
+            </Link>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="spotify_url">Spotify Profile URL</Label>
-            <Input
-              id="spotify_url"
-              type="url"
-              placeholder="https://open.spotify.com/artist/..."
-              value={evidence.spotify_url}
-              onChange={(e) => setEvidence({ ...evidence, spotify_url: e.target.value })}
-            />
+          <div className="border-t pt-4">
+            <h3 className="font-semibold mb-3">Additional Profile Links (Optional)</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="spotify_url">Spotify Profile URL</Label>
+                <Input
+                  id="spotify_url"
+                  type="url"
+                  placeholder="https://open.spotify.com/artist/..."
+                  value={evidence.spotify_url}
+                  onChange={(e) => setEvidence({ ...evidence, spotify_url: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="youtube_url">YouTube Channel URL</Label>
+                <Input
+                  id="youtube_url"
+                  type="url"
+                  placeholder="https://youtube.com/@..."
+                  value={evidence.youtube_url}
+                  onChange={(e) => setEvidence({ ...evidence, youtube_url: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="other_urls">Other Links (comma separated)</Label>
+                <Input
+                  id="other_urls"
+                  placeholder="https://soundcloud.com/..., https://twitter.com/..."
+                  value={evidence.other_urls}
+                  onChange={(e) => setEvidence({ ...evidence, other_urls: e.target.value })}
+                />
+              </div>
+            </div>
           </div>
 
           <div>
-            <Label htmlFor="instagram_url">Instagram Profile URL</Label>
-            <Input
-              id="instagram_url"
-              type="url"
-              placeholder="https://instagram.com/..."
-              value={evidence.instagram_url}
-              onChange={(e) => setEvidence({ ...evidence, instagram_url: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="youtube_url">YouTube Channel URL</Label>
-            <Input
-              id="youtube_url"
-              type="url"
-              placeholder="https://youtube.com/@..."
-              value={evidence.youtube_url}
-              onChange={(e) => setEvidence({ ...evidence, youtube_url: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="other_urls">Other Verification Links (comma separated)</Label>
-            <Input
-              id="other_urls"
-              placeholder="https://soundcloud.com/..., https://twitter.com/..."
-              value={evidence.other_urls}
-              onChange={(e) => setEvidence({ ...evidence, other_urls: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="additional_notes">Additional Information</Label>
+            <Label htmlFor="additional_notes">Additional Notes</Label>
             <Textarea
               id="additional_notes"
-              placeholder="Tell us why you should be verified..."
+              placeholder="Any additional information to support your verification request..."
               value={evidence.additional_notes}
               onChange={(e) => setEvidence({ ...evidence, additional_notes: e.target.value })}
               rows={4}
