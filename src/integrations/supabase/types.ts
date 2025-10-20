@@ -145,6 +145,53 @@ export type Database = {
           },
         ]
       }
+      artist_posts: {
+        Row: {
+          artist_id: string
+          caption: string | null
+          created_at: string
+          display_order: number
+          id: string
+          media_type: Database["public"]["Enums"]["media_type"]
+          media_url: string
+          publish_status: Database["public"]["Enums"]["post_publish_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist_id: string
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_type?: Database["public"]["Enums"]["media_type"]
+          media_url: string
+          publish_status?: Database["public"]["Enums"]["post_publish_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist_id?: string
+          caption?: string | null
+          created_at?: string
+          display_order?: number
+          id?: string
+          media_type?: Database["public"]["Enums"]["media_type"]
+          media_url?: string
+          publish_status?: Database["public"]["Enums"]["post_publish_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_posts_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_social_stats: {
         Row: {
           artist_id: string
@@ -1695,7 +1742,9 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "artist" | "moderator" | "production_manager"
+      media_type: "image" | "video"
       pay_mode: "heartland_hosted" | "woo_heartland"
+      post_publish_status: "draft" | "published" | "archived"
       publish_status: "draft" | "pending" | "scheduled" | "published"
       subscription_tier: "free" | "pro" | "premium"
       video_kind:
@@ -1833,7 +1882,9 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "artist", "moderator", "production_manager"],
+      media_type: ["image", "video"],
       pay_mode: ["heartland_hosted", "woo_heartland"],
+      post_publish_status: ["draft", "published", "archived"],
       publish_status: ["draft", "pending", "scheduled", "published"],
       subscription_tier: ["free", "pro", "premium"],
       video_kind: [

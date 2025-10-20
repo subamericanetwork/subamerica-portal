@@ -61,7 +61,7 @@ function Header() {
           <img src={subamericaLogo} alt="Subamerica" className="h-7 w-7 rounded object-cover" />
           <span className="eyebrow text-primary">Subamerica</span>
         </div>
-        <p className="text-xs text-muted-foreground md:text-sm">
+        <p className="hidden text-xs text-muted-foreground md:block md:text-sm">
           Indie Underground — <span className="text-coral">Stream fearless art, sound & stories 24/7</span>
         </p>
       </div>
@@ -75,7 +75,8 @@ function FooterRibbon() {
       <div className="pointer-events-auto rounded-full bg-card/80 px-4 py-2 text-xs text-muted-foreground shadow-2xl ring-1 ring-border backdrop-blur-sm">
         <span className="hidden md:inline">Pro tip:</span> Use <kbd className="mx-1 rounded bg-muted px-1">↑</kbd>/
         <kbd className="mx-1 rounded bg-muted px-1">↓</kbd> or swipe to navigate • Press{" "}
-        <kbd className="ml-1 rounded bg-muted px-1">Enter</kbd> to open an artist
+        <kbd className="ml-1 rounded bg-muted px-1">Enter</kbd> to open • Tap{" "}
+        <kbd className="mx-1 rounded bg-muted px-1">Post/Info</kbd> to toggle
       </div>
     </div>
   );
@@ -108,10 +109,19 @@ function PortalsFeed() {
           bio_short,
           brand,
           is_verified,
-          port_settings!inner(publish_status)
+          port_settings!inner(publish_status),
+          artist_posts!left(
+            title,
+            caption,
+            media_url,
+            media_type,
+            display_order
+          )
         `)
         .eq("port_settings.publish_status", "published")
+        .eq("artist_posts.publish_status", "published")
         .order("created_at", { ascending: false })
+        .order("display_order", { foreignTable: "artist_posts", ascending: true })
         .range(from, to);
 
       if (error) throw error;
@@ -145,11 +155,21 @@ function PortalsFeed() {
             .limit(1)
             .maybeSingle();
 
+          const artistPosts = (artist as any).artist_posts;
+          const featuredPost = artistPosts && artistPosts.length > 0 
+            ? {
+                title: artistPosts[0].title,
+                caption: artistPosts[0].caption,
+                media_url: artistPosts[0].media_url,
+                media_type: artistPosts[0].media_type,
+              }
+            : null;
+
           return {
             ...artist,
             featuredProduct: products || undefined,
             nextEvent: event || undefined,
-            post: null, // TODO: Add artist_posts table via migration
+            post: featuredPost,
           };
         })
       );
@@ -464,9 +484,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         </div>
 
         {/* Bottom-right Toggle FAB */}
-        {artist.post && (
-          <ToggleFAB mode={mode} onToggle={() => setMode((m) => (m === 'post' ? 'info' : 'post'))} />
-        )}
+        <ToggleFAB mode={mode} hasPost={!!artist.post} onToggle={() => setMode((m) => (m === 'post' ? 'info' : 'post'))} />
       </div>
 
       <TipDialog
@@ -552,7 +570,8 @@ function PostOverlay({ post, active }: { post: ArtistPost; active: boolean }) {
   );
 }
 
-function ToggleFAB({ mode, onToggle }: { mode: 'post' | 'info'; onToggle: () => void }) {
+function ToggleFAB({ mode, hasPost, onToggle }: { mode: 'post' | 'info'; hasPost: boolean; onToggle: () => void }) {
+  if (!hasPost) return null;
   const isPost = mode === 'post';
   return (
     <button
