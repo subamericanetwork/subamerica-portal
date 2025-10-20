@@ -106,6 +106,7 @@ const Videos = () => {
         tags,
         status: "ready" as any,
         video_url: videoUrl,
+        published_at: new Date().toISOString(),
       };
 
       let error;
