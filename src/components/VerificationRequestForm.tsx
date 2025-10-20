@@ -33,9 +33,6 @@ export const VerificationRequestForm = ({
   const [qualifyingPlatforms, setQualifyingPlatforms] = useState<SocialStat[]>([]);
   const [missingUrls, setMissingUrls] = useState<string[]>([]);
   const [evidence, setEvidence] = useState({
-    spotify_url: "",
-    youtube_url: "",
-    other_urls: "",
     additional_notes: ""
   });
 
@@ -262,46 +259,8 @@ export const VerificationRequestForm = ({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="border-t pt-4">
-            <h3 className="font-semibold mb-3">Additional Profile Links (Optional)</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="spotify_url">Spotify Profile URL</Label>
-                <Input
-                  id="spotify_url"
-                  type="url"
-                  placeholder="https://open.spotify.com/artist/..."
-                  value={evidence.spotify_url}
-                  onChange={(e) => setEvidence({ ...evidence, spotify_url: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="youtube_url">YouTube Channel URL</Label>
-                <Input
-                  id="youtube_url"
-                  type="url"
-                  placeholder="https://youtube.com/@..."
-                  value={evidence.youtube_url}
-                  onChange={(e) => setEvidence({ ...evidence, youtube_url: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="other_urls">Other Links (comma separated)</Label>
-                <Input
-                  id="other_urls"
-                  placeholder="https://soundcloud.com/..., https://twitter.com/..."
-                  value={evidence.other_urls}
-                  onChange={(e) => setEvidence({ ...evidence, other_urls: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
-
           <div>
-            <Label htmlFor="additional_notes">Additional Notes</Label>
+            <Label htmlFor="additional_notes">Additional Notes (Optional)</Label>
             <Textarea
               id="additional_notes"
               placeholder="Any additional information to support your verification request..."
