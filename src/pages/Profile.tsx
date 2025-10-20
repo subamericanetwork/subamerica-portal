@@ -17,6 +17,7 @@ import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { CustomDomainSettings } from "@/components/CustomDomainSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocialStatsSection } from "@/components/SocialStatsSection";
+import { VerificationRequestForm } from "@/components/VerificationRequestForm";
 
 // Custom debounce hook
 const useDebounce = (value: any, delay: number) => {
@@ -40,6 +41,7 @@ const Profile = () => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [verificationRequest, setVerificationRequest] = useState<any>(null);
   
   // Auto-save state
   const [autoSaving, setAutoSaving] = useState(false);
@@ -135,6 +137,26 @@ const Profile = () => {
       }
     }
   }, [debouncedAddress]);
+
+  // Fetch verification request
+  useEffect(() => {
+    const fetchVerificationStatus = async () => {
+      if (!artist) return;
+      
+      const { data } = await supabase
+        .from('artist_verification_requests')
+        .select('*')
+        .eq('artist_id', artist.id)
+        .in('status', ['pending', 'rejected'])
+        .order('requested_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      setVerificationRequest(data);
+    };
+
+    fetchVerificationStatus();
+  }, [artist]);
 
   // Navigation guard
   useEffect(() => {
@@ -553,6 +575,15 @@ const Profile = () => {
             artistName={artist.display_name}
             faqs={faqs}
             onUpdate={() => setRefreshKey(prev => prev + 1)}
+          />
+        )}
+
+        {/* Artist Verification */}
+        {artist && (
+          <VerificationRequestForm
+            artistId={artist.id}
+            isVerified={artist.is_verified || false}
+            existingRequest={verificationRequest}
           />
         )}
 

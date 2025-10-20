@@ -198,6 +198,56 @@ export type Database = {
           },
         ]
       }
+      artist_verification_requests: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          rejection_reason: string | null
+          requested_at: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string | null
+          verification_evidence: Json | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string | null
+          verification_evidence?: Json | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          rejection_reason?: string | null
+          requested_at?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string | null
+          verification_evidence?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_verification_requests_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artists: {
         Row: {
           address_line1: string | null
@@ -211,6 +261,7 @@ export type Database = {
           display_name: string
           email: string
           id: string
+          is_verified: boolean | null
           payout_paypal_email: string | null
           payout_primary_method: string | null
           payout_venmo_email: string | null
@@ -231,6 +282,8 @@ export type Database = {
           tz: string | null
           updated_at: string | null
           user_id: string
+          verified_at: string | null
+          verified_by: string | null
         }
         Insert: {
           address_line1?: string | null
@@ -244,6 +297,7 @@ export type Database = {
           display_name: string
           email: string
           id?: string
+          is_verified?: boolean | null
           payout_paypal_email?: string | null
           payout_primary_method?: string | null
           payout_venmo_email?: string | null
@@ -264,6 +318,8 @@ export type Database = {
           tz?: string | null
           updated_at?: string | null
           user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Update: {
           address_line1?: string | null
@@ -277,6 +333,7 @@ export type Database = {
           display_name?: string
           email?: string
           id?: string
+          is_verified?: boolean | null
           payout_paypal_email?: string | null
           payout_primary_method?: string | null
           payout_venmo_email?: string | null
@@ -297,6 +354,8 @@ export type Database = {
           tz?: string | null
           updated_at?: string | null
           user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
         }
         Relationships: []
       }

@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 const PortPreview = () => {
   const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings, faqs } = useArtistData();
@@ -352,7 +353,10 @@ const PortPreview = () => {
             </div>
             
             <div>
-              <h1 className="text-5xl font-bold mb-2">{artist.display_name}</h1>
+              <h1 className="text-5xl font-bold mb-2 flex items-center justify-center gap-3">
+                {artist.display_name}
+                {artist.is_verified && <VerifiedBadge size="lg" />}
+              </h1>
               {artist.scene && (
                 <p className="text-xl text-primary">{artist.scene}</p>
               )}

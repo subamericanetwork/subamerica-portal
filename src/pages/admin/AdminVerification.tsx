@@ -1,0 +1,339 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { CheckCircle, XCircle, ExternalLink } from "lucide-react";
+
+interface VerificationRequest {
+  id: string;
+  artist_id: string;
+  status: string;
+  requested_at: string;
+  verification_evidence: any;
+  artists: {
+    display_name: string;
+    email: string;
+    slug: string;
+  };
+}
+
+const AdminVerification = () => {
+  const [requests, setRequests] = useState<VerificationRequest[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedRequest, setSelectedRequest] = useState<VerificationRequest | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    fetchRequests();
+  }, []);
+
+  const fetchRequests = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('artist_verification_requests')
+        .select(`
+          *,
+          artists(display_name, email, slug)
+        `)
+        .order('requested_at', { ascending: false });
+
+      if (error) throw error;
+      setRequests(data || []);
+    } catch (error) {
+      console.error('Error fetching verification requests:', error);
+      toast.error('Failed to load verification requests');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApprove = async (request: VerificationRequest) => {
+    setProcessing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      // Update artist as verified
+      const { error: artistError } = await supabase
+        .from('artists')
+        .update({
+          is_verified: true,
+          verified_at: new Date().toISOString(),
+          verified_by: user?.id
+        })
+        .eq('id', request.artist_id);
+
+      if (artistError) throw artistError;
+
+      // Update request status
+      const { error: requestError } = await supabase
+        .from('artist_verification_requests')
+        .update({
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id
+        })
+        .eq('id', request.id);
+
+      if (requestError) throw requestError;
+
+      toast.success(`${request.artists.display_name} has been verified!`);
+      fetchRequests();
+    } catch (error) {
+      console.error('Error approving verification:', error);
+      toast.error('Failed to approve verification');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleReject = async (request: VerificationRequest) => {
+    if (!rejectionReason.trim()) {
+      toast.error('Please provide a rejection reason');
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('artist_verification_requests')
+        .update({
+          status: 'rejected',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id,
+          rejection_reason: rejectionReason
+        })
+        .eq('id', request.id);
+
+      if (error) throw error;
+
+      toast.success('Verification request rejected');
+      setSelectedRequest(null);
+      setRejectionReason("");
+      fetchRequests();
+    } catch (error) {
+      console.error('Error rejecting verification:', error);
+      toast.error('Failed to reject verification');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const variants: Record<string, { variant: any; label: string }> = {
+      pending: { variant: "outline", label: "Pending" },
+      approved: { variant: "default", label: "Approved" },
+      rejected: { variant: "destructive", label: "Rejected" }
+    };
+
+    const config = variants[status] || variants.pending;
+    return <Badge variant={config.variant}>{config.label}</Badge>;
+  };
+
+  if (loading) {
+    return <div className="p-8">Loading...</div>;
+  }
+
+  return (
+    <div className="p-8 space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Artist Verification</h1>
+        <p className="text-muted-foreground mt-1">
+          Review and manage artist verification requests
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Verification Requests</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Artist</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Requested</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {requests.map((request) => (
+                <TableRow key={request.id}>
+                  <TableCell className="font-medium">
+                    {request.artists.display_name}
+                  </TableCell>
+                  <TableCell>{request.artists.email}</TableCell>
+                  <TableCell>
+                    {new Date(request.requested_at).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>{getStatusBadge(request.status)}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setSelectedRequest(request)}
+                      >
+                        View Details
+                      </Button>
+                      {request.status === 'pending' && (
+                        <>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            onClick={() => handleApprove(request)}
+                            disabled={processing}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-1" />
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => setSelectedRequest(request)}
+                            disabled={processing}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+
+      {/* Verification Details Dialog */}
+      <Dialog open={!!selectedRequest} onOpenChange={() => setSelectedRequest(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Verification Request Details</DialogTitle>
+          </DialogHeader>
+          {selectedRequest && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Artist Information</h3>
+                <p><strong>Name:</strong> {selectedRequest.artists.display_name}</p>
+                <p><strong>Email:</strong> {selectedRequest.artists.email}</p>
+                <p>
+                  <strong>Profile:</strong>{' '}
+                  <a
+                    href={`/${selectedRequest.artists.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    View Port <ExternalLink className="h-3 w-3" />
+                  </a>
+                </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Verification Evidence</h3>
+                <div className="space-y-2">
+                  {selectedRequest.verification_evidence?.spotify_url && (
+                    <p>
+                      <strong>Spotify:</strong>{' '}
+                      <a
+                        href={selectedRequest.verification_evidence.spotify_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {selectedRequest.verification_evidence.spotify_url}
+                      </a>
+                    </p>
+                  )}
+                  {selectedRequest.verification_evidence?.instagram_url && (
+                    <p>
+                      <strong>Instagram:</strong>{' '}
+                      <a
+                        href={selectedRequest.verification_evidence.instagram_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {selectedRequest.verification_evidence.instagram_url}
+                      </a>
+                    </p>
+                  )}
+                  {selectedRequest.verification_evidence?.youtube_url && (
+                    <p>
+                      <strong>YouTube:</strong>{' '}
+                      <a
+                        href={selectedRequest.verification_evidence.youtube_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        {selectedRequest.verification_evidence.youtube_url}
+                      </a>
+                    </p>
+                  )}
+                  {selectedRequest.verification_evidence?.other_urls && (
+                    <p><strong>Other:</strong> {selectedRequest.verification_evidence.other_urls}</p>
+                  )}
+                  {selectedRequest.verification_evidence?.additional_notes && (
+                    <p><strong>Notes:</strong> {selectedRequest.verification_evidence.additional_notes}</p>
+                  )}
+                </div>
+              </div>
+
+              {selectedRequest.status === 'pending' && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="rejection_reason" className="text-sm font-medium mb-2 block">
+                      Rejection Reason (if rejecting)
+                    </Label>
+                    <Textarea
+                      id="rejection_reason"
+                      value={rejectionReason}
+                      onChange={(e) => setRejectionReason(e.target.value)}
+                      placeholder="Explain why this request is being rejected..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="flex gap-2 justify-end">
+                    <Button
+                      variant="default"
+                      onClick={() => handleApprove(selectedRequest)}
+                      disabled={processing}
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Approve Verification
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleReject(selectedRequest)}
+                      disabled={processing || !rejectionReason.trim()}
+                    >
+                      <XCircle className="h-4 w-4 mr-2" />
+                      Reject Request
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default AdminVerification;

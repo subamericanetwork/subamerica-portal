@@ -8,6 +8,7 @@ import { FAQSection } from "@/components/FAQSection";
 import { PortFooterActions } from "@/components/PortFooterActions";
 import { ProductDialog } from "@/components/ProductDialog";
 import { PortSocialStats } from "@/components/PortSocialStats";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 
@@ -24,6 +25,7 @@ interface Artist {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  is_verified?: boolean;
 }
 
 interface Video {
@@ -164,7 +166,7 @@ const Port = () => {
           // Fetch artist data by artistId
           const { data: artistData, error: artistError } = await supabase
             .from("artists")
-            .select("id, display_name, bio_short, scene, socials, brand, city, state, country")
+            .select("id, display_name, bio_short, scene, socials, brand, city, state, country, is_verified")
             .eq("id", artistId)
             .single();
 
@@ -176,7 +178,7 @@ const Port = () => {
 
           const { data: artistData, error: artistError } = await supabase
             .from("artists")
-            .select("id, display_name, bio_short, scene, socials, brand, city, state, country")
+            .select("id, display_name, bio_short, scene, socials, brand, city, state, country, is_verified")
             .eq("slug", slug)
             .maybeSingle();
 
@@ -587,7 +589,10 @@ const Port = () => {
           </div>
           
           <div>
-            <h1 className="text-5xl font-bold mb-2">{String(artist.display_name)}</h1>
+            <h1 className="text-5xl font-bold mb-2 flex items-center justify-center gap-3">
+              {String(artist.display_name)}
+              {artist.is_verified && <VerifiedBadge size="lg" />}
+            </h1>
             {artist.scene && typeof artist.scene === 'string' && (
               <p className="text-xl text-primary">{String(artist.scene)}</p>
             )}

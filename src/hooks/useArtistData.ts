@@ -15,6 +15,8 @@ interface Artist {
   city?: string | null;
   state?: string | null;
   country?: string | null;
+  is_verified?: boolean;
+  verified_at?: string | null;
 }
 
 interface Video {
@@ -101,7 +103,7 @@ export const useArtistData = () => {
         // Fetch artist profile
         const { data: artistData, error: artistError } = await supabase
           .from("artists")
-          .select("*")
+          .select("*, is_verified, verified_at")
           .eq("user_id", user.id)
           .single();
 
