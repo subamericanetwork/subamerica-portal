@@ -17,6 +17,7 @@ import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
 import Payments from "./pages/Payments";
 import PortPreview from "./pages/PortPreview";
+import Portals from "./pages/Portals";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 import AdminVideos from "./pages/admin/AdminVideos";
@@ -53,6 +54,7 @@ const App = () => (
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
           <Route path="/admin/verification/final-approval" element={<AdminRoute><RogerApproval /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />
+          <Route path="/portals" element={<Portals />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
