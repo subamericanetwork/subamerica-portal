@@ -140,7 +140,11 @@ export const HeroBannerSettings = ({
       <CardHeader>
         <CardTitle>Hero Banner</CardTitle>
         <CardDescription>
-          Upload a banner image or video to display prominently at the top of your port. This will also be used as your background on the artist feed.
+          Upload a banner image or video to display prominently at the top of your port. This will also be used as your background on the{" "}
+          <a href="https://artist-portal.subamerica.net/portals" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+            artist feed
+          </a>
+          .
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
