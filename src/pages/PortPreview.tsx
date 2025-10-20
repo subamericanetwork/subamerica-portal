@@ -16,7 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const PortPreview = () => {
-  const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings } = useArtistData();
+  const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings, faqs } = useArtistData();
   const navigate = useNavigate();
   const [isPublishing, setIsPublishing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -561,6 +561,14 @@ const PortPreview = () => {
                 ))}
               </div>
             </div>
+          )}
+
+          {/* FAQ Section */}
+          {faqs && faqs.length > 0 && (
+            <FAQSection 
+              faqs={faqs} 
+              textColor={portSettings?.text_lg_color || "#ffffff"} 
+            />
           )}
 
           {/* Footer with Social Links */}
