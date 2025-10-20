@@ -7,6 +7,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { PortFooterActions } from "@/components/PortFooterActions";
 import { ProductDialog } from "@/components/ProductDialog";
+import { FAQSection } from "@/components/FAQSection";
 import { PortSocialStats } from "@/components/PortSocialStats";
 import { ExternalLink, Calendar, ShoppingBag, PlayCircle, Heart, Users, MapPin, Instagram, Music2, Info, CheckCircle, AlertCircle, ChevronLeft, ChevronRight, Facebook, Twitter, Youtube, Linkedin, Globe, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { useNavigate } from "react-router-dom";
