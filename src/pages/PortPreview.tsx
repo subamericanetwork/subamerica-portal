@@ -398,7 +398,7 @@ const PortPreview = () => {
               <div className="relative max-w-3xl mx-auto">
                 <div className="grid grid-cols-2 gap-4">
                   {artistImages.slice(currentImageIndex, currentImageIndex + 2).map((image: string, idx: number) => (
-                    <Card key={currentImageIndex + idx} className="gradient-card overflow-hidden">
+                    <Card key={currentImageIndex + idx} className="gradient-card overflow-hidden scale-75 origin-center">
                       <div className="aspect-square bg-muted flex items-center justify-center overflow-hidden">
                         <img 
                           src={image} 
