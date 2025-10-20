@@ -1643,7 +1643,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "artist" | "moderator"
+      app_role: "admin" | "artist" | "moderator" | "production_manager"
       pay_mode: "heartland_hosted" | "woo_heartland"
       publish_status: "draft" | "pending" | "scheduled" | "published"
       subscription_tier: "free" | "pro" | "premium"
@@ -1781,7 +1781,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "artist", "moderator"],
+      app_role: ["admin", "artist", "moderator", "production_manager"],
       pay_mode: ["heartland_hosted", "woo_heartland"],
       publish_status: ["draft", "pending", "scheduled", "published"],
       subscription_tier: ["free", "pro", "premium"],
