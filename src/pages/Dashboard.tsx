@@ -28,6 +28,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { SocialMediaReachCard } from "@/components/SocialMediaReachCard";
 import { useSocialStats } from "@/hooks/useSocialStats";
+import { SEOCompleteness } from "@/components/SEOCompleteness";
 
 interface Tip {
   id: string;
@@ -46,7 +47,7 @@ interface Order {
 }
 
 const Dashboard = () => {
-  const { artist, videos, events, products, portSettings, loading, surfaceProducts, featuredVideo } = useArtistData();
+  const { artist, videos, events, products, portSettings, loading, surfaceProducts, featuredVideo, faqs } = useArtistData();
   const navigate = useNavigate();
   const [tips, setTips] = useState<Tip[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -313,6 +314,15 @@ const Dashboard = () => {
 
         {/* Social Media Reach */}
         <SocialMediaReachCard stats={socialStats} loading={socialStatsLoading} />
+
+        {/* SEO Discovery Optimization */}
+        {artist && (
+          <SEOCompleteness
+            artist={artist}
+            faqs={faqs}
+            portSettings={portSettings}
+          />
+        )}
 
         {/* Content Stats & Port Status Row */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -546,15 +546,6 @@ const Profile = () => {
           </CardContent>
         </Card>
 
-        {/* SEO Completeness Indicator */}
-        {artist && (
-          <SEOCompleteness
-            artist={artist}
-            faqs={faqs}
-            portSettings={portSettings}
-          />
-        )}
-
         {/* FAQ Management */}
         {artist && (
           <FAQManagement
