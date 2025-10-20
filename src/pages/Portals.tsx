@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio } from "lucide-react";
+import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
+
+interface ArtistPost {
+  title: string;
+  caption?: string;
+  media_url: string;
+  media_type: "image" | "video";
+}
 
 interface Artist {
   id: string;
@@ -16,6 +23,7 @@ interface Artist {
   bio_short?: string;
   brand?: any;
   is_verified: boolean;
+  post?: ArtistPost | null;
 }
 
 interface ArtistWithDetails extends Artist {
@@ -100,9 +108,11 @@ function PortalsFeed() {
           bio_short,
           brand,
           is_verified,
-          port_settings!inner(publish_status)
+          port_settings!inner(publish_status),
+          artist_posts(title, caption, media_url, media_type)
         `)
         .eq("port_settings.publish_status", "published")
+        .eq("artist_posts.publish_status", "published")
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -141,6 +151,7 @@ function PortalsFeed() {
             ...artist,
             featuredProduct: products || undefined,
             nextEvent: event || undefined,
+            post: (artist as any).artist_posts?.[0] || null,
           };
         })
       );
@@ -311,6 +322,7 @@ function PortalsFeed() {
 function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: boolean }) {
   const navigate = useNavigate();
   const [tipDialogOpen, setTipDialogOpen] = useState(false);
+  const [mode, setMode] = useState<'post' | 'info'>(artist.post ? 'post' : 'info');
 
   // Prioritize hero_banner, then hero_image, then first image
   const heroBanner = artist.brand?.hero_banner;
@@ -375,8 +387,13 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
           aria-hidden
         />
 
-        {/* Content */}
-        <div className="relative z-10 grid h-full w-full grid-cols-1 gap-4 p-4 md:grid-cols-12 md:gap-6 md:p-6">
+        {/* Post Overlay (image/video + title/caption) */}
+        {artist.post && mode === 'post' && (
+          <PostOverlay post={artist.post} active={active} />
+        )}
+
+        {/* Content (Info mode) */}
+        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-4 p-4 md:grid-cols-12 md:gap-6 md:p-6 transition-smooth ${mode === 'post' ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
           {/* Left: avatar + meta */}
           <div className="flex flex-col justify-end md:col-span-8">
             <div className="flex items-center gap-4">
@@ -447,6 +464,11 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         <div className="pointer-events-none absolute bottom-2 left-1/2 -translate-x-1/2 opacity-60">
           <ChevronDown className="h-5 w-5" />
         </div>
+
+        {/* Bottom-right Toggle FAB */}
+        {artist.post && (
+          <ToggleFAB mode={mode} onToggle={() => setMode((m) => (m === 'post' ? 'info' : 'post'))} />
+        )}
       </div>
 
       <TipDialog
@@ -495,5 +517,57 @@ function ActionRail({
         <Share2 className="h-5 w-5" />
       </button>
     </div>
+  );
+}
+
+function PostOverlay({ post, active }: { post: ArtistPost; active: boolean }) {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-[5]">
+      {/* Media layer */}
+      {post.media_type === 'video' ? (
+        active ? (
+          <video
+            className="absolute inset-0 h-full w-full object-cover opacity-40"
+            src={post.media_url}
+            muted
+            loop
+            autoPlay
+            playsInline
+            preload="none"
+          />
+        ) : (
+          <div className="absolute inset-0 h-full w-full bg-background/10 opacity-30" />
+        )
+      ) : (
+        <img src={post.media_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" loading="lazy" />
+      )}
+
+      {/* Gradient & text layer */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
+      <div className="pointer-events-auto absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
+        <div className="max-w-2xl">
+          <h2 className="text-xl font-bold tracking-tight md:text-3xl">{post.title}</h2>
+          {post.caption && <p className="mt-1 text-sm text-foreground/80 md:text-base">{post.caption}</p>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ToggleFAB({ mode, onToggle }: { mode: 'post' | 'info'; onToggle: () => void }) {
+  const isPost = mode === 'post';
+  return (
+    <button
+      onClick={onToggle}
+      aria-label={isPost ? 'Show info' : 'Show post'}
+      aria-pressed={isPost}
+      className={`group absolute bottom-5 right-5 z-20 inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium shadow-xl ring-1 transition-smooth focus:outline-none focus:ring-2 ${
+        isPost ? 'bg-primary text-primary-foreground ring-primary/20 hover:brightness-95' : 'bg-card/80 text-foreground ring-border hover:bg-card backdrop-blur-sm'
+      }`}
+    >
+      {isPost ? <Info className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+      <span className="hidden md:inline">{isPost ? 'Info' : 'Post'}</span>
+      <span className="md:hidden">{isPost ? 'Info' : 'Post'}</span>
+    </button>
   );
 }
