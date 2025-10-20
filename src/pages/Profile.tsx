@@ -578,6 +578,26 @@ const Profile = () => {
           />
         )}
 
+        {/* Background Settings */}
+        {artist && user && (
+          <BackgroundSettings
+            key={refreshKey}
+            artistId={artist.id}
+            userId={user.id}
+            initialType={portSettings?.background_type}
+            initialValue={portSettings?.background_value}
+            initialVideoUrl={portSettings?.background_video_url || ""}
+            initialH1Color={portSettings?.h1_color}
+            initialH2Color={portSettings?.h2_color}
+            initialH3Color={portSettings?.h3_color}
+            initialH4Color={portSettings?.h4_color}
+            initialTextSmColor={portSettings?.text_sm_color}
+            initialTextMdColor={portSettings?.text_md_color}
+            initialTextLgColor={portSettings?.text_lg_color}
+            onSave={() => setRefreshKey(prev => prev + 1)}
+          />
+        )}
+
         {/* Artist Verification */}
         {artist && (
           <VerificationRequestForm
@@ -662,26 +682,6 @@ const Profile = () => {
             </div>
           </CardContent>
         </Card>
-
-        {/* Background Settings */}
-        {artist && user && (
-          <BackgroundSettings
-            key={refreshKey}
-            artistId={artist.id}
-            userId={user.id}
-            initialType={portSettings?.background_type}
-            initialValue={portSettings?.background_value}
-            initialVideoUrl={portSettings?.background_video_url || ""}
-            initialH1Color={portSettings?.h1_color}
-            initialH2Color={portSettings?.h2_color}
-            initialH3Color={portSettings?.h3_color}
-            initialH4Color={portSettings?.h4_color}
-            initialTextSmColor={portSettings?.text_sm_color}
-            initialTextMdColor={portSettings?.text_md_color}
-            initialTextLgColor={portSettings?.text_lg_color}
-            onSave={() => setRefreshKey(prev => prev + 1)}
-          />
-        )}
 
         {/* Custom Domain Settings */}
         {artist && (
