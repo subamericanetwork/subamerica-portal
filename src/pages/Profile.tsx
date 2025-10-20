@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, X, User, Check } from "lucide-react";
+import { Loader2, Upload, X, User, Check, Eye } from "lucide-react";
 import { BackgroundSettings } from "@/components/BackgroundSettings";
 import { FAQManagement } from "@/components/FAQManagement";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
@@ -426,6 +426,10 @@ const Profile = () => {
             </div>
             <Button variant="outline" onClick={() => navigate("/dashboard")}>
               Back to Dashboard
+            </Button>
+            <Button variant="outline" onClick={() => navigate("/preview")}>
+              <Eye className="mr-2 h-4 w-4" />
+              Preview
             </Button>
           </div>
         </div>
