@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { CheckCircle, Clock, XCircle, Info } from "lucide-react";
+import { SocialStat } from "@/hooks/useSocialStats";
 
 interface VerificationRequestFormProps {
   artistId: string;
@@ -26,6 +27,9 @@ export const VerificationRequestForm = ({
   existingRequest 
 }: VerificationRequestFormProps) => {
   const [submitting, setSubmitting] = useState(false);
+  const [socialStats, setSocialStats] = useState<SocialStat[]>([]);
+  const [isEligible, setIsEligible] = useState(false);
+  const [qualifyingPlatforms, setQualifyingPlatforms] = useState<SocialStat[]>([]);
   const [evidence, setEvidence] = useState({
     spotify_url: "",
     instagram_url: "",
@@ -34,18 +38,47 @@ export const VerificationRequestForm = ({
     additional_notes: ""
   });
 
+  useEffect(() => {
+    const fetchSocialStats = async () => {
+      const { data } = await supabase
+        .from('artist_social_stats')
+        .select('*')
+        .eq('artist_id', artistId)
+        .in('platform', ['tiktok', 'instagram', 'linkedin']);
+      
+      if (data) {
+        setSocialStats(data);
+        const qualifying = data.filter(stat => stat.followers_count >= 1000);
+        setQualifyingPlatforms(qualifying);
+        setIsEligible(qualifying.length > 0);
+      }
+    };
+    
+    fetchSocialStats();
+  }, [artistId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!isEligible) {
+      toast.error('You must have 1,000+ followers on TikTok, Instagram, or LinkedIn to apply');
+      return;
+    }
+    
     setSubmitting(true);
 
     try {
       const { error } = await supabase
         .from('artist_verification_requests')
-        .insert({
+        .insert([{
           artist_id: artistId,
-          verification_evidence: evidence,
+          verification_evidence: {
+            ...evidence,
+            social_stats: JSON.parse(JSON.stringify(socialStats)),
+            qualifying_platforms: JSON.parse(JSON.stringify(qualifyingPlatforms))
+          },
           status: 'pending'
-        });
+        }]);
 
       if (error) throw error;
 
@@ -122,10 +155,48 @@ export const VerificationRequestForm = ({
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {!isEligible ? (
+          <Alert variant="destructive" className="mb-6">
+            <XCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Not Eligible for Verification</strong>
+              <p className="mt-2">
+                To qualify for verification, you need at least 1,000 followers on TikTok, Instagram, or LinkedIn.
+              </p>
+              <p className="mt-2">Current follower counts:</p>
+              <ul className="mt-1 ml-4 list-disc">
+                {socialStats.length > 0 ? (
+                  socialStats.map(stat => (
+                    <li key={stat.platform}>
+                      {stat.platform}: {stat.followers_count.toLocaleString()} followers
+                    </li>
+                  ))
+                ) : (
+                  <li>No social stats added yet</li>
+                )}
+              </ul>
+              <p className="mt-2 text-sm">
+                Please add or update your social media stats in your Profile to qualify.
+              </p>
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <Alert className="mb-6 border-green-500 bg-green-50">
+            <CheckCircle className="h-4 w-4 text-green-600" />
+            <AlertDescription>
+              <strong className="text-green-700">Eligible for Verification!</strong>
+              <p className="mt-2 text-green-600">
+                You have {qualifyingPlatforms[0]?.followers_count.toLocaleString()} followers on{' '}
+                {qualifyingPlatforms[0]?.platform}.
+              </p>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Alert className="mb-6">
           <Info className="h-4 w-4" />
           <AlertDescription>
-            To be eligible for verification, provide links to your official social media and streaming profiles.
+            Provide links to your official social media and streaming profiles to support your verification request.
           </AlertDescription>
         </Alert>
 
@@ -184,7 +255,7 @@ export const VerificationRequestForm = ({
             />
           </div>
 
-          <Button type="submit" disabled={submitting} className="w-full">
+          <Button type="submit" disabled={submitting || !isEligible} className="w-full">
             {submitting ? 'Submitting...' : 'Submit Verification Request'}
           </Button>
         </form>

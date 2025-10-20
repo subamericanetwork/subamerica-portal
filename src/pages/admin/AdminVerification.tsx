@@ -7,8 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { SocialStat } from "@/hooks/useSocialStats";
 
 interface VerificationRequest {
   id: string;
@@ -20,6 +22,7 @@ interface VerificationRequest {
     display_name: string;
     email: string;
     slug: string;
+    artist_social_stats: SocialStat[];
   };
 }
 
@@ -40,7 +43,12 @@ const AdminVerification = () => {
         .from('artist_verification_requests')
         .select(`
           *,
-          artists(display_name, email, slug)
+          artists(
+            display_name, 
+            email, 
+            slug,
+            artist_social_stats(*)
+          )
         `)
         .order('requested_at', { ascending: false });
 
@@ -52,6 +60,21 @@ const AdminVerification = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkEligibility = (request: VerificationRequest) => {
+    const socialStats = request.artists.artist_social_stats || [];
+    const qualifyingPlatforms = ['tiktok', 'instagram', 'linkedin'];
+    
+    const qualifying = socialStats.filter(
+      stat => qualifyingPlatforms.includes(stat.platform) && stat.followers_count >= 1000
+    );
+    
+    return {
+      eligible: qualifying.length > 0,
+      qualifyingStats: qualifying,
+      allStats: socialStats
+    };
   };
 
   const handleApprove = async (request: VerificationRequest) => {
@@ -162,22 +185,37 @@ const AdminVerification = () => {
                 <TableHead>Artist</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Requested</TableHead>
+                <TableHead>Eligibility</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {requests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">
-                    {request.artists.display_name}
-                  </TableCell>
-                  <TableCell>{request.artists.email}</TableCell>
-                  <TableCell>
-                    {new Date(request.requested_at).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(request.status)}</TableCell>
-                  <TableCell>
+              {requests.map((request) => {
+                const { eligible, qualifyingStats } = checkEligibility(request);
+                return (
+                  <TableRow key={request.id}>
+                    <TableCell className="font-medium">
+                      {request.artists.display_name}
+                    </TableCell>
+                    <TableCell>{request.artists.email}</TableCell>
+                    <TableCell>
+                      {new Date(request.requested_at).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      {eligible ? (
+                        <Badge variant="default" className="bg-green-500">
+                          ✓ {qualifyingStats[0]?.followers_count.toLocaleString()} on{' '}
+                          {qualifyingStats[0]?.platform}
+                        </Badge>
+                      ) : (
+                        <Badge variant="destructive">
+                          Below threshold
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>{getStatusBadge(request.status)}</TableCell>
+                    <TableCell>
                     <div className="flex gap-2">
                       <Button
                         size="sm"
@@ -211,7 +249,8 @@ const AdminVerification = () => {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
             </TableBody>
           </Table>
         </CardContent>
@@ -240,6 +279,61 @@ const AdminVerification = () => {
                     View Port <ExternalLink className="h-3 w-3" />
                   </a>
                 </p>
+              </div>
+
+              <div>
+                <h3 className="font-semibold mb-2">Follower Verification</h3>
+                {(() => {
+                  const { eligible, qualifyingStats, allStats } = checkEligibility(selectedRequest);
+                  return (
+                    <div className="space-y-2">
+                      {eligible ? (
+                        <Alert className="border-green-500 bg-green-50">
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <AlertDescription>
+                            <strong className="text-green-700">Meets 1,000 Follower Requirement</strong>
+                            <ul className="mt-2 space-y-1">
+                              {qualifyingStats.map(stat => (
+                                <li key={stat.platform} className="text-green-600">
+                                  ✓ {stat.platform}: {stat.followers_count.toLocaleString()} followers
+                                  {stat.profile_url && (
+                                    <a
+                                      href={stat.profile_url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="ml-2 text-primary hover:underline inline-flex items-center gap-1"
+                                    >
+                                      View Profile <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                      ) : (
+                        <Alert variant="destructive">
+                          <XCircle className="h-4 w-4" />
+                          <AlertDescription>
+                            <strong>Does Not Meet Follower Requirement</strong>
+                            <p className="mt-2">Current follower counts:</p>
+                            <ul className="mt-1 ml-4 list-disc">
+                              {allStats.length > 0 ? (
+                                allStats.filter(stat => ['tiktok', 'instagram', 'linkedin'].includes(stat.platform)).map(stat => (
+                                  <li key={stat.platform}>
+                                    {stat.platform}: {stat.followers_count.toLocaleString()} followers
+                                  </li>
+                                ))
+                              ) : (
+                                <li>No social stats recorded for qualifying platforms</li>
+                              )}
+                            </ul>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
 
               <div>
