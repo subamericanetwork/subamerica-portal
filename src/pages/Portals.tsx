@@ -108,11 +108,9 @@ function PortalsFeed() {
           bio_short,
           brand,
           is_verified,
-          port_settings!inner(publish_status),
-          artist_posts(title, caption, media_url, media_type)
+          port_settings!inner(publish_status)
         `)
         .eq("port_settings.publish_status", "published")
-        .eq("artist_posts.publish_status", "published")
         .order("created_at", { ascending: false })
         .range(from, to);
 
@@ -151,7 +149,7 @@ function PortalsFeed() {
             ...artist,
             featuredProduct: products || undefined,
             nextEvent: event || undefined,
-            post: (artist as any).artist_posts?.[0] || null,
+            post: null, // TODO: Add artist_posts table via migration
           };
         })
       );
