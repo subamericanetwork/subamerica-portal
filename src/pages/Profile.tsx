@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Upload, X, User } from "lucide-react";
+import { Loader2, Upload, X, User, Check } from "lucide-react";
 import { BackgroundSettings } from "@/components/BackgroundSettings";
 import { FAQManagement } from "@/components/FAQManagement";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
@@ -18,14 +18,32 @@ import { CustomDomainSettings } from "@/components/CustomDomainSettings";
 import { useAuth } from "@/contexts/AuthContext";
 import { SocialStatsSection } from "@/components/SocialStatsSection";
 
+// Custom debounce hook
+const useDebounce = (value: any, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  
+  return debouncedValue;
+};
+
 const Profile = () => {
   const navigate = useNavigate();
   const { artist, loading, portSettings, faqs } = useArtistData();
   const { user } = useAuth();
   const { toast } = useToast();
-  const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Auto-save state
+  const [autoSaving, setAutoSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Form state
   const [profilePhoto, setProfilePhoto] = useState<string>("");
@@ -47,6 +65,11 @@ const Profile = () => {
     country: "",
     postal_code: ""
   });
+
+  // Debounced values for auto-save
+  const debouncedBioShort = useDebounce(bioShort, 500);
+  const debouncedSocials = useDebounce(socials, 500);
+  const debouncedAddress = useDebounce(address, 500);
 
   useEffect(() => {
     if (artist) {
@@ -72,6 +95,162 @@ const Profile = () => {
     }
   }, [artist]);
 
+  // Auto-save bio when debounced value changes
+  useEffect(() => {
+    if (artist && debouncedBioShort !== undefined && debouncedBioShort !== artist.bio_short) {
+      autoSaveBioShort(debouncedBioShort);
+    }
+  }, [debouncedBioShort]);
+
+  // Auto-save socials when debounced value changes
+  useEffect(() => {
+    if (artist && debouncedSocials) {
+      const originalSocials = {
+        tiktok: artist.socials?.tiktok || "",
+        youtube: artist.socials?.youtube || "",
+        instagram: artist.socials?.instagram || "",
+        facebook: artist.socials?.facebook || "",
+        linkedin: artist.socials?.linkedin || "",
+        twitter: artist.socials?.twitter || ""
+      };
+      if (JSON.stringify(debouncedSocials) !== JSON.stringify(originalSocials)) {
+        autoSaveSocials(debouncedSocials);
+      }
+    }
+  }, [debouncedSocials]);
+
+  // Auto-save address when debounced value changes
+  useEffect(() => {
+    if (artist && debouncedAddress) {
+      const originalAddress = {
+        address_line1: (artist as any).address_line1 || "",
+        address_line2: (artist as any).address_line2 || "",
+        city: (artist as any).city || "",
+        state: (artist as any).state || "",
+        country: (artist as any).country || "",
+        postal_code: (artist as any).postal_code || ""
+      };
+      if (JSON.stringify(debouncedAddress) !== JSON.stringify(originalAddress)) {
+        autoSaveAddress(debouncedAddress);
+      }
+    }
+  }, [debouncedAddress]);
+
+  // Navigation guard
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (autoSaving) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [autoSaving]);
+
+  // Auto-save functions
+  const autoSaveBioShort = async (newBio: string) => {
+    if (!artist) return;
+    setAutoSaving(true);
+    try {
+      const { error } = await supabase
+        .from('artists')
+        .update({ bio_short: newBio })
+        .eq('id', artist.id);
+      
+      if (error) throw error;
+      setLastSaved(new Date());
+    } catch (error: any) {
+      toast({ 
+        title: "Auto-save failed", 
+        description: "Bio not saved", 
+        variant: "destructive" 
+      });
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
+  const autoSaveSocials = async (newSocials: typeof socials) => {
+    if (!artist) return;
+    setAutoSaving(true);
+    try {
+      const { error } = await supabase
+        .from('artists')
+        .update({ socials: newSocials })
+        .eq('id', artist.id);
+      
+      if (error) throw error;
+      setLastSaved(new Date());
+    } catch (error: any) {
+      toast({ 
+        title: "Auto-save failed", 
+        description: "Social links not saved", 
+        variant: "destructive" 
+      });
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
+  const autoSaveAddress = async (newAddress: typeof address) => {
+    if (!artist) return;
+    setAutoSaving(true);
+    try {
+      const { error } = await supabase
+        .from('artists')
+        .update({
+          address_line1: newAddress.address_line1,
+          address_line2: newAddress.address_line2,
+          city: newAddress.city,
+          state: newAddress.state,
+          country: newAddress.country,
+          postal_code: newAddress.postal_code
+        })
+        .eq('id', artist.id);
+      
+      if (error) throw error;
+      setLastSaved(new Date());
+    } catch (error: any) {
+      toast({ 
+        title: "Auto-save failed", 
+        description: "Address not saved", 
+        variant: "destructive" 
+      });
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
+  const autoSaveArtistImages = async (newImages: string[]) => {
+    if (!artist) return;
+    setAutoSaving(true);
+    try {
+      const { error } = await supabase
+        .from('artists')
+        .update({
+          brand: {
+            ...artist.brand,
+            profile_photo: profilePhoto,
+            images: newImages
+          }
+        })
+        .eq('id', artist.id);
+      
+      if (error) throw error;
+      setLastSaved(new Date());
+    } catch (error: any) {
+      toast({ 
+        title: "Auto-save failed", 
+        description: "Images not saved", 
+        variant: "destructive" 
+      });
+    } finally {
+      setAutoSaving(false);
+    }
+  };
+
   const handleProfilePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !artist) return;
@@ -96,9 +275,22 @@ const Profile = () => {
 
       setProfilePhoto(publicUrl);
       
+      // Auto-save profile photo immediately
+      await supabase
+        .from('artists')
+        .update({
+          brand: {
+            ...artist.brand,
+            profile_photo: publicUrl,
+            images: artistImages
+          }
+        })
+        .eq('id', artist.id);
+      
+      setLastSaved(new Date());
       toast({
         title: "Success",
-        description: "Profile photo uploaded successfully",
+        description: "Profile photo uploaded and saved",
       });
     } catch (error: any) {
       toast({
@@ -133,11 +325,15 @@ const Profile = () => {
         .from('profile-images')
         .getPublicUrl(fileName);
 
-      setArtistImages([...artistImages, publicUrl]);
+      const newImages = [...artistImages, publicUrl];
+      setArtistImages(newImages);
+      
+      // Auto-save images immediately
+      await autoSaveArtistImages(newImages);
       
       toast({
         title: "Success",
-        description: "Image uploaded successfully",
+        description: "Image uploaded and saved",
       });
     } catch (error: any) {
       toast({
@@ -150,50 +346,12 @@ const Profile = () => {
     }
   };
 
-  const removeImage = (index: number) => {
-    setArtistImages(artistImages.filter((_, i) => i !== index));
+  const removeImage = async (index: number) => {
+    const newImages = artistImages.filter((_, i) => i !== index);
+    setArtistImages(newImages);
+    await autoSaveArtistImages(newImages);
   };
 
-  const handleSave = async () => {
-    if (!artist) return;
-
-    setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('artists')
-        .update({
-          bio_short: bioShort,
-          socials: socials,
-          brand: {
-            ...artist.brand,
-            profile_photo: profilePhoto,
-            images: artistImages
-          },
-          address_line1: address.address_line1,
-          address_line2: address.address_line2,
-          city: address.city,
-          state: address.state,
-          country: address.country,
-          postal_code: address.postal_code
-        })
-        .eq('id', artist.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Profile updated successfully",
-      });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -228,19 +386,24 @@ const Profile = () => {
               Manage your public profile information and social links
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate("/dashboard")}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? (
+          <div className="flex items-center gap-4">
+            {/* Auto-save Status Indicator */}
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              {autoSaving && (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Saving changes...</span>
                 </>
-              ) : (
-                "Save Changes"
               )}
+              {!autoSaving && lastSaved && (
+                <>
+                  <Check className="h-4 w-4 text-green-500" />
+                  <span>All changes saved</span>
+                </>
+              )}
+            </div>
+            <Button variant="outline" onClick={() => navigate("/dashboard")}>
+              Back to Dashboard
             </Button>
           </div>
         </div>
@@ -508,22 +671,6 @@ const Profile = () => {
           />
         )}
 
-        {/* Save Button */}
-        <div className="flex justify-end gap-4">
-          <Button variant="outline" onClick={() => navigate("/dashboard")}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </div>
       </div>
     </DashboardLayout>
   );
