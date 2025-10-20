@@ -13,7 +13,8 @@ import {
   LogOut,
   Menu,
   Shield,
-  QrCode
+  QrCode,
+  Image
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -75,6 +76,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Profile", href: "/profile", icon: User },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Events", href: "/events", icon: Calendar },
+    { name: "Posts", href: "/posts", icon: Image },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
     { name: "Payments", href: "/payments", icon: DollarSign },
     { name: "Monetization", href: "/monetization", icon: QrCode },

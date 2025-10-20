@@ -26,6 +26,7 @@ import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVerification from "./pages/admin/AdminVerification";
 import RogerApproval from "./pages/admin/RogerApproval";
 import Watch from "./pages/Watch";
+import Posts from "./pages/Posts";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
           <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
+          <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
           <Route path="/merch" element={<ProtectedRoute><Merch /></ProtectedRoute>} />
           <Route path="/monetization" element={<ProtectedRoute><Monetization /></ProtectedRoute>} />
           <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
