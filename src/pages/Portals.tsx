@@ -316,13 +316,14 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
   const heroBanner = artist.brand?.hero_banner;
   const heroImage = artist.brand?.hero_image || artist.brand?.images?.[0];
   const backgroundSource = heroBanner || heroImage;
+  const isVideo = backgroundSource && (backgroundSource.includes('.mp4') || backgroundSource.includes('.webm'));
   const profilePhoto = artist.brand?.profile_photo;
 
   const bgStyle = useMemo(
     () => ({
-      backgroundImage: backgroundSource ? `url(${backgroundSource})` : undefined,
+      backgroundImage: !isVideo && backgroundSource ? `url(${backgroundSource})` : undefined,
     }),
-    [backgroundSource]
+    [backgroundSource, isVideo]
   );
 
   const handleShare = async () => {
@@ -349,12 +350,26 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
   return (
     <>
       <div className="relative flex w-full items-end overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4">
-        {/* Background */}
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-40 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,.6),rgba(0,0,0,.9))]"
-          style={bgStyle}
-          aria-hidden
-        />
+        {/* Background Video or Image */}
+        {isVideo && backgroundSource ? (
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="absolute inset-0 h-full w-full object-cover opacity-40 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,.6),rgba(0,0,0,.9))]"
+            aria-hidden
+          >
+            <source src={backgroundSource} type="video/mp4" />
+            <source src={backgroundSource} type="video/webm" />
+          </video>
+        ) : (
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40 [mask-image:linear-gradient(to_bottom,rgba(0,0,0,.6),rgba(0,0,0,.9))]"
+            style={bgStyle}
+            aria-hidden
+          />
+        )}
         <div
           className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary)/.18),transparent_40%),radial-gradient(circle_at_80%_20%,hsl(var(--coral)/.15),transparent_35%)]"
           aria-hidden
