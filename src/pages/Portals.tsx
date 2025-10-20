@@ -312,14 +312,17 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
   const navigate = useNavigate();
   const [tipDialogOpen, setTipDialogOpen] = useState(false);
 
+  // Prioritize hero_banner, then hero_image, then first image
+  const heroBanner = artist.brand?.hero_banner;
   const heroImage = artist.brand?.hero_image || artist.brand?.images?.[0];
+  const backgroundSource = heroBanner || heroImage;
   const profilePhoto = artist.brand?.profile_photo;
 
   const bgStyle = useMemo(
     () => ({
-      backgroundImage: heroImage ? `url(${heroImage})` : undefined,
+      backgroundImage: backgroundSource ? `url(${backgroundSource})` : undefined,
     }),
-    [heroImage]
+    [backgroundSource]
   );
 
   const handleShare = async () => {

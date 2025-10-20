@@ -247,6 +247,31 @@ const PortPreview = () => {
           )}
           
           <div className="relative z-0">
+          {/* Hero Banner */}
+          {artist?.brand?.hero_banner && (
+            <div className="relative w-full h-[250px] md:h-[300px] lg:h-[400px] overflow-hidden -mx-8 -mt-8 mb-8">
+              {artist.brand.hero_banner.includes('.mp4') || artist.brand.hero_banner.includes('.webm') ? (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                >
+                  <source src={artist.brand.hero_banner} type="video/mp4" />
+                  <source src={artist.brand.hero_banner} type="video/webm" />
+                </video>
+              ) : (
+                <img
+                  src={artist.brand.hero_banner}
+                  alt="Hero banner"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
+            </div>
+          )}
+
           {/* Hamburger Menu */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
             <SheetTrigger asChild>

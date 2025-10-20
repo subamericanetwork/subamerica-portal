@@ -21,6 +21,7 @@ interface Artist {
   brand: {
     profile_photo?: string;
     images?: string[];
+    hero_banner?: string;
   } | null;
   city?: string | null;
   state?: string | null;
@@ -457,6 +458,9 @@ const Port = () => {
     );
   }
 
+  const heroBanner = artist?.brand?.hero_banner;
+  const isHeroBannerVideo = heroBanner && (heroBanner.includes('.mp4') || heroBanner.includes('.webm'));
+
   return (
     <div className="min-h-screen relative bg-black" style={getBackgroundStyles()}>
         {/* Background Video */}
@@ -482,6 +486,31 @@ const Port = () => {
         )}
         
         <div className="relative z-0">
+          {/* Hero Banner */}
+          {heroBanner && (
+            <div className="relative w-full h-[300px] md:h-[400px] overflow-hidden">
+              {isHeroBannerVideo ? (
+                <video
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  className="w-full h-full object-cover"
+                >
+                  <source src={heroBanner} type="video/mp4" />
+                  <source src={heroBanner} type="video/webm" />
+                </video>
+              ) : (
+                <img
+                  src={heroBanner}
+                  alt="Hero banner"
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/60" />
+            </div>
+          )}
+
           {/* Hamburger Menu */}
           <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetTrigger asChild>
