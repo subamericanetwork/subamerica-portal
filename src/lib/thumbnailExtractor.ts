@@ -70,8 +70,6 @@ export const extractThumbnailFromVideo = (
             if (source instanceof File) {
               URL.revokeObjectURL(video.src);
             }
-            video.remove();
-            canvas.remove();
           },
           'image/jpeg',
           0.9
@@ -92,8 +90,6 @@ export const extractThumbnailFromVideo = (
         URL.revokeObjectURL(video.src);
       }
       reject(new Error(errorMsg));
-      video.remove();
-      canvas.remove();
     });
 
     // Add timeout to prevent hanging
@@ -103,8 +99,6 @@ export const extractThumbnailFromVideo = (
         URL.revokeObjectURL(video.src);
       }
       reject(new Error('Timeout loading video (30s)'));
-      video.remove();
-      canvas.remove();
     }, 30000);
 
     // Clear timeout on success
