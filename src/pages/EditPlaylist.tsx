@@ -29,18 +29,17 @@ interface Video {
 const EditPlaylist = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { playlists, updatePlaylist, removeVideoFromPlaylist, refreshPlaylists } = usePlaylist();
+  const { playlists, loading: playlistsLoading, updatePlaylist, removeVideoFromPlaylist } = usePlaylist();
   const { toast } = useToast();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
   const [videos, setVideos] = useState<Video[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [videosLoading, setVideosLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [videoToRemove, setVideoToRemove] = useState<string | null>(null);
-
-  const playlist = playlists.find(p => p.id === id);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const loadPlaylistData = async () => {
@@ -49,11 +48,12 @@ const EditPlaylist = () => {
         return;
       }
 
-      // Wait for playlists to load if needed
-      if (playlists.length === 0) {
-        await refreshPlaylists();
+      // Wait for playlists to finish loading
+      if (playlistsLoading) {
+        return;
       }
 
+      // Now that playlists are loaded, check if our playlist exists
       const currentPlaylist = playlists.find(p => p.id === id);
       
       if (!currentPlaylist) {
@@ -66,12 +66,18 @@ const EditPlaylist = () => {
         return;
       }
 
+      // Only initialize once
+      if (initialized) return;
+      setInitialized(true);
+
+      // Set form data
       setName(currentPlaylist.name);
       setDescription(currentPlaylist.description || '');
       setIsPublic(currentPlaylist.is_public);
 
       // Fetch video details
       if (currentPlaylist.video_ids.length > 0) {
+        setVideosLoading(true);
         try {
           const { data, error } = await supabase
             .from('videos')
@@ -93,14 +99,14 @@ const EditPlaylist = () => {
             description: "Failed to load videos",
             variant: "destructive",
           });
+        } finally {
+          setVideosLoading(false);
         }
       }
-
-      setLoading(false);
     };
 
     loadPlaylistData();
-  }, [id, playlists, navigate, toast, refreshPlaylists]);
+  }, [id, playlists, playlistsLoading, navigate, toast, initialized]);
 
   const handleSave = async () => {
     if (!id || !name.trim()) {
@@ -139,16 +145,13 @@ const EditPlaylist = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while playlists are being fetched
+  if (playlistsLoading || !initialized) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  if (!playlist) {
-    return null;
   }
 
   return (
