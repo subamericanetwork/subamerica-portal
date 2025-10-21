@@ -104,6 +104,78 @@ export type Database = {
         }
         Relationships: []
       }
+      artist_applications: {
+        Row: {
+          admin_notes: string | null
+          appeal_reason: string | null
+          appeal_reviewed_at: string | null
+          appeal_reviewed_by: string | null
+          appeal_status: string | null
+          appealed_at: string | null
+          artist_name: string
+          bio: string | null
+          created_at: string | null
+          id: string
+          portfolio_links: Json | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          scene: string | null
+          slug: string
+          status: string
+          submitted_at: string | null
+          updated_at: string | null
+          user_id: string
+          why_join: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          appeal_reason?: string | null
+          appeal_reviewed_at?: string | null
+          appeal_reviewed_by?: string | null
+          appeal_status?: string | null
+          appealed_at?: string | null
+          artist_name: string
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          portfolio_links?: Json | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scene?: string | null
+          slug: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id: string
+          why_join: string
+        }
+        Update: {
+          admin_notes?: string | null
+          appeal_reason?: string | null
+          appeal_reviewed_at?: string | null
+          appeal_reviewed_by?: string | null
+          appeal_status?: string | null
+          appealed_at?: string | null
+          artist_name?: string
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          portfolio_links?: Json | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scene?: string | null
+          slug?: string
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+          user_id?: string
+          why_join?: string
+        }
+        Relationships: []
+      }
       artist_faqs: {
         Row: {
           answer: string
@@ -154,6 +226,9 @@ export type Database = {
           id: string
           media_type: Database["public"]["Enums"]["media_type"]
           media_url: string
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string | null
           publish_status: Database["public"]["Enums"]["post_publish_status"]
           title: string
           updated_at: string
@@ -166,6 +241,9 @@ export type Database = {
           id?: string
           media_type?: Database["public"]["Enums"]["media_type"]
           media_url: string
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           publish_status?: Database["public"]["Enums"]["post_publish_status"]
           title: string
           updated_at?: string
@@ -178,6 +256,9 @@ export type Database = {
           id?: string
           media_type?: Database["public"]["Enums"]["media_type"]
           media_url?: string
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           publish_status?: Database["public"]["Enums"]["post_publish_status"]
           title?: string
           updated_at?: string
@@ -460,6 +541,74 @@ export type Database = {
         }
         Relationships: []
       }
+      content_moderation_queue: {
+        Row: {
+          action_type: string
+          artist_id: string
+          can_retract_until: string | null
+          content_id: string
+          content_preview: Json | null
+          content_type: string
+          created_at: string | null
+          id: string
+          moderation_notes: string | null
+          priority: number | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sla_due_at: string | null
+          status: string
+          submitted_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          action_type: string
+          artist_id: string
+          can_retract_until?: string | null
+          content_id: string
+          content_preview?: Json | null
+          content_type: string
+          created_at?: string | null
+          id?: string
+          moderation_notes?: string | null
+          priority?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sla_due_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          action_type?: string
+          artist_id?: string
+          can_retract_until?: string | null
+          content_id?: string
+          content_preview?: Json | null
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          moderation_notes?: string | null
+          priority?: number | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sla_due_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_moderation_queue_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       domain_verifications: {
         Row: {
           artist_id: string
@@ -520,6 +669,9 @@ export type Database = {
           livepush_stream_id: string | null
           livestream_source: string | null
           livestream_status: string | null
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string | null
           multistream_destinations: Json | null
           poster_url: string | null
           qr_code_enabled: boolean | null
@@ -548,6 +700,9 @@ export type Database = {
           livepush_stream_id?: string | null
           livestream_source?: string | null
           livestream_status?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           multistream_destinations?: Json | null
           poster_url?: string | null
           qr_code_enabled?: boolean | null
@@ -576,6 +731,9 @@ export type Database = {
           livepush_stream_id?: string | null
           livestream_source?: string | null
           livestream_status?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           multistream_destinations?: Json | null
           poster_url?: string | null
           qr_code_enabled?: boolean | null
@@ -835,8 +993,14 @@ export type Database = {
           h4_color: string | null
           id: string
           max_products: number | null
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string | null
           pixels: Json | null
+          publish_requested_at: string | null
           publish_status: Database["public"]["Enums"]["publish_status"] | null
+          published_at: string | null
+          rejection_reason: string | null
           seo: Json | null
           text_lg_color: string | null
           text_md_color: string | null
@@ -862,8 +1026,14 @@ export type Database = {
           h4_color?: string | null
           id?: string
           max_products?: number | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           pixels?: Json | null
+          publish_requested_at?: string | null
           publish_status?: Database["public"]["Enums"]["publish_status"] | null
+          published_at?: string | null
+          rejection_reason?: string | null
           seo?: Json | null
           text_lg_color?: string | null
           text_md_color?: string | null
@@ -889,8 +1059,14 @@ export type Database = {
           h4_color?: string | null
           id?: string
           max_products?: number | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           pixels?: Json | null
+          publish_requested_at?: string | null
           publish_status?: Database["public"]["Enums"]["publish_status"] | null
+          published_at?: string | null
+          rejection_reason?: string | null
           seo?: Json | null
           text_lg_color?: string | null
           text_md_color?: string | null
@@ -989,6 +1165,9 @@ export type Database = {
           is_surface: boolean | null
           link: string
           long_description: string | null
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string | null
           payment_type: string | null
           pitch: string | null
           price: number | null
@@ -1011,6 +1190,9 @@ export type Database = {
           is_surface?: boolean | null
           link?: string
           long_description?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           payment_type?: string | null
           pitch?: string | null
           price?: number | null
@@ -1033,6 +1215,9 @@ export type Database = {
           is_surface?: boolean | null
           link?: string
           long_description?: string | null
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           payment_type?: string | null
           pitch?: string | null
           price?: number | null
@@ -1628,6 +1813,36 @@ export type Database = {
           },
         ]
       }
+      user_profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          display_name: string | null
+          email: string | null
+          id: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           granted_at: string | null
@@ -1662,6 +1877,9 @@ export type Database = {
           id: string
           is_featured: boolean | null
           kind: Database["public"]["Enums"]["video_kind"]
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string | null
           provider: string | null
           provider_id: string | null
           published_at: string | null
@@ -1682,6 +1900,9 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           kind: Database["public"]["Enums"]["video_kind"]
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           provider?: string | null
           provider_id?: string | null
           published_at?: string | null
@@ -1702,6 +1923,9 @@ export type Database = {
           id?: string
           is_featured?: boolean | null
           kind?: Database["public"]["Enums"]["video_kind"]
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string | null
           provider?: string | null
           provider_id?: string | null
           published_at?: string | null
@@ -1728,6 +1952,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_primary_role: {
+        Args: { user_id_param: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1735,13 +1963,25 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_artist: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       is_artist_owner: {
         Args: { _artist_id: string }
         Returns: boolean
       }
+      should_auto_approve_content: {
+        Args: { artist_id_param: string }
+        Returns: boolean
+      }
+      within_retraction_window: {
+        Args: { published_timestamp: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "admin" | "artist" | "moderator" | "production_manager"
+      app_role: "admin" | "artist" | "moderator" | "production_manager" | "fan"
       media_type: "image" | "video"
       pay_mode: "heartland_hosted" | "woo_heartland"
       post_publish_status: "draft" | "published" | "archived"
@@ -1881,7 +2121,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "artist", "moderator", "production_manager"],
+      app_role: ["admin", "artist", "moderator", "production_manager", "fan"],
       media_type: ["image", "video"],
       pay_mode: ["heartland_hosted", "woo_heartland"],
       post_publish_status: ["draft", "published", "archived"],

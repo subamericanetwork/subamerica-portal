@@ -1,0 +1,114 @@
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Music, Video, Calendar, Heart, Sparkles, ArrowRight } from "lucide-react";
+import logo from "@/assets/subamerica-logo.jpg";
+
+const FanDashboard = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen p-4 gradient-hero">
+      <div className="max-w-6xl mx-auto py-8">
+        <div className="text-center mb-8">
+          <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
+          <h1 className="text-4xl font-bold mb-2">Welcome to Subamerica</h1>
+          <p className="text-muted-foreground text-lg">
+            Discover independent artists, watch exclusive content, and support the underground
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+            <CardHeader>
+              <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+                <Sparkles className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle>Become a Subamerican Artist</CardTitle>
+              <CardDescription>
+                Share your music, connect with fans, and monetize your art
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-2 mb-6 text-sm">
+                <li className="flex items-start gap-2">
+                  <Music className="h-4 w-4 mt-0.5 text-primary" />
+                  <span>Create your own artist Port</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Video className="h-4 w-4 mt-0.5 text-primary" />
+                  <span>Share unlimited videos and livestreams</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Calendar className="h-4 w-4 mt-0.5 text-primary" />
+                  <span>Promote events and sell tickets</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <Heart className="h-4 w-4 mt-0.5 text-primary" />
+                  <span>Receive tips and sell merch (80/20 split)</span>
+                </li>
+              </ul>
+              <Button onClick={() => navigate("/become-artist")} className="w-full gap-2">
+                Apply Now
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Discover Artists</CardTitle>
+              <CardDescription>
+                Explore the Subamerica community
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Browse our curated collection of independent artists, watch exclusive content, and support your favorites.
+                </p>
+                <Button variant="outline" onClick={() => navigate("/")} className="w-full gap-2">
+                  Explore Ports
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Coming Soon: Fan Features</CardTitle>
+            <CardDescription>
+              We're building amazing features for fans
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Personalized Feed</h3>
+                <p className="text-sm text-muted-foreground">
+                  Get recommendations based on your favorite artists and genres
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Watch History</h3>
+                <p className="text-sm text-muted-foreground">
+                  Keep track of all the videos and streams you've watched
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Social Features</h3>
+                <p className="text-sm text-muted-foreground">
+                  Comment, like, and interact with artists and other fans
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default FanDashboard;

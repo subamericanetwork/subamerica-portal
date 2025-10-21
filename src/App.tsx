@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
+import ArtistRoute from "@/components/ArtistRoute";
 import Portals from "./pages/Portals";
 import ArtistPortal from "./pages/ArtistPortal";
 import Auth from "./pages/Auth";
@@ -29,6 +30,9 @@ import AdminVerification from "./pages/admin/AdminVerification";
 import RogerApproval from "./pages/admin/RogerApproval";
 import Watch from "./pages/Watch";
 import Posts from "./pages/Posts";
+import BecomeArtist from "./pages/BecomeArtist";
+import ApplicationStatus from "./pages/ApplicationStatus";
+import FanDashboard from "./pages/FanDashboard";
 
 const queryClient = new QueryClient();
 
@@ -46,15 +50,24 @@ const App = () => (
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/auth" element={<Auth />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/videos" element={<ProtectedRoute><Videos /></ProtectedRoute>} />
-          <Route path="/events" element={<ProtectedRoute><Events /></ProtectedRoute>} />
-          <Route path="/posts" element={<ProtectedRoute><Posts /></ProtectedRoute>} />
-          <Route path="/merch" element={<ProtectedRoute><Merch /></ProtectedRoute>} />
-          <Route path="/monetization" element={<ProtectedRoute><Monetization /></ProtectedRoute>} />
-          <Route path="/payments" element={<ProtectedRoute><Payments /></ProtectedRoute>} />
-          <Route path="/preview" element={<ProtectedRoute><PortPreview /></ProtectedRoute>} />
+          
+          {/* Fan Routes */}
+          <Route path="/fan/dashboard" element={<ProtectedRoute><FanDashboard /></ProtectedRoute>} />
+          <Route path="/become-artist" element={<ProtectedRoute><BecomeArtist /></ProtectedRoute>} />
+          <Route path="/application-status" element={<ProtectedRoute><ApplicationStatus /></ProtectedRoute>} />
+          
+          {/* Artist Routes */}
+          <Route path="/dashboard" element={<ArtistRoute><Dashboard /></ArtistRoute>} />
+          <Route path="/profile" element={<ArtistRoute><Profile /></ArtistRoute>} />
+          <Route path="/videos" element={<ArtistRoute><Videos /></ArtistRoute>} />
+          <Route path="/events" element={<ArtistRoute><Events /></ArtistRoute>} />
+          <Route path="/posts" element={<ArtistRoute><Posts /></ArtistRoute>} />
+          <Route path="/merch" element={<ArtistRoute><Merch /></ArtistRoute>} />
+          <Route path="/monetization" element={<ArtistRoute><Monetization /></ArtistRoute>} />
+          <Route path="/payments" element={<ArtistRoute><Payments /></ArtistRoute>} />
+          <Route path="/preview" element={<ArtistRoute><PortPreview /></ArtistRoute>} />
+          
+          {/* Admin Routes */}
           <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
           <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
           <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />

@@ -16,8 +16,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 // Input validation schemas
 const emailSchema = z.string().trim().email("Invalid email address").max(255, "Email too long");
 const passwordSchema = z.string().min(8, "Password must be at least 8 characters").max(100, "Password too long");
-const displayNameSchema = z.string().trim().min(1, "Artist name required").max(100, "Name too long");
-const slugSchema = z.string().trim().min(1, "Port URL required").max(50, "Slug too long").regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed");
+const displayNameSchema = z.string().trim().min(1, "Display name required").max(100, "Name too long");
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -26,7 +25,6 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [slug, setSlug] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -70,7 +68,6 @@ const Auth = () => {
       emailSchema.parse(email);
       passwordSchema.parse(password);
       displayNameSchema.parse(displayName);
-      slugSchema.parse(slug);
     } catch (err) {
       if (err instanceof z.ZodError) {
         toast.error(err.errors[0].message);
@@ -79,25 +76,18 @@ const Auth = () => {
       }
     }
     
-    const { error } = await signUp(email, password, displayName, slug);
+    const { error } = await signUp(email, password, displayName);
     
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Account created! Welcome to Subamerica.");
-      navigate("/dashboard");
+      toast.success("Welcome to Subamerica!");
+      navigate("/fan/dashboard");
     }
     
     setIsLoading(false);
   };
 
-  const generateSlug = (name: string) => {
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    setSlug(slug);
-  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,18 +129,18 @@ const Auth = () => {
             className="h-32 mx-auto"
           />
           <p className="text-primary text-2xl font-semibold">
-            Artist Portal
+            Join Subamerica
           </p>
           <p className="text-muted-foreground text-lg">
-            Manage your artist profile, share your content, and connect with your audience
+            Discover independent artists and support the underground
           </p>
         </div>
 
         <Card className="border-primary/20 gradient-card">
           <CardHeader>
-            <CardTitle>Access Your Port</CardTitle>
+            <CardTitle>Welcome</CardTitle>
             <CardDescription>
-              Sign in or create your artist account
+              Sign in or create your account
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -251,40 +241,21 @@ const Auth = () => {
                 <Alert className="mb-4">
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    Create your Port to showcase videos, events, and merch. Your Port URL will be your unique web address.
+                    Join as a fan and apply to become a Subamerican artist later
                   </AlertDescription>
                 </Alert>
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="displayName">Artist/Band Name</Label>
+                    <Label htmlFor="displayName">Display Name</Label>
                     <Input
                       id="displayName"
                       type="text"
-                      placeholder="Starry Schemes"
+                      placeholder="Your Name"
                       value={displayName}
-                      onChange={(e) => {
-                        setDisplayName(e.target.value);
-                        generateSlug(e.target.value);
-                      }}
+                      onChange={(e) => setDisplayName(e.target.value)}
                       required
                       className="bg-background/50"
                     />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="slug">Port URL Slug</Label>
-                    <Input
-                      id="slug"
-                      type="text"
-                      placeholder="your-slug"
-                      value={slug}
-                      onChange={(e) => setSlug(e.target.value)}
-                      required
-                      pattern="[a-z0-9-]+"
-                      className="bg-background/50"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Your Port will be: <span className="font-mono text-primary">subamerica.net/port/{slug || "your-slug"}</span>
-                    </p>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>

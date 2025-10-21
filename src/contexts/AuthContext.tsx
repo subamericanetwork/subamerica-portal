@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 interface AuthContextType {
   user: User | null;
   session: Session | null;
-  signUp: (email: string, password: string, displayName: string, slug: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   loading: boolean;
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, displayName: string, slug: string) => {
+  const signUp = async (email: string, password: string, displayName: string) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -51,7 +51,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
             display_name: displayName,
-            slug: slug,
           }
         }
       });
@@ -59,51 +58,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) return { error };
       if (!data.user) return { error: { message: "Signup failed" } };
 
-      // Create artist profile
-      const { error: profileError } = await supabase
-        .from("artists")
+      // Assign 'fan' role by default
+      const { error: roleError } = await supabase
+        .from("user_roles")
         .insert({
           user_id: data.user.id,
-          slug: slug,
-          display_name: displayName,
-          email: email,
+          role: 'fan',
         });
 
-      if (profileError) {
-        if (import.meta.env.DEV) console.error("Profile creation error:", profileError);
-        return { error: profileError };
+      if (roleError) {
+        if (import.meta.env.DEV) console.error("Role assignment error:", roleError);
+        return { error: roleError };
       }
 
-      // Create default settings
-      const artistData = await supabase
-        .from("artists")
-        .select("id")
-        .eq("user_id", data.user.id)
-        .single();
-
-      if (artistData.data) {
-        await Promise.all([
-          supabase.from("port_settings").insert({ artist_id: artistData.data.id }),
-          supabase.from("qr_settings").insert({ artist_id: artistData.data.id }),
-        ]);
-
-        // Send registration emails asynchronously (don't block signup)
-        supabase.functions.invoke('send-registration-email', {
-          body: {
-            user_id: data.user.id,
-            email: email,
-            display_name: displayName,
-            slug: slug,
-            created_at: new Date().toISOString()
-          }
-        }).then(({ error: emailError }) => {
-          if (emailError) {
-            console.error("Failed to send registration emails:", emailError);
-          } else {
-            console.log("Registration emails sent successfully");
-          }
-        });
-      }
+      // User profile is auto-created by database trigger
 
       return { error: null };
     } catch (error: any) {
