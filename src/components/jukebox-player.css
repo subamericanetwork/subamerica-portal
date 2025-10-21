@@ -1,8 +1,7 @@
 /* SubAmerica Jukebox Player Styles */
 
-@layer components {
-  /* Main Container - Thick Frame Border */
-  .jukebox-container {
+/* Main Container - Thick Frame Border */
+.jukebox-container {
     background: linear-gradient(145deg, hsl(210 15% 22%), hsl(210 15% 18%)) !important;
     border: 5px solid hsl(210 15% 25%) !important;
     border-radius: 40px !important;
@@ -665,4 +664,3 @@
       min-width: 40px !important;
     }
   }
-}

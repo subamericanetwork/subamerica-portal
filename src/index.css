@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import './components/jukebox-player.css';
-
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -180,3 +178,5 @@ All colors MUST be HSL.
     background: var(--gradient-card);
   }
 }
+
+@import './components/jukebox-player.css';
