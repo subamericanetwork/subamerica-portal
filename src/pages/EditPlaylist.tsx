@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Trash2, Loader2 } from 'lucide-react';
+import { ArrowLeft, Trash2, Loader2, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -20,6 +20,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { CatalogBrowser } from '@/components/CatalogBrowser';
 
 interface Video {
   id: string;
@@ -29,7 +37,7 @@ interface Video {
 const EditPlaylist = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { playlists, loading: playlistsLoading, updatePlaylist, removeVideoFromPlaylist } = usePlaylist();
+  const { playlists, loading: playlistsLoading, updatePlaylist, removeVideoFromPlaylist, addVideoToPlaylist } = usePlaylist();
   const { toast } = useToast();
   
   const [name, setName] = useState('');
@@ -40,6 +48,7 @@ const EditPlaylist = () => {
   const [saving, setSaving] = useState(false);
   const [videoToRemove, setVideoToRemove] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
+  const [browseSheetOpen, setBrowseSheetOpen] = useState(false);
 
   useEffect(() => {
     const loadPlaylistData = async () => {
@@ -145,6 +154,41 @@ const EditPlaylist = () => {
     }
   };
 
+  const handleAddVideos = async (videoIds: string[]) => {
+    if (!id) return;
+
+    try {
+      // Add videos one by one
+      for (const videoId of videoIds) {
+        await addVideoToPlaylist(id, videoId);
+      }
+
+      // Fetch the new video details
+      const { data, error } = await supabase
+        .from('videos')
+        .select('id, title')
+        .in('id', videoIds);
+
+      if (error) throw error;
+
+      // Add to local state
+      setVideos(prev => [...prev, ...(data as Video[])]);
+      setBrowseSheetOpen(false);
+
+      toast({
+        title: "Success",
+        description: `Added ${videoIds.length} video${videoIds.length > 1 ? 's' : ''} to playlist`,
+      });
+    } catch (error) {
+      console.error('Error adding videos:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add videos",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Show loading while playlists are being fetched
   if (playlistsLoading || !initialized) {
     return (
@@ -216,9 +260,20 @@ const EditPlaylist = () => {
           </Card>
 
           <div>
-            <h2 className="text-xl font-semibold mb-4">
-              Videos ({videos.length})
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">
+                Videos ({videos.length}/100)
+              </h2>
+              <Button
+                onClick={() => setBrowseSheetOpen(true)}
+                variant="outline"
+                size="sm"
+                disabled={videos.length >= 100}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Browse & Add
+              </Button>
+            </div>
             {videos.length === 0 ? (
               <Card className="p-8 text-center">
                 <p className="text-muted-foreground">
@@ -293,6 +348,26 @@ const EditPlaylist = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Browse Catalog Sheet */}
+      <Sheet open={browseSheetOpen} onOpenChange={setBrowseSheetOpen}>
+        <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>Browse Catalog</SheetTitle>
+            <SheetDescription>
+              Select videos to add to your playlist ({videos.length}/100)
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-6">
+            <CatalogBrowser
+              mode="selection"
+              onSelect={handleAddVideos}
+              excludeVideoIds={videos.map(v => v.id)}
+              multiSelect={true}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };

@@ -24,6 +24,7 @@ import PortPreview from "./pages/PortPreview";
 import MemberPlaylists from "./pages/MemberPlaylists";
 import EditPlaylist from "./pages/EditPlaylist";
 import JukeboxPlayerPage from "./pages/JukeboxPlayerPage";
+import Browse from "./pages/Browse";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 import AdminVideos from "./pages/admin/AdminVideos";
@@ -75,6 +76,7 @@ const App = () => (
           <Route path="/member/playlists" element={<ProtectedRoute><MemberPlaylists /></ProtectedRoute>} />
           <Route path="/member/playlists/:id/edit" element={<ProtectedRoute><EditPlaylist /></ProtectedRoute>} />
           <Route path="/member/playlists/:id/jukebox" element={<ProtectedRoute><JukeboxPlayerPage /></ProtectedRoute>} />
+          <Route path="/browse" element={<ProtectedRoute><Browse /></ProtectedRoute>} />
           
           {/* Admin Routes */}
           <Route path="/admin/applications" element={<AdminRoute><AdminApplications /></AdminRoute>} />

@@ -13,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Music, Trash2, Edit, Play, Lock, Globe } from 'lucide-react';
+import { Plus, Music, Trash2, Edit, Play, Lock, Globe, Library } from 'lucide-react';
 import { PlaylistSelectionSheet } from '@/components/PlaylistSelectionSheet';
 
 export default function MemberPlaylists() {
@@ -52,17 +52,25 @@ export default function MemberPlaylists() {
 
   return (
     <div className="container mx-auto py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">My Playlists</h1>
-          <p className="text-muted-foreground mt-2">
-            Create and manage your personal playlists
-          </p>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">My Playlists</h1>
+            <p className="text-muted-foreground mt-2">
+              Create and manage your personal playlists
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate('/browse')} variant="outline">
+              <Library className="mr-2 h-4 w-4" />
+              Browse Catalog
+            </Button>
+            <Button onClick={() => setCreateSheetOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Playlist
+            </Button>
+          </div>
         </div>
-        <Button onClick={() => setCreateSheetOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Playlist
-        </Button>
       </div>
 
       {playlists.length === 0 ? (
