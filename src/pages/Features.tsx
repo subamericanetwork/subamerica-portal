@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
   ArrowRight, Video, Calendar, ShoppingBag, DollarSign, Globe, Palette, Share2, HelpCircle,
-  BarChart3, Shield, Zap, Users, TrendingUp, CheckCircle2, X, Home, Play, Sparkles
+  BarChart3, Shield, Zap, Users, TrendingUp, CheckCircle2, X, Home, Play, Sparkles, Info, LogIn
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/subamerica-logo-small.jpg";
@@ -18,13 +18,41 @@ const Features = () => {
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+            {/* Left: Logo + "Subamerica" */}
             <div className="flex items-center gap-3">
               <img src={logo} alt="Subamerica" className="h-8" />
-              <span className="text-lg font-semibold">Artist Portal</span>
+              <span className="text-lg font-semibold">Subamerica</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" onClick={() => navigate("/")}><Home className="h-4 w-4" />Home</Button>
-              <Button onClick={() => navigate("/auth")}>Get Started<ArrowRight className="h-4 w-4" /></Button>
+            
+            {/* Right: Navigation Links */}
+            <div className="flex items-center gap-2">
+              {/* Desktop Navigation */}
+              <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/")}>
+                <Home className="h-4 w-4" />
+                Home
+              </Button>
+              <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/watch")}>
+                <Play className="h-4 w-4" />
+                Watch
+              </Button>
+              <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/features")}>
+                <Sparkles className="h-4 w-4" />
+                Features
+              </Button>
+              <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/artist-portal")}>
+                <Info className="h-4 w-4" />
+                About
+              </Button>
+              
+              {/* Mobile + Desktop */}
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                <LogIn className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">Login</span>
+              </Button>
+              <Button size="sm" className="glow-primary" onClick={() => navigate("/auth?tab=signup")}>
+                Get Started
+                <ArrowRight className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
