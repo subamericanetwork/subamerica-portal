@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Music, Video, Calendar, Heart, Sparkles, ArrowRight } from "lucide-react";
@@ -13,8 +13,11 @@ const FanDashboard = () => {
         <div className="text-center mb-8">
           <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-2">Welcome to Subamerica</h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg mb-2">
             Discover independent artists, watch exclusive content, and support the underground
+          </p>
+          <p className="text-sm text-muted-foreground">
+            I'm a fan and want to browse artists? <Link to="/" className="text-primary hover:underline">Visit the main page</Link>
           </p>
         </div>
 
