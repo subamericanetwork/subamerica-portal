@@ -178,5 +178,3 @@ All colors MUST be HSL.
     background: var(--gradient-card);
   }
 }
-
-@import './components/jukebox-player.css';
