@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX } from "lucide-react";
+import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -23,7 +23,7 @@ interface Artist {
   bio_short?: string;
   brand?: any;
   is_verified: boolean;
-  post?: ArtistPost | null;
+  posts?: ArtistPost[];
 }
 
 interface ArtistWithDetails extends Artist {
@@ -74,9 +74,10 @@ function FooterRibbon() {
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex items-center justify-center p-3">
       <div className="pointer-events-auto rounded-full bg-card/80 px-4 py-2 text-xs text-muted-foreground shadow-2xl ring-1 ring-border backdrop-blur-sm">
         <span className="hidden md:inline">Pro tip:</span> Use <kbd className="mx-1 rounded bg-muted px-1">↑</kbd>/
-        <kbd className="mx-1 rounded bg-muted px-1">↓</kbd> or swipe to navigate • Press{" "}
-        <kbd className="ml-1 rounded bg-muted px-1">Enter</kbd> to open • Tap{" "}
-        <kbd className="mx-1 rounded bg-muted px-1">Post/Info</kbd> to toggle
+        <kbd className="mx-1 rounded bg-muted px-1">↓</kbd> or swipe to navigate artists • Use{" "}
+        <kbd className="mx-1 rounded bg-muted px-1">←</kbd>/
+        <kbd className="mx-1 rounded bg-muted px-1">→</kbd> for posts • Press{" "}
+        <kbd className="ml-1 rounded bg-muted px-1">Enter</kbd> to open
       </div>
     </div>
   );
@@ -122,6 +123,7 @@ function PortalsFeed() {
         .eq("artist_posts.publish_status", "published")
         .order("created_at", { ascending: false })
         .order("display_order", { foreignTable: "artist_posts", ascending: true })
+        .limit(12, { foreignTable: "artist_posts" })
         .range(from, to);
 
       if (error) throw error;
@@ -155,21 +157,21 @@ function PortalsFeed() {
             .limit(1)
             .maybeSingle();
 
-          const artistPosts = (artist as any).artist_posts;
-          const featuredPost = artistPosts && artistPosts.length > 0 
-            ? {
-                title: artistPosts[0].title,
-                caption: artistPosts[0].caption,
-                media_url: artistPosts[0].media_url,
-                media_type: artistPosts[0].media_type,
-              }
-            : null;
+          const artistPosts = (artist as any).artist_posts?.slice(0, 12) || [];
+          const posts = artistPosts.length > 0 
+            ? artistPosts.map((post: any) => ({
+                title: post.title,
+                caption: post.caption,
+                media_url: post.media_url,
+                media_type: post.media_type,
+              }))
+            : undefined;
 
           return {
             ...artist,
             featuredProduct: products || undefined,
             nextEvent: event || undefined,
-            post: featuredPost,
+            posts,
           };
         })
       );
@@ -340,7 +342,70 @@ function PortalsFeed() {
 function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: boolean }) {
   const navigate = useNavigate();
   const [tipDialogOpen, setTipDialogOpen] = useState(false);
-  const [mode, setMode] = useState<'post' | 'info'>(artist.post ? 'post' : 'info');
+  const [activePostIndex, setActivePostIndex] = useState(0);
+  const [mode, setMode] = useState<'post' | 'info'>(artist.posts?.length ? 'post' : 'info');
+  const slideRef = useRef<HTMLDivElement>(null);
+
+  const navigatePost = useCallback((direction: 'left' | 'right') => {
+    if (!artist.posts) return;
+    const newIndex = direction === 'left'
+      ? Math.max(0, activePostIndex - 1)
+      : Math.min(artist.posts.length - 1, activePostIndex + 1);
+    setActivePostIndex(newIndex);
+  }, [artist.posts, activePostIndex]);
+
+  // Handle horizontal swipes for post navigation
+  useEffect(() => {
+    const el = slideRef.current;
+    if (!el || !artist.posts || artist.posts.length <= 1 || mode !== 'post') return;
+
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      
+      // Only navigate horizontally if swipe is more horizontal than vertical
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+        e.preventDefault();
+        e.stopPropagation();
+        navigatePost(dx > 0 ? 'left' : 'right');
+      }
+    };
+
+    el.addEventListener('touchstart', onTouchStart, { passive: true });
+    el.addEventListener('touchend', onTouchEnd as any);
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart as any);
+      el.removeEventListener('touchend', onTouchEnd as any);
+    };
+  }, [navigatePost, artist.posts, mode]);
+
+  // Handle left/right arrow keys for horizontal navigation
+  useEffect(() => {
+    if (!active || !artist.posts || artist.posts.length <= 1 || mode !== 'post') return;
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        e.stopPropagation();
+        navigatePost('left');
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        e.stopPropagation();
+        navigatePost('right');
+      }
+    };
+
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [active, navigatePost, artist.posts, mode]);
 
   // Prioritize hero_banner, then hero_image, then first image
   const heroBanner = artist.brand?.hero_banner;
@@ -379,7 +444,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
 
   return (
     <>
-      <div className="relative flex w-full items-end overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4">
+      <div ref={slideRef} className="relative flex w-full items-end overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4">
         {/* Background Video or Image */}
         {isVideo && backgroundSource ? (
           <video
@@ -406,8 +471,13 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         />
 
         {/* Post Overlay (image/video + title/caption) */}
-        {artist.post && mode === 'post' && (
-          <PostOverlay post={artist.post} active={active} />
+        {artist.posts && mode === 'post' && (
+          <PostOverlay 
+            posts={artist.posts} 
+            activePostIndex={activePostIndex}
+            onNavigate={navigatePost}
+            active={active} 
+          />
         )}
 
         {/* Content (Info mode) */}
@@ -484,7 +554,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         </div>
 
         {/* Bottom-right Toggle FAB */}
-        <ToggleFAB mode={mode} hasPost={!!artist.post} onToggle={() => setMode((m) => (m === 'post' ? 'info' : 'post'))} />
+        <ToggleFAB mode={mode} hasPost={!!artist.posts?.length} onToggle={() => setMode((m) => (m === 'post' ? 'info' : 'post'))} />
       </div>
 
       <TipDialog
@@ -536,9 +606,34 @@ function ActionRail({
   );
 }
 
-function PostOverlay({ post, active }: { post: ArtistPost; active: boolean }) {
+function PostOverlay({ 
+  posts, 
+  activePostIndex, 
+  onNavigate,
+  active 
+}: { 
+  posts: ArtistPost[]; 
+  activePostIndex: number;
+  onNavigate: (direction: 'left' | 'right') => void;
+  active: boolean;
+}) {
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const prevPostIndexRef = useRef(activePostIndex);
+
+  const post = posts[activePostIndex];
+
+  // Reset video when switching posts
+  useEffect(() => {
+    if (prevPostIndexRef.current !== activePostIndex) {
+      setIsMuted(true);
+      if (videoRef.current) {
+        videoRef.current.muted = true;
+        videoRef.current.currentTime = 0;
+      }
+      prevPostIndexRef.current = activePostIndex;
+    }
+  }, [activePostIndex]);
 
   const toggleMute = () => {
     if (videoRef.current) {
@@ -554,29 +649,86 @@ function PostOverlay({ post, active }: { post: ArtistPost; active: boolean }) {
       {post.media_type === 'video' ? (
         active ? (
           <video
+            key={post.media_url}
             ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover opacity-40"
+            className="absolute inset-0 h-full w-full object-cover opacity-40 transition-opacity duration-300"
             src={post.media_url}
             muted
-            loop
             autoPlay
+            loop
             playsInline
-            preload="none"
+            aria-hidden
           />
         ) : (
-          <div className="absolute inset-0 h-full w-full bg-background/10 opacity-30" />
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-300"
+            style={{ backgroundImage: `url(${post.media_url})` }}
+            aria-hidden
+          />
         )
       ) : (
-        <img src={post.media_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-35" loading="lazy" />
+        <div
+          key={post.media_url}
+          className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-300"
+          style={{ backgroundImage: `url(${post.media_url})` }}
+          aria-hidden
+        />
       )}
 
-      {/* Gradient & text layer */}
-      <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/40 to-transparent" />
-      <div className="pointer-events-auto absolute bottom-4 left-4 right-4 md:bottom-6 md:left-6 md:right-6">
-        <div className="max-w-2xl">
-          <h2 className="text-xl font-bold tracking-tight md:text-3xl">{post.title}</h2>
+      {/* Gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" aria-hidden />
+
+      {/* Left Navigation Button */}
+      {posts.length > 1 && activePostIndex > 0 && (
+        <button
+          onClick={() => onNavigate('left')}
+          className="pointer-events-auto absolute left-2 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-background/40 backdrop-blur-sm transition-all hover:bg-background/60 hover:scale-110 md:left-4"
+          aria-label="Previous post"
+        >
+          <ChevronLeft className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Right Navigation Button */}
+      {posts.length > 1 && activePostIndex < posts.length - 1 && (
+        <button
+          onClick={() => onNavigate('right')}
+          className="pointer-events-auto absolute right-2 top-1/2 z-20 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-background/40 backdrop-blur-sm transition-all hover:bg-background/60 hover:scale-110 md:right-4"
+          aria-label="Next post"
+        >
+          <ChevronRight className="h-6 w-6" />
+        </button>
+      )}
+
+      {/* Title + caption */}
+      <div className="absolute bottom-20 left-0 right-0 px-4 md:bottom-24 md:px-6">
+        <div className="rounded-lg bg-card/60 p-4 backdrop-blur-sm md:p-5">
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl font-semibold leading-tight md:text-2xl">{post.title}</h2>
+            {posts.length > 1 && (
+              <span className="shrink-0 text-xs text-muted-foreground">
+                {activePostIndex + 1} / {posts.length}
+              </span>
+            )}
+          </div>
           {post.caption && <p className="mt-1 text-sm text-foreground/80 md:text-base">{post.caption}</p>}
         </div>
+        
+        {/* Pagination Indicators */}
+        {posts.length > 1 && (
+          <div className="mt-3 flex items-center justify-center gap-1.5">
+            {posts.map((_, idx) => (
+              <div
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  idx === activePostIndex 
+                    ? 'w-6 bg-primary' 
+                    : 'w-1.5 bg-muted-foreground/40'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Mute/Unmute Button for videos */}
