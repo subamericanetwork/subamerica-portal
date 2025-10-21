@@ -49,16 +49,36 @@ const Videos = () => {
 
   const handleSubmitVideo = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[Videos] handleSubmitVideo called');
-    console.log('[Videos] Current artist:', artist);
-    console.log('[Videos] Editing video:', editingVideo);
-    console.log('[Videos] Video file:', videoFile);
     
     if (!artist) {
       console.error('[Videos] No artist data available');
       toast.error("Artist data not loaded");
       return;
     }
+
+    // Refresh session to ensure auth context is current
+    console.log('[Videos] Refreshing session before upload...');
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError || !session) {
+      console.error('[Videos] Session refresh failed:', sessionError);
+      toast.error("Session expired. Please refresh the page and try again.");
+      return;
+    }
+    console.log('[Videos] Session valid, user ID:', session.user.id);
+
+    // Re-verify artist ownership
+    const { data: verifiedArtist, error: artistError } = await supabase
+      .from('artists')
+      .select('id, user_id')
+      .eq('user_id', session.user.id)
+      .single();
+
+    if (artistError || !verifiedArtist) {
+      console.error('[Videos] Artist verification failed:', artistError);
+      toast.error("Artist profile not found. Please contact support.");
+      return;
+    }
+    console.log('[Videos] Artist verified:', verifiedArtist);
 
     // Check video limit for new videos
     if (!editingVideo && videos.length >= 10) {
@@ -78,15 +98,9 @@ const Videos = () => {
       
       // Only upload if there's a new file
       if (videoFile) {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          toast.error("User not authenticated");
-          setIsSubmitting(false);
-          return;
-        }
-
+        console.log('[Videos] Starting video file upload...');
         const fileExt = videoFile.name.split('.').pop();
-        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+        const fileName = `${session.user.id}/${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('videos')
@@ -96,10 +110,12 @@ const Videos = () => {
           });
 
         if (uploadError) {
-          toast.error(`Upload failed: ${uploadError.message}`);
+          console.error('[Videos] STORAGE ERROR - Video upload failed:', uploadError);
+          toast.error(`Storage error: ${uploadError.message}. Check videos bucket RLS policy.`);
           setIsSubmitting(false);
           return;
         }
+        console.log('[Videos] Video file uploaded successfully');
 
         const { data: { publicUrl } } = supabase.storage
           .from('videos')
@@ -113,30 +129,30 @@ const Videos = () => {
       // Generate thumbnail from the uploaded video
       if (videoFile) {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            // Extract thumbnail at 2-second mark
-            const thumbnailBlob = await extractThumbnailFromVideo(videoFile, 2);
-            
-            // Upload thumbnail to storage - path must match RLS policy: user_id/thumbnails/...
-            const thumbnailFileName = `${user.id}/thumbnails/${Date.now()}.jpg`;
-            const { error: thumbUploadError } = await supabase.storage
-              .from('videos')
-              .upload(thumbnailFileName, thumbnailBlob, {
-                contentType: 'image/jpeg',
-                cacheControl: '3600',
-                upsert: false
-              });
+          console.log('[Videos] Generating thumbnail...');
+          // Extract thumbnail at 2-second mark
+          const thumbnailBlob = await extractThumbnailFromVideo(videoFile, 2);
+          
+          // Upload thumbnail to storage - path must match RLS policy: user_id/thumbnails/...
+          const thumbnailFileName = `${session.user.id}/thumbnails/${Date.now()}.jpg`;
+          const { error: thumbUploadError } = await supabase.storage
+            .from('videos')
+            .upload(thumbnailFileName, thumbnailBlob, {
+              contentType: 'image/jpeg',
+              cacheControl: '3600',
+              upsert: false
+            });
 
-            if (!thumbUploadError) {
-              const { data: { publicUrl: thumbUrl } } = supabase.storage
-                .from('videos')
-                .getPublicUrl(thumbnailFileName);
-              
-              thumbnailUrl = thumbUrl;
-            } else {
-              console.error('[Videos] Thumbnail upload failed:', thumbUploadError);
-            }
+          if (!thumbUploadError) {
+            const { data: { publicUrl: thumbUrl } } = supabase.storage
+              .from('videos')
+              .getPublicUrl(thumbnailFileName);
+            
+            thumbnailUrl = thumbUrl;
+            console.log('[Videos] Thumbnail generated and uploaded successfully');
+          } else {
+            console.error('[Videos] STORAGE ERROR - Thumbnail upload failed:', thumbUploadError);
+            throw new Error(`Thumbnail storage error: ${thumbUploadError.message}`);
           }
         } catch (error) {
           console.error('Failed to generate thumbnail:', error);
@@ -146,37 +162,9 @@ const Videos = () => {
 
       const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
 
-      // Verify artist ownership before inserting
-      const { data: artistCheck, error: artistError } = await supabase
-        .from("artists")
-        .select("id, user_id")
-        .eq("id", artist.id)
-        .single();
-
-      if (artistError || !artistCheck) {
-        console.error('[Videos] Artist check failed:', artistError);
-        toast.error("Could not verify artist ownership");
-        setIsSubmitting(false);
-        return;
-      }
-
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
-      if (!currentUser || currentUser.id !== artistCheck.user_id) {
-        console.error('[Videos] User mismatch:', { currentUser: currentUser?.id, artistUser: artistCheck.user_id });
-        toast.error("Authentication error: Please log in again");
-        setIsSubmitting(false);
-        return;
-      }
-
-      console.log('[Videos] Creating video record with data:', {
-        artist_id: artist.id,
-        title: formData.title,
-        kind: formData.kind,
-        has_thumbnail: !!thumbnailUrl
-      });
-
+      console.log('[Videos] Inserting video record into database...');
       const videoData = {
-        artist_id: artist.id,
+        artist_id: verifiedArtist.id,
         title: formData.title,
         kind: formData.kind as any,
         tags,
@@ -204,14 +192,14 @@ const Videos = () => {
       }
 
       if (error) {
-        console.error('[Videos] Database error:', error);
+        console.error('[Videos] DATABASE ERROR - Insert/update failed:', error);
         console.error('[Videos] Error details:', {
           message: error.message,
           details: error.details,
           hint: error.hint,
           code: error.code
         });
-        toast.error(`Failed to save video: ${error.message}`);
+        toast.error(`Database error: ${error.message}. This is likely an RLS policy issue.`);
       } else {
         console.log('[Videos] Video saved successfully:', result.data);
         toast.success(editingVideo ? "Video updated successfully!" : "Video uploaded successfully!");
