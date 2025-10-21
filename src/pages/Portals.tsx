@@ -704,7 +704,7 @@ function PostOverlay({
       )}
 
       {/* Title + caption */}
-      <div className="absolute bottom-20 left-0 right-0 px-4 md:bottom-24 md:px-6">
+      <div className="absolute bottom-5 left-0 right-0 px-4 md:bottom-5 md:px-6">
         <div className="rounded-lg bg-card/60 p-4 backdrop-blur-sm md:p-5">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-semibold leading-tight md:text-2xl">{post.title}</h2>
@@ -738,7 +738,7 @@ function PostOverlay({
       {post.media_type === 'video' && (
         <button
           onClick={toggleMute}
-          className="pointer-events-auto absolute bottom-4 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-background/40 backdrop-blur-sm transition-all hover:bg-background/60 hover:scale-110 md:bottom-6 md:right-6"
+          className="pointer-events-auto absolute bottom-28 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-background/40 backdrop-blur-sm transition-all hover:bg-background/60 hover:scale-110 md:bottom-32 md:right-6"
           aria-label={isMuted ? "Unmute video" : "Mute video"}
         >
           {isMuted ? (
