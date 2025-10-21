@@ -21,6 +21,8 @@ import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
 import Payments from "./pages/Payments";
 import PortPreview from "./pages/PortPreview";
+import MemberPlaylists from "./pages/MemberPlaylists";
+import JukeboxPlayerPage from "./pages/JukeboxPlayerPage";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 import AdminVideos from "./pages/admin/AdminVideos";
@@ -67,6 +69,10 @@ const App = () => (
           <Route path="/monetization" element={<ArtistRoute><Monetization /></ArtistRoute>} />
           <Route path="/payments" element={<ArtistRoute><Payments /></ArtistRoute>} />
           <Route path="/preview" element={<ArtistRoute><PortPreview /></ArtistRoute>} />
+          
+          {/* Member Playlist Routes */}
+          <Route path="/member/playlists" element={<ProtectedRoute><MemberPlaylists /></ProtectedRoute>} />
+          <Route path="/member/playlists/:id/jukebox" element={<ProtectedRoute><JukeboxPlayerPage /></ProtectedRoute>} />
           
           {/* Admin Routes */}
           <Route path="/admin/applications" element={<AdminRoute><AdminApplications /></AdminRoute>} />

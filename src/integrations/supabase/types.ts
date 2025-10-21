@@ -906,6 +906,42 @@ export type Database = {
           },
         ]
       }
+      member_playlists: {
+        Row: {
+          content_type: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+          video_ids: string[] | null
+        }
+        Insert: {
+          content_type?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+          video_ids?: string[] | null
+        }
+        Update: {
+          content_type?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+          video_ids?: string[] | null
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           admin_email_sent: boolean | null

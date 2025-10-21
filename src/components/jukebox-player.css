@@ -1,0 +1,409 @@
+/* Jukebox Player Styles */
+
+.jukebox-container {
+  background: linear-gradient(145deg, hsl(var(--background)), hsl(var(--muted)));
+  border: 3px solid hsl(var(--border));
+  border-radius: 32px;
+  padding: 8px;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.jukebox-top {
+  background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--background)));
+  border: 2px solid hsl(var(--border));
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.jukebox-playback {
+  position: relative;
+  padding: 2rem;
+}
+
+/* Play button with glow rings */
+.play-button-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.glow-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--primary));
+  animation: pulse-ring 2s infinite ease-out;
+}
+
+.glow-ring.outer {
+  width: 180px;
+  height: 180px;
+  box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
+}
+
+.glow-ring.middle {
+  width: 140px;
+  height: 140px;
+  box-shadow: 0 0 40px hsl(var(--primary) / 0.6);
+  animation-delay: 0.3s;
+}
+
+.glow-ring.inner {
+  width: 100px;
+  height: 100px;
+  box-shadow: 0 0 50px hsl(var(--primary) / 0.8);
+  animation-delay: 0.6s;
+}
+
+@keyframes pulse-ring {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.play-button {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: radial-gradient(circle, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 
+    0 0 20px hsl(var(--primary) / 0.8),
+    inset 0 2px 4px rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.play-button:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 0 30px hsl(var(--primary)),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+/* Corner decorative buttons */
+.corner-button {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid hsl(var(--primary));
+  background: hsl(var(--background) / 0.8);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.corner-button::before,
+.corner-button::after {
+  content: '';
+  position: absolute;
+  width: 50%;
+  height: 2px;
+  background: hsl(var(--primary));
+}
+
+.corner-button::before {
+  transform: rotate(45deg);
+}
+
+.corner-button::after {
+  transform: rotate(-45deg);
+}
+
+.corner-button.top-left { 
+  top: 20px; 
+  left: 20px; 
+}
+
+.corner-button.top-right { 
+  top: 20px; 
+  right: 20px; 
+}
+
+.corner-button.bottom-left { 
+  bottom: 20px; 
+  left: 20px; 
+}
+
+.corner-button.bottom-right { 
+  bottom: 20px; 
+  right: 20px; 
+}
+
+/* Vertical accent lines */
+.vertical-accent {
+  position: absolute;
+  width: 4px;
+  height: 60px;
+  background: linear-gradient(to bottom, transparent, hsl(var(--primary)), transparent);
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.8);
+}
+
+.vertical-accent.left { 
+  left: 50%; 
+  top: 20px; 
+  transform: translateX(-100px);
+}
+
+.vertical-accent.right { 
+  right: 50%; 
+  bottom: 20px; 
+  transform: translateX(100px);
+}
+
+/* Progress Bar with Glow */
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-label {
+  min-width: 45px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: hsl(var(--primary));
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: hsl(var(--muted));
+  border-radius: 4px;
+  position: relative;
+  overflow: visible;
+  cursor: pointer;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  border-radius: 4px;
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.8);
+  transition: width 0.1s linear;
+}
+
+.progress-handle {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: hsl(var(--primary-foreground));
+  border: 2px solid hsl(var(--primary));
+  border-radius: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 10px hsl(var(--primary));
+  cursor: grab;
+  transition: transform 0.1s ease;
+}
+
+.progress-handle:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.progress-handle:active {
+  cursor: grabbing;
+}
+
+/* Control Buttons */
+.controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.control-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: hsl(var(--muted) / 0.5);
+  border: 2px solid hsl(var(--border));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: hsl(var(--foreground));
+}
+
+.control-btn:hover {
+  background: hsl(var(--primary) / 0.2);
+  border-color: hsl(var(--primary));
+  transform: scale(1.1);
+}
+
+.control-btn.primary {
+  width: 64px;
+  height: 64px;
+  background: hsl(var(--primary));
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.6);
+  color: hsl(var(--primary-foreground));
+}
+
+.control-btn.primary:hover {
+  background: hsl(var(--primary) / 0.9);
+}
+
+/* Queue Cards (Bottom Section) */
+.jukebox-bottom {
+  background: linear-gradient(145deg, hsl(var(--card)), hsl(var(--background)));
+  border: 2px solid hsl(var(--border));
+  border-radius: 24px;
+  padding: 16px;
+  margin-top: 8px;
+}
+
+.queue-scroll-container {
+  max-width: 100%;
+}
+
+.queue-card {
+  display: flex;
+  gap: 12px;
+  background: hsl(var(--muted) / 0.3);
+  border: 1px solid hsl(var(--border));
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-align: left;
+}
+
+.queue-card:hover {
+  background: hsl(var(--primary) / 0.1);
+  border-color: hsl(var(--primary));
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.2);
+}
+
+.queue-card img {
+  flex-shrink: 0;
+}
+
+.queue-info {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.progress-dots {
+  display: flex;
+  gap: 4px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: hsl(var(--muted-foreground) / 0.3);
+  transition: all 0.3s ease;
+}
+
+.dot.active {
+  background: hsl(var(--primary));
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.8);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .jukebox-container {
+    max-width: 700px;
+  }
+  
+  .play-button-container {
+    width: 160px;
+    height: 160px;
+  }
+  
+  .glow-ring.outer {
+    width: 150px;
+    height: 150px;
+  }
+  
+  .glow-ring.middle {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .glow-ring.inner {
+    width: 90px;
+    height: 90px;
+  }
+}
+
+@media (max-width: 640px) {
+  .jukebox-playback {
+    padding: 16px;
+  }
+  
+  .play-button-container {
+    width: 140px;
+    height: 140px;
+  }
+  
+  .glow-ring.outer {
+    width: 130px;
+    height: 130px;
+  }
+  
+  .glow-ring.middle {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .glow-ring.inner {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .play-button {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .controls {
+    gap: 8px;
+  }
+  
+  .control-btn {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .control-btn.primary {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .queue-card {
+    min-width: 240px;
+  }
+  
+  .corner-button {
+    width: 32px;
+    height: 32px;
+  }
+}

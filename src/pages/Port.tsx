@@ -11,6 +11,7 @@ import { PortSocialStats } from "@/components/PortSocialStats";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
+import { AddToPlaylistButton } from "@/components/AddToPlaylistButton";
 
 interface Artist {
   id: string;
@@ -645,7 +646,7 @@ const Port = () => {
         {/* Featured Video */}
         {featuredVideo && featuredVideo.video_url && (
           <div id="videos">
-            <Card className="overflow-hidden gradient-card">
+            <Card className="overflow-hidden gradient-card relative">
               <video 
                 controls 
                 className="w-full aspect-video"
@@ -654,6 +655,7 @@ const Port = () => {
                 <source src={String(featuredVideo.video_url)} type="video/mp4" />
                 Your browser does not support the video tag.
               </video>
+              <AddToPlaylistButton videoId={featuredVideo.id} />
               <CardContent className="p-4">
                 <h3 className="font-semibold">{String(featuredVideo.title)}</h3>
               </CardContent>
