@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useNavigate, Link } from "react-router-dom";
+import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight, X, Home, Sparkles, LogIn, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -63,16 +63,47 @@ export default function Portals() {
 }
 
 function Header() {
+  const navigate = useNavigate();
+  
   return (
-    <header className="fixed top-0 z-40 w-full border-b border-border bg-background/70 backdrop-blur-sm">
+    <header className="fixed top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        {/* Left: Logo + "Subamerica" */}
         <div className="flex items-center gap-3">
-          <img src={subamericaLogo} alt="Subamerica" className="h-7 w-7 rounded object-cover" />
-          <span className="eyebrow text-primary">Subamerica</span>
+          <img src={subamericaLogo} alt="Subamerica" className="h-8" />
+          <span className="text-lg font-semibold">Subamerica</span>
         </div>
-        <p className="hidden text-xs text-muted-foreground md:block md:text-sm">
-          Indie Underground — <span className="text-coral">Stream fearless art, sound & stories 24/7</span>
-        </p>
+        
+        {/* Right: Navigation Links */}
+        <div className="flex items-center gap-2">
+          {/* Desktop Navigation */}
+          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/")}>
+            <Home className="h-4 w-4" />
+            Home
+          </Button>
+          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/watch")}>
+            <Play className="h-4 w-4" />
+            Watch
+          </Button>
+          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/features")}>
+            <Sparkles className="h-4 w-4" />
+            Features
+          </Button>
+          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/artist-portal")}>
+            <Info className="h-4 w-4" />
+            About
+          </Button>
+          
+          {/* Mobile + Desktop */}
+          <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+            <LogIn className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Login</span>
+          </Button>
+          <Button size="sm" className="glow-primary" onClick={() => navigate("/auth?tab=signup")}>
+            Get Started
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </header>
   );
