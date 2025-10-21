@@ -467,7 +467,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
 
   return (
     <>
-      <div ref={slideRef} className="relative flex w-full items-end overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4">
+      <div ref={slideRef} className="relative flex w-full items-stretch overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4">
         {/* Background Video or Image */}
         {isVideo && backgroundSource ? (
           <video
@@ -504,9 +504,9 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         )}
 
         {/* Content (Info mode) */}
-        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-4 p-4 md:grid-cols-12 md:gap-6 md:p-6 ${mode === 'post' ? 'hidden' : 'block'}`}>
+        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-4 overflow-y-auto p-4 pb-20 md:grid-cols-12 md:gap-6 md:p-6 md:pb-6 ${mode === 'post' ? 'hidden' : 'block'}`}>
           {/* Left: avatar + meta */}
-          <div className="flex flex-col justify-end md:col-span-8">
+          <div className="flex flex-col justify-start md:col-span-8 md:justify-end">
             <div className="flex items-center gap-4">
               <img
                 src={profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.display_name)}&background=random`}
@@ -728,7 +728,7 @@ function PostOverlay({
 
       {/* Title + caption */}
       <div className="absolute bottom-5 left-0 right-0 px-4 md:bottom-5 md:px-6">
-        <div className="rounded-lg bg-card/60 p-4 backdrop-blur-sm md:p-5">
+        <div className="max-h-[40vh] overflow-y-auto rounded-lg bg-card/60 p-4 backdrop-blur-sm md:p-5">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-xl font-semibold leading-tight md:text-2xl">{post.title}</h2>
             {posts.length > 1 && (
