@@ -81,22 +81,16 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
         {/* Main playback area */}
         <div className="jukebox-playback">
           {/* Top Corner decorative buttons */}
-          <div className="corner-button top-left">
-            <Shuffle 
-              className={cn("h-4 w-4", shuffle && "text-primary")} 
-              onClick={toggleShuffle}
-            />
-          </div>
-          <div className="corner-button top-right">
-            {repeat === 'one' ? (
-              <Repeat1 className="h-4 w-4 text-primary" onClick={toggleRepeat} />
-            ) : (
-              <Repeat 
-                className={cn("h-4 w-4", repeat !== 'off' && "text-primary")} 
-                onClick={toggleRepeat}
-              />
-            )}
-          </div>
+          <button 
+            className={cn("corner-button top-left", shuffle && "active")}
+            onClick={toggleShuffle}
+            aria-label="Toggle Shuffle"
+          />
+          <button 
+            className={cn("corner-button top-right", repeat !== 'off' && "active")}
+            onClick={toggleRepeat}
+            aria-label="Toggle Repeat"
+          />
 
           {/* Vertical accent divider */}
           <div className="vertical-divider top" />
