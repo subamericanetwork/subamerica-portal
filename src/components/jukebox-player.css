@@ -6,6 +6,7 @@
   border: 5px solid hsl(210 15% 25%);
   border-radius: 40px;
   padding: 12px;
+  min-height: 650px;
   box-shadow: 
     0 20px 60px rgba(0, 0, 0, 0.8),
     inset 0 2px 0 rgba(255, 255, 255, 0.05),
@@ -260,6 +261,8 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
   min-width: 50px;
+  text-shadow: 0 0 8px hsl(180 85% 50% / 0.5);
+  flex-shrink: 0;
 }
 
 .progress-label.left {
@@ -291,18 +294,21 @@
 
 .progress-handle {
   position: absolute;
-  width: 20px;
-  height: 20px;
-  background: white;
-  border: 3px solid hsl(180 85% 50%);
+  width: 22px;
+  height: 22px;
+  background: hsl(180 85% 50%);
+  border: 3px solid #0a0a0a;
   border-radius: 50%;
   top: 50%;
   transform: translate(-50%, -50%);
   box-shadow: 
-    0 0 15px hsl(180 85% 50%),
-    0 2px 8px rgba(0, 0, 0, 0.5);
+    0 0 20px hsl(180 85% 50% / 1),
+    0 0 10px hsl(180 85% 50% / 0.6),
+    0 4px 8px rgba(0, 0, 0, 0.5);
   cursor: grab;
   transition: transform 0.1s ease;
+  z-index: 10;
+  pointer-events: none;
 }
 
 .progress-handle:hover {
@@ -412,6 +418,8 @@
   object-fit: cover;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
   background: hsl(210 15% 15%);
+  display: block;
+  flex-shrink: 0;
 }
 
 .queue-info {

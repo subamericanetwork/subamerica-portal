@@ -191,9 +191,12 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
                 )}
               >
                 <img
-                  src={track.thumbnail_url || '/placeholder.svg'}
+                  src={track.thumbnail_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400'}
                   alt={track.title}
                   className="queue-thumbnail"
+                  onError={(e) => {
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400';
+                  }}
                 />
                 <div className="queue-info">
                   <h4 className="queue-title">
