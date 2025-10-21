@@ -135,6 +135,35 @@ const Videos = () => {
 
       const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
 
+      // Verify artist ownership before inserting
+      const { data: artistCheck, error: artistError } = await supabase
+        .from("artists")
+        .select("id, user_id")
+        .eq("id", artist.id)
+        .single();
+
+      if (artistError || !artistCheck) {
+        console.error('[Videos] Artist check failed:', artistError);
+        toast.error("Could not verify artist ownership");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (!currentUser || currentUser.id !== artistCheck.user_id) {
+        console.error('[Videos] User mismatch:', { currentUser: currentUser?.id, artistUser: artistCheck.user_id });
+        toast.error("Authentication error: Please log in again");
+        setIsSubmitting(false);
+        return;
+      }
+
+      console.log('[Videos] Creating video record with data:', {
+        artist_id: artist.id,
+        title: formData.title,
+        kind: formData.kind,
+        has_thumbnail: !!thumbnailUrl
+      });
+
       const videoData = {
         artist_id: artist.id,
         title: formData.title,
@@ -147,22 +176,33 @@ const Videos = () => {
       };
 
       let error;
+      let result;
       if (editingVideo) {
-        const result = await supabase
+        result = await supabase
           .from("videos")
           .update(videoData)
-          .eq("id", editingVideo.id);
+          .eq("id", editingVideo.id)
+          .select();
         error = result.error;
       } else {
-        const result = await supabase
+        result = await supabase
           .from("videos")
-          .insert(videoData);
+          .insert(videoData)
+          .select();
         error = result.error;
       }
 
       if (error) {
-        toast.error(error.message);
+        console.error('[Videos] Database error:', error);
+        console.error('[Videos] Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        toast.error(`Failed to save video: ${error.message}`);
       } else {
+        console.log('[Videos] Video saved successfully:', result.data);
         toast.success(editingVideo ? "Video updated successfully!" : "Video uploaded successfully!");
         resetForm();
         setIsDialogOpen(false);
