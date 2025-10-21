@@ -327,7 +327,14 @@ const Auth = () => {
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          By signing in, you agree to our Terms of Service and Privacy Policy
+          By signing in, you agree to our{" "}
+          <button
+            onClick={() => navigate("/terms")}
+            className="text-primary hover:underline"
+          >
+            Terms of Service
+          </button>
+          {" "}and Privacy Policy
         </p>
       </div>
     </div>

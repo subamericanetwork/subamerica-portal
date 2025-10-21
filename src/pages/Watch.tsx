@@ -315,6 +315,20 @@ const Watch = () => {
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border py-8 mt-12">
+        <div className="container mx-auto px-4">
+          <div className="text-center text-muted-foreground text-sm space-y-2">
+            <p>© {new Date().getFullYear()} Subamerica. Indie Underground. Built by Muse Platforms.</p>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => navigate("/terms")} className="text-primary hover:underline">Terms of Service</button>
+              <span>•</span>
+              <span className="opacity-50">Privacy Policy</span>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };

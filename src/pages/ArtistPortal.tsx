@@ -302,9 +302,9 @@ const ArtistPortal = () => {
             <div className="flex justify-center gap-4 flex-wrap">
               <a href="mailto:hello@subamerica.net" className="hover:text-primary transition-colors">Contact</a>
               <span aria-hidden="true">•</span>
-              <a href="https://subamerica.net/privacy" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Privacy</a>
+              <button onClick={() => navigate("/terms")} className="text-primary hover:underline">Terms of Service</button>
               <span aria-hidden="true">•</span>
-              <a href="https://subamerica.net/terms" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Terms</a>
+              <span className="opacity-50">Privacy Policy</span>
             </div>
           </div>
         </div>
