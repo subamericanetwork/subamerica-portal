@@ -67,7 +67,7 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
   }
 
   return (
-    <div className={cn("jukebox-container mx-auto max-w-4xl", className)}>
+    <div className={cn("jukebox-container", className)}>
       {/* Hidden Audio Element */}
       <audio
         ref={audioRef}
