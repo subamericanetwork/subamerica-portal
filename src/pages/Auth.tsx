@@ -82,7 +82,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("Welcome to Subamerica!");
-      navigate("/become-artist");
+      navigate("/fan/dashboard");
     }
     
     setIsLoading(false);

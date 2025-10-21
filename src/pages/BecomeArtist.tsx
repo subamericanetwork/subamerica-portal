@@ -44,6 +44,17 @@ const BecomeArtist = () => {
     if (!user) return;
 
     try {
+      // Check if user is already an artist (priority check)
+      const { data: roleData } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'artist'
+      });
+
+      if (roleData) {
+        navigate("/dashboard");
+        return;
+      }
+
       // Check for existing application
       const { data: appData } = await supabase
         .from("artist_applications")
@@ -53,17 +64,8 @@ const BecomeArtist = () => {
         .single();
 
       if (appData) {
-        setExistingApplication(appData);
-      }
-
-      // Check if user is already an artist
-      const { data: roleData } = await supabase.rpc('has_role', {
-        _user_id: user.id,
-        _role: 'artist'
-      });
-
-      if (roleData) {
-        navigate("/dashboard");
+        // If they have a pending or approved application, redirect to status page
+        navigate("/application-status");
         return;
       }
     } catch (error) {
@@ -186,32 +188,6 @@ const BecomeArtist = () => {
     );
   }
 
-  if (existingApplication) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
-            <CardTitle>Application Pending</CardTitle>
-            <CardDescription>
-              You've already submitted an application to become a Subamerican artist
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Alert>
-              <Info className="h-4 w-4" />
-              <AlertDescription>
-                We'll review your application within 48 hours and send you an email with our decision.
-              </AlertDescription>
-            </Alert>
-            <Button onClick={() => navigate("/application-status")} className="w-full">
-              View Application Status
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen p-4 gradient-hero">
@@ -219,9 +195,12 @@ const BecomeArtist = () => {
         <div className="text-center mb-8">
           <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-2">Become a Subamerican Artist</h1>
-          <p className="text-muted-foreground text-lg">
+          <p className="text-muted-foreground text-lg mb-4">
             Join our curated community of independent artists
           </p>
+          <Button variant="ghost" onClick={() => navigate("/fan/dashboard")} className="gap-2">
+            ← Back to Fan Home
+          </Button>
         </div>
 
         <Card>

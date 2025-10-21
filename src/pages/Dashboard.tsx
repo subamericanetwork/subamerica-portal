@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Video, 
   Calendar, 
@@ -48,17 +49,47 @@ interface Order {
 
 const Dashboard = () => {
   const { artist, videos, events, products, portSettings, loading, surfaceProducts, featuredVideo, faqs } = useArtistData();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [tips, setTips] = useState<Tip[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const { stats: socialStats, loading: socialStatsLoading } = useSocialStats(artist?.id);
   const [loadingPayments, setLoadingPayments] = useState(true);
+  const [checkingRole, setCheckingRole] = useState(true);
+
+  useEffect(() => {
+    checkArtistRole();
+  }, [user]);
 
   useEffect(() => {
     if (artist) {
       fetchPaymentData();
     }
   }, [artist]);
+
+  const checkArtistRole = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+
+    try {
+      const { data: roleData } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'artist'
+      });
+
+      if (!roleData) {
+        navigate("/fan/dashboard");
+        return;
+      }
+    } catch (error) {
+      console.error("Error checking artist role:", error);
+      navigate("/fan/dashboard");
+    } finally {
+      setCheckingRole(false);
+    }
+  };
 
   const fetchPaymentData = async () => {
     if (!artist) return;
@@ -90,7 +121,7 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) {
+  if (loading || checkingRole) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center min-h-screen">

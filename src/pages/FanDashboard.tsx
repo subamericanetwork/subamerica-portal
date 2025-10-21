@@ -13,23 +13,23 @@ const FanDashboard = () => {
         <div className="text-center mb-8">
           <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-2">Welcome to Subamerica</h1>
-          <p className="text-muted-foreground text-lg mb-2">
-            Discover independent artists, watch exclusive content, and support the underground
+          <p className="text-muted-foreground text-lg mb-4">
+            The underground music platform for independent artists and fans
           </p>
           <p className="text-sm text-muted-foreground">
-            I'm a fan and want to browse artists? <Link to="/" className="text-primary hover:underline">Visit the main page</Link>
+            Choose your path below, or <Link to="/" className="text-primary hover:underline font-medium">explore artists now</Link>
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10">
+          <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/50 transition-all">
             <CardHeader>
               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
                 <Sparkles className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle>Become a Subamerican Artist</CardTitle>
-              <CardDescription>
-                Share your music, connect with fans, and monetize your art
+              <CardTitle className="text-2xl">Become an Artist</CardTitle>
+              <CardDescription className="text-base">
+                Ready to share your music with the world? Create your artist Port and start building your fanbase.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -58,11 +58,11 @@ const FanDashboard = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:border-primary/30 transition-all">
             <CardHeader>
-              <CardTitle>Discover Artists</CardTitle>
-              <CardDescription>
-                Explore the Subamerica community
+              <CardTitle className="text-2xl">Just Browsing</CardTitle>
+              <CardDescription className="text-base">
+                Not ready to create? Explore our curated collection of independent artists.
               </CardDescription>
             </CardHeader>
             <CardContent>
