@@ -481,7 +481,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         )}
 
         {/* Content (Info mode) */}
-        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-4 p-4 md:grid-cols-12 md:gap-6 md:p-6 transition-smooth ${mode === 'post' ? 'pointer-events-none opacity-0' : 'opacity-100'}`}>
+        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-4 p-4 md:grid-cols-12 md:gap-6 md:p-6 ${mode === 'post' ? 'hidden' : 'block'}`}>
           {/* Left: avatar + meta */}
           <div className="flex flex-col justify-end md:col-span-8">
             <div className="flex items-center gap-4">
