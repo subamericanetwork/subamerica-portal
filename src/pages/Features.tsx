@@ -71,7 +71,7 @@ const Features = () => {
               Build your artist port, upload videos, sell merch, and stream your work worldwide — all from one creator-first dashboard. Subamerica gives independent artists the tools to own their art, connect with members, and earn instantly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
-              <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Start Building Free<ArrowRight className="h-5 w-5" /></Button>
+              <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Start Building<ArrowRight className="h-5 w-5" /></Button>
               <Button size="lg" variant="outline" className="text-lg" onClick={() => navigate("/watch")}><Play className="h-5 w-5" />Watch Demo</Button>
             </div>
           </div>
