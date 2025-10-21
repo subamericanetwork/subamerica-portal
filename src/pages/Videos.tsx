@@ -14,6 +14,8 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { LivepushVideoSync } from "@/components/LivepushVideoSync";
+import { extractThumbnailFromVideo } from "@/lib/thumbnailExtractor";
+import { VideoThumbnailGenerator } from "@/components/VideoThumbnailGenerator";
 
 const Videos = () => {
   const { artist, videos, loading } = useArtistData();
@@ -97,6 +99,40 @@ const Videos = () => {
         videoUrl = publicUrl;
       }
 
+      let thumbnailUrl = editingVideo?.thumb_url || null;
+
+      // Generate thumbnail from the uploaded video
+      if (videoFile) {
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
+            // Extract thumbnail at 2-second mark
+            const thumbnailBlob = await extractThumbnailFromVideo(videoFile, 2);
+            
+            // Upload thumbnail to storage
+            const thumbnailFileName = `thumbnails/${user.id}/${Date.now()}.jpg`;
+            const { error: thumbUploadError } = await supabase.storage
+              .from('videos')
+              .upload(thumbnailFileName, thumbnailBlob, {
+                contentType: 'image/jpeg',
+                cacheControl: '3600',
+                upsert: false
+              });
+
+            if (!thumbUploadError) {
+              const { data: { publicUrl: thumbUrl } } = supabase.storage
+                .from('videos')
+                .getPublicUrl(thumbnailFileName);
+              
+              thumbnailUrl = thumbUrl;
+            }
+          }
+        } catch (error) {
+          console.error('Failed to generate thumbnail:', error);
+          // Don't fail the entire upload if thumbnail generation fails
+        }
+      }
+
       const tags = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
 
       const videoData = {
@@ -106,6 +142,7 @@ const Videos = () => {
         tags,
         status: "ready" as any,
         video_url: videoUrl,
+        thumb_url: thumbnailUrl,
         published_at: new Date().toISOString(),
       };
 
@@ -319,8 +356,16 @@ const Videos = () => {
               <Card key={video.id} className="gradient-card">
                 <CardContent className="p-6">
                   <div className="flex gap-4">
-                    <div className="w-40 h-24 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                      <PlayCircle className="h-8 w-8 text-muted-foreground" />
+                    <div className="w-40 h-24 bg-muted rounded-lg flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {video.thumb_url ? (
+                        <img 
+                          src={video.thumb_url} 
+                          alt={video.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <PlayCircle className="h-8 w-8 text-muted-foreground" />
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -360,6 +405,16 @@ const Videos = () => {
                           videoId={video.id} 
                           artistId={artist?.id || ''} 
                           videoTitle={video.title}
+                        />
+                        
+                        <VideoThumbnailGenerator
+                          videoId={video.id}
+                          videoUrl={video.video_url}
+                          currentThumbnail={video.thumb_url}
+                          onThumbnailGenerated={(newUrl) => {
+                            toast.success("Thumbnail regenerated!");
+                            window.location.reload();
+                          }}
                         />
                         
                         <div className="flex items-center gap-3">
