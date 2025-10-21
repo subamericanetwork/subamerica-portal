@@ -78,73 +78,58 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
 
       {/* Top Section - Now Playing */}
       <div className="jukebox-top">
-        {/* Header with playlist controls */}
-        <div className="jukebox-header mb-6 flex items-center justify-between px-6 pt-6">
-          <h2 className="text-xl font-bold text-foreground">Now Playing</h2>
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleShuffle}
-              className={cn(shuffle && "text-primary")}
-            >
-              <Shuffle className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleRepeat}
-              className={cn(repeat !== 'off' && "text-primary")}
-            >
-              {repeat === 'one' ? (
-                <Repeat1 className="h-4 w-4" />
-              ) : (
-                <Repeat className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-
         {/* Main playback area */}
-        <div className="jukebox-playback relative px-8 pb-8">
-          {/* Corner decorative buttons */}
-          <div className="corner-button top-left" />
-          <div className="corner-button top-right" />
+        <div className="jukebox-playback">
+          {/* Top Corner decorative buttons */}
+          <div className="corner-button top-left">
+            <Shuffle 
+              className={cn("h-4 w-4", shuffle && "text-primary")} 
+              onClick={toggleShuffle}
+            />
+          </div>
+          <div className="corner-button top-right">
+            {repeat === 'one' ? (
+              <Repeat1 className="h-4 w-4 text-primary" onClick={toggleRepeat} />
+            ) : (
+              <Repeat 
+                className={cn("h-4 w-4", repeat !== 'off' && "text-primary")} 
+                onClick={toggleRepeat}
+              />
+            )}
+          </div>
+
+          {/* Vertical accent divider */}
+          <div className="vertical-divider top" />
 
           {/* Now Playing Info */}
-          <div className="now-playing-info mb-6 text-center">
-            <h3 className="text-lg font-semibold text-primary">
-              {currentTrack?.title}
-            </h3>
-            <p className="text-muted-foreground">
-              {currentTrack?.artist_name}
-            </p>
+          <div className="now-playing-info">
+            <h2 className="now-playing-label">Now Playing:</h2>
+            <h3 className="song-title">{currentTrack?.title} – {currentTrack?.artist_name}</h3>
           </div>
 
-          {/* Central Play Button with Glow Effect */}
-          <div className="play-button-container mx-auto mb-8">
+          {/* Central Play Button with Glow Rings */}
+          <div className="play-button-container">
             <div className="glow-ring outer" />
             <div className="glow-ring middle" />
             <div className="glow-ring inner" />
+            <div className="glow-ring center" />
             <button
               onClick={isPlaying ? pause : play}
               className="play-button"
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
-                <Pause className="h-8 w-8 text-background" />
+                <Pause className="h-12 w-12" />
               ) : (
-                <Play className="h-8 w-8 text-background" />
+                <Play className="h-12 w-12 ml-1" />
               )}
             </button>
           </div>
 
           {/* Progress Bar */}
-          <div className="progress-container mb-6 flex items-center gap-4 px-4">
-            <span className="progress-label text-xs font-semibold text-primary">
-              {formatTime(progress)}
-            </span>
-            <div className="progress-bar flex-1" onClick={(e) => {
+          <div className="progress-container">
+            <span className="progress-label left">SUAP</span>
+            <div className="progress-bar" onClick={(e) => {
               const rect = e.currentTarget.getBoundingClientRect();
               const x = e.clientX - rect.left;
               const percent = x / rect.width;
@@ -159,80 +144,82 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
                 style={{ left: `${progressPercent}%` }}
               />
             </div>
-            <span className="progress-label text-xs font-semibold text-primary">
-              {formatTime(duration)}
-            </span>
+            <span className="progress-label right">SKIP</span>
           </div>
 
           {/* Control Buttons */}
-          <div className="controls mb-4">
-            <button className="control-btn">
-              <Menu className="h-5 w-5" />
+          <div className="controls">
+            <button className="control-btn" onClick={toggleShuffle}>
+              <Shuffle className={cn("h-5 w-5", shuffle && "text-primary")} />
             </button>
             <button className="control-btn" onClick={previous}>
-              <SkipBack className="h-5 w-5" />
+              <SkipBack className="h-6 w-6" />
             </button>
             <button className="control-btn primary" onClick={isPlaying ? pause : play}>
               {isPlaying ? (
-                <Pause className="h-6 w-6" />
+                <Pause className="h-7 w-7" />
               ) : (
-                <Play className="h-6 w-6" />
+                <Play className="h-7 w-7 ml-0.5" />
               )}
             </button>
             <button className="control-btn" onClick={next}>
-              <SkipForward className="h-5 w-5" />
+              <SkipForward className="h-6 w-6" />
             </button>
-            <button className="control-btn">
-              <Menu className="h-5 w-5" />
+            <button className="control-btn" onClick={toggleRepeat}>
+              {repeat === 'one' ? (
+                <Repeat1 className={cn("h-5 w-5", "text-primary")} />
+              ) : (
+                <Repeat className={cn("h-5 w-5", repeat !== 'off' && "text-primary")} />
+              )}
             </button>
           </div>
 
-          {/* Decorative elements */}
+          {/* Bottom Corner decorative buttons */}
           <div className="corner-button bottom-left" />
           <div className="corner-button bottom-right" />
-          <div className="vertical-accent left" />
-          <div className="vertical-accent right" />
+          
+          {/* Vertical accent divider */}
+          <div className="vertical-divider bottom" />
         </div>
       </div>
 
       {/* Bottom Section - Queue */}
       <div className="jukebox-bottom">
         <ScrollArea className="queue-scroll-container">
-          <div className="flex gap-4 pb-4">
+          <div className="flex gap-6 pb-4 px-2">
             {tracks.map((track, index) => (
               <button
                 key={track.id}
                 onClick={() => skipTo(index)}
                 className={cn(
-                  "queue-card min-w-[280px]",
-                  index === currentTrackIndex && "border-primary"
+                  "queue-card",
+                  index === currentTrackIndex && "active"
                 )}
               >
                 <img
                   src={track.thumbnail_url || '/placeholder.svg'}
                   alt={track.title}
-                  className="h-20 w-20 rounded-lg object-cover"
+                  className="queue-thumbnail"
                 />
-                <div className="queue-info flex-1">
-                  <h4 className="line-clamp-1 font-semibold text-sm">
+                <div className="queue-info">
+                  <h4 className="queue-title">
                     {track.title}
                   </h4>
-                  <p className="line-clamp-1 text-xs text-muted-foreground">
+                  <p className="queue-artist">
                     {track.artist_name}
                   </p>
-                  <div className="queue-progress mt-2">
-                    <div className="progress-dots">
-                      {[...Array(3)].map((_, i) => (
-                        <span
-                          key={i}
-                          className={cn(
-                            "dot",
-                            i === 0 && index === currentTrackIndex && "active"
-                          )}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <div className="queue-chevron">›</div>
+                </div>
+                <div className="progress-dots">
+                  {[...Array(3)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={cn(
+                        "dot",
+                        i === 0 && index === currentTrackIndex && "active"
+                      )}
+                    />
+                  ))}
                 </div>
               </button>
             ))}
