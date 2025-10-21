@@ -30,22 +30,23 @@ export const VideoThumbnailGenerator = ({
     console.log('[VideoThumbnailGenerator] Video URL:', videoUrl);
     
     try {
-      // Refresh session to ensure auth.uid() is current
-      console.log('[VideoThumbnailGenerator] Step 1: Refreshing session...');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      // Refresh session and get fresh auth token
+      console.log('[VideoThumbnailGenerator] Step 1: Refreshing auth session...');
+      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
       
       if (sessionError) {
-        console.error('[VideoThumbnailGenerator] Session error:', sessionError);
+        console.error('[VideoThumbnailGenerator] Session refresh error:', sessionError);
         throw new Error('Session error: ' + sessionError.message);
       }
       
-      if (!session) {
-        console.error('[VideoThumbnailGenerator] No session found');
+      if (!session?.user) {
+        console.error('[VideoThumbnailGenerator] No valid session after refresh');
         throw new Error('Please sign in again to continue');
       }
       
-      console.log('[VideoThumbnailGenerator] Session valid. User ID:', session.user.id);
-      console.log('[VideoThumbnailGenerator] Session user email:', session.user.email);
+      console.log('[VideoThumbnailGenerator] Session refreshed successfully');
+      console.log('[VideoThumbnailGenerator] User ID:', session.user.id);
+      console.log('[VideoThumbnailGenerator] User email:', session.user.email);
 
       // Verify video ownership
       console.log('[VideoThumbnailGenerator] Step 2: Fetching video data...');
