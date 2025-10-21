@@ -25,12 +25,19 @@ export const VideoThumbnailGenerator = ({
 
   const generateThumbnail = async () => {
     setGenerating(true);
+    console.log('[VideoThumbnailGenerator] Starting generation for video:', videoId);
+    console.log('[VideoThumbnailGenerator] Video URL:', videoUrl);
+    
     try {
       // Extract thumbnail from video
+      console.log('[VideoThumbnailGenerator] Calling extractThumbnailFromVideo...');
       const thumbnailBlob = await extractThumbnailFromVideo(videoUrl, 2);
+      console.log('[VideoThumbnailGenerator] Thumbnail blob created:', thumbnailBlob.size, 'bytes');
       
       // Upload to Supabase storage
       const fileName = `${videoId}-${Date.now()}.jpg`;
+      console.log('[VideoThumbnailGenerator] Uploading to:', `thumbnails/${fileName}`);
+      
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('videos')
         .upload(`thumbnails/${fileName}`, thumbnailBlob, {
@@ -38,12 +45,19 @@ export const VideoThumbnailGenerator = ({
           upsert: true,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('[VideoThumbnailGenerator] Upload error:', uploadError);
+        throw uploadError;
+      }
+
+      console.log('[VideoThumbnailGenerator] Upload successful');
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('videos')
         .getPublicUrl(`thumbnails/${fileName}`);
+      
+      console.log('[VideoThumbnailGenerator] Public URL:', publicUrl);
 
       // Update video record with thumbnail URL
       const { error: updateError } = await supabase
@@ -51,8 +65,12 @@ export const VideoThumbnailGenerator = ({
         .update({ thumb_url: publicUrl })
         .eq('id', videoId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('[VideoThumbnailGenerator] Update error:', updateError);
+        throw updateError;
+      }
 
+      console.log('[VideoThumbnailGenerator] Database updated successfully');
       setPreview(publicUrl);
       onThumbnailGenerated?.(publicUrl);
 
@@ -60,11 +78,17 @@ export const VideoThumbnailGenerator = ({
         title: 'Success',
         description: 'Thumbnail generated and saved',
       });
-    } catch (error) {
-      console.error('Error generating thumbnail:', error);
+    } catch (error: any) {
+      console.error('[VideoThumbnailGenerator] Error generating thumbnail:', error);
+      console.error('[VideoThumbnailGenerator] Error details:', {
+        message: error?.message,
+        name: error?.name,
+        stack: error?.stack
+      });
+      
       toast({
         title: 'Error',
-        description: 'Failed to generate thumbnail',
+        description: error?.message || 'Failed to generate thumbnail',
         variant: 'destructive',
       });
     } finally {
