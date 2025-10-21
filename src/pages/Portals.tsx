@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info } from "lucide-react";
+import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -537,12 +537,24 @@ function ActionRail({
 }
 
 function PostOverlay({ post, active }: { post: ArtistPost; active: boolean }) {
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleMute = () => {
+    if (videoRef.current) {
+      const newMutedState = !isMuted;
+      videoRef.current.muted = newMutedState;
+      setIsMuted(newMutedState);
+    }
+  };
+
   return (
     <div className="pointer-events-none absolute inset-0 z-[5]">
       {/* Media layer */}
       {post.media_type === 'video' ? (
         active ? (
           <video
+            ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover opacity-40"
             src={post.media_url}
             muted
@@ -566,6 +578,21 @@ function PostOverlay({ post, active }: { post: ArtistPost; active: boolean }) {
           {post.caption && <p className="mt-1 text-sm text-foreground/80 md:text-base">{post.caption}</p>}
         </div>
       </div>
+
+      {/* Mute/Unmute Button for videos */}
+      {post.media_type === 'video' && (
+        <button
+          onClick={toggleMute}
+          className="pointer-events-auto absolute bottom-4 right-4 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-background/40 backdrop-blur-sm transition-all hover:bg-background/60 hover:scale-110 md:bottom-6 md:right-6"
+          aria-label={isMuted ? "Unmute video" : "Mute video"}
+        >
+          {isMuted ? (
+            <VolumeX className="h-5 w-5" />
+          ) : (
+            <Volume2 className="h-5 w-5" />
+          )}
+        </button>
+      )}
     </div>
   );
 }
