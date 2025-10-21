@@ -58,20 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) return { error };
       if (!data.user) return { error: { message: "Signup failed" } };
 
-      // Assign 'fan' role by default
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({
-          user_id: data.user.id,
-          role: 'fan',
-        });
-
-      if (roleError) {
-        if (import.meta.env.DEV) console.error("Role assignment error:", roleError);
-        return { error: roleError };
-      }
-
-      // User profile is auto-created by database trigger
+      // User profile and fan role are auto-created by database triggers
 
       return { error: null };
     } catch (error: any) {
