@@ -158,16 +158,52 @@ const EditPlaylist = () => {
     if (!id) return;
 
     try {
-      // Add videos one by one
-      for (const videoId of videoIds) {
-        await addVideoToPlaylist(id, videoId);
+      // Get current playlist data from database to ensure we have latest state
+      const { data: playlistData, error: playlistError } = await supabase
+        .from('member_playlists')
+        .select('video_ids')
+        .eq('id', id)
+        .single();
+
+      if (playlistError) throw playlistError;
+
+      // Filter out videos that are already in the playlist
+      const currentVideoIds = playlistData.video_ids || [];
+      const newVideoIds = videoIds.filter(vid => !currentVideoIds.includes(vid));
+
+      if (newVideoIds.length === 0) {
+        toast({
+          title: "Already Added",
+          description: "All selected videos are already in the playlist",
+          variant: "destructive",
+        });
+        return;
       }
+
+      // Check if adding would exceed limit
+      if (currentVideoIds.length + newVideoIds.length > 100) {
+        toast({
+          title: "Playlist Full",
+          description: `Can only add ${100 - currentVideoIds.length} more videos`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Add all new videos at once
+      const updatedVideoIds = [...currentVideoIds, ...newVideoIds];
+      const { error: updateError } = await supabase
+        .from('member_playlists')
+        .update({ video_ids: updatedVideoIds })
+        .eq('id', id);
+
+      if (updateError) throw updateError;
 
       // Fetch the new video details
       const { data, error } = await supabase
         .from('videos')
         .select('id, title')
-        .in('id', videoIds);
+        .in('id', newVideoIds);
 
       if (error) throw error;
 
@@ -177,7 +213,7 @@ const EditPlaylist = () => {
 
       toast({
         title: "Success",
-        description: `Added ${videoIds.length} video${videoIds.length > 1 ? 's' : ''} to playlist`,
+        description: `Added ${newVideoIds.length} video${newVideoIds.length > 1 ? 's' : ''} to playlist`,
       });
     } catch (error) {
       console.error('Error adding videos:', error);
