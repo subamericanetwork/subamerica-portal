@@ -65,7 +65,7 @@ export default function MemberPlaylists() {
               <Library className="mr-2 h-4 w-4" />
               Browse Catalog
             </Button>
-            <Button onClick={() => setCreateSheetOpen(true)}>
+            <Button onClick={() => setCreateSheetOpen(true)} className="bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700">
               <Plus className="mr-2 h-4 w-4" />
               New Playlist
             </Button>
@@ -81,7 +81,7 @@ export default function MemberPlaylists() {
             <p className="text-muted-foreground text-center mb-6">
               Create your first playlist to organize your favorite videos and audio
             </p>
-            <Button onClick={() => setCreateSheetOpen(true)}>
+            <Button onClick={() => setCreateSheetOpen(true)} className="bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700">
               <Plus className="mr-2 h-4 w-4" />
               Create Playlist
             </Button>
@@ -116,7 +116,7 @@ export default function MemberPlaylists() {
                 <div className="flex gap-2">
                   <Button
                     onClick={() => handlePlayPlaylist(playlist.id)}
-                    className="flex-1"
+                    className="flex-1 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={playlist.video_ids.length === 0}
                   >
                     <Play className="mr-2 h-4 w-4" />
