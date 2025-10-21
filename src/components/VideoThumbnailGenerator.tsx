@@ -34,13 +34,18 @@ export const VideoThumbnailGenerator = ({
       const thumbnailBlob = await extractThumbnailFromVideo(videoUrl, 2);
       console.log('[VideoThumbnailGenerator] Thumbnail blob created:', thumbnailBlob.size, 'bytes');
       
-      // Upload to Supabase storage
+      // Upload to Supabase storage - path must match RLS policy: user_id/thumbnails/...
       const fileName = `${videoId}-${Date.now()}.jpg`;
-      console.log('[VideoThumbnailGenerator] Uploading to:', `thumbnails/${fileName}`);
+      console.log('[VideoThumbnailGenerator] Uploading to:', `${videoId}/${fileName}`);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('videos')
-        .upload(`thumbnails/${fileName}`, thumbnailBlob, {
+        .upload(`${user.id}/thumbnails/${fileName}`, thumbnailBlob, {
           contentType: 'image/jpeg',
           upsert: true,
         });
@@ -55,7 +60,7 @@ export const VideoThumbnailGenerator = ({
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('videos')
-        .getPublicUrl(`thumbnails/${fileName}`);
+        .getPublicUrl(`${user.id}/thumbnails/${fileName}`);
       
       console.log('[VideoThumbnailGenerator] Public URL:', publicUrl);
 

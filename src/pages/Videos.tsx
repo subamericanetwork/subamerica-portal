@@ -118,8 +118,8 @@ const Videos = () => {
             // Extract thumbnail at 2-second mark
             const thumbnailBlob = await extractThumbnailFromVideo(videoFile, 2);
             
-            // Upload thumbnail to storage
-            const thumbnailFileName = `thumbnails/${user.id}/${Date.now()}.jpg`;
+            // Upload thumbnail to storage - path must match RLS policy: user_id/thumbnails/...
+            const thumbnailFileName = `${user.id}/thumbnails/${Date.now()}.jpg`;
             const { error: thumbUploadError } = await supabase.storage
               .from('videos')
               .upload(thumbnailFileName, thumbnailBlob, {
@@ -134,6 +134,8 @@ const Videos = () => {
                 .getPublicUrl(thumbnailFileName);
               
               thumbnailUrl = thumbUrl;
+            } else {
+              console.error('[Videos] Thumbnail upload failed:', thumbUploadError);
             }
           }
         } catch (error) {
