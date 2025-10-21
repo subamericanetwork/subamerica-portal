@@ -72,7 +72,7 @@ const Features = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Start Building<ArrowRight className="h-5 w-5" /></Button>
-              <Button size="lg" variant="outline" className="text-lg" onClick={() => navigate("/watch")}><Play className="h-5 w-5" />Watch Demo</Button>
+              <Button size="lg" variant="outline" className="text-lg" onClick={() => navigate("/watch")}><Play className="h-5 w-5" />Watch</Button>
             </div>
           </div>
         </div>
