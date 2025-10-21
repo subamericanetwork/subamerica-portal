@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
@@ -44,11 +44,20 @@ const PAGE_SIZE = 6;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
 export default function Portals() {
+  const [showInstructions, setShowInstructions] = useState(() => {
+    return localStorage.getItem('portals-instruction-dismissed') !== 'true';
+  });
+
+  const handleDismissInstructions = () => {
+    localStorage.setItem('portals-instruction-dismissed', 'true');
+    setShowInstructions(false);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <PortalsFeed />
-      <FooterRibbon />
+      <FooterRibbon isVisible={showInstructions} onClose={handleDismissInstructions} />
     </div>
   );
 }
@@ -69,15 +78,29 @@ function Header() {
   );
 }
 
-function FooterRibbon() {
+interface FooterRibbonProps {
+  isVisible: boolean;
+  onClose: () => void;
+}
+
+function FooterRibbon({ isVisible, onClose }: FooterRibbonProps) {
+  if (!isVisible) return null;
+
   return (
     <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex items-center justify-center p-3">
-      <div className="pointer-events-auto rounded-full bg-card/80 px-4 py-2 text-xs text-muted-foreground shadow-2xl ring-1 ring-border backdrop-blur-sm">
+      <div className="pointer-events-auto relative rounded-full bg-card/80 px-4 py-2 pr-10 text-xs text-muted-foreground shadow-2xl ring-1 ring-border backdrop-blur-sm">
         <span className="hidden md:inline">Pro tip:</span> Use <kbd className="mx-1 rounded bg-muted px-1">↑</kbd>/
         <kbd className="mx-1 rounded bg-muted px-1">↓</kbd> or swipe to navigate artists • Use{" "}
         <kbd className="mx-1 rounded bg-muted px-1">←</kbd>/
         <kbd className="mx-1 rounded bg-muted px-1">→</kbd> for posts • Press{" "}
         <kbd className="ml-1 rounded bg-muted px-1">Enter</kbd> to open
+        <button
+          onClick={onClose}
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-1 transition-colors hover:bg-muted"
+          aria-label="Dismiss instructions"
+        >
+          <X className="h-3 w-3" />
+        </button>
       </div>
     </div>
   );
