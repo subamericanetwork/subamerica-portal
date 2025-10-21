@@ -90,7 +90,7 @@ const ArtistPortal = () => {
               className="text-lg"
               onClick={() => navigate("/auth?tab=signup")}
             >
-              Register & Submit Your Work
+              Become a Member
             </Button>
             <Button 
               size="lg" 
