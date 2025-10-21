@@ -1952,6 +1952,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_artist_application: {
+        Args: { admin_id: string; admin_notes?: string; application_id: string }
+        Returns: Json
+      }
       get_user_primary_role: {
         Args: { user_id_param: string }
         Returns: Database["public"]["Enums"]["app_role"]

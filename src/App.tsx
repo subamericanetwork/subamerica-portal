@@ -28,6 +28,7 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVerification from "./pages/admin/AdminVerification";
 import RogerApproval from "./pages/admin/RogerApproval";
+import AdminApplications from "./pages/admin/AdminApplications";
 import Watch from "./pages/Watch";
 import Posts from "./pages/Posts";
 import BecomeArtist from "./pages/BecomeArtist";
@@ -68,6 +69,7 @@ const App = () => (
           <Route path="/preview" element={<ArtistRoute><PortPreview /></ArtistRoute>} />
           
           {/* Admin Routes */}
+          <Route path="/admin/applications" element={<AdminRoute><AdminApplications /></AdminRoute>} />
           <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
           <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
           <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />

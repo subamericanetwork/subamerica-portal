@@ -14,7 +14,8 @@ import {
   Menu,
   Shield,
   QrCode,
-  Image
+  Image,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -84,6 +85,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   ];
 
   const adminNavigation = [
+    { name: "Admin: Applications", href: "/admin/applications", icon: FileText },
     { name: "Admin: Videos", href: "/admin/videos", icon: Shield },
     { name: "Admin: Payments", href: "/admin/payments", icon: DollarSign },
     { name: "Admin: Registrations", href: "/admin/registrations", icon: User },
