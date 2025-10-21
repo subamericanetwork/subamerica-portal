@@ -30,21 +30,21 @@ export const VideoThumbnailGenerator = ({
     console.log('[VideoThumbnailGenerator] Video URL:', videoUrl);
     
     try {
-      // Refresh session and get fresh auth token
-      console.log('[VideoThumbnailGenerator] Step 1: Refreshing auth session...');
-      const { data: { session }, error: sessionError } = await supabase.auth.refreshSession();
+      // Get session (using same pattern as Videos.tsx which works)
+      console.log('[VideoThumbnailGenerator] Step 1: Getting session...');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError) {
-        console.error('[VideoThumbnailGenerator] Session refresh error:', sessionError);
+        console.error('[VideoThumbnailGenerator] Session error:', sessionError);
         throw new Error('Session error: ' + sessionError.message);
       }
       
       if (!session?.user) {
-        console.error('[VideoThumbnailGenerator] No valid session after refresh');
+        console.error('[VideoThumbnailGenerator] No valid session');
         throw new Error('Please sign in again to continue');
       }
       
-      console.log('[VideoThumbnailGenerator] Session refreshed successfully');
+      console.log('[VideoThumbnailGenerator] Session valid');
       console.log('[VideoThumbnailGenerator] User ID:', session.user.id);
       console.log('[VideoThumbnailGenerator] User email:', session.user.email);
 
@@ -108,30 +108,30 @@ export const VideoThumbnailGenerator = ({
       const thumbnailBlob = await extractThumbnailFromVideo(videoUrl, 2);
       console.log('[VideoThumbnailGenerator] ✓ Thumbnail extracted, size:', thumbnailBlob.size, 'bytes');
       
-      // Upload to Supabase storage
-      const fileName = `${videoId}-${Date.now()}.jpg`;
-      const uploadPath = `${session.user.id}/thumbnails/${fileName}`;
+      // Upload to Supabase storage (using same pattern as Videos.tsx)
+      const fileName = `${session.user.id}/thumbnails/${Date.now()}.jpg`;
       console.log('[VideoThumbnailGenerator] Step 5: Uploading to storage...');
-      console.log('[VideoThumbnailGenerator] Upload path:', uploadPath);
+      console.log('[VideoThumbnailGenerator] Upload path:', fileName);
       
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('videos')
-        .upload(uploadPath, thumbnailBlob, {
+        .upload(fileName, thumbnailBlob, {
           contentType: 'image/jpeg',
-          upsert: true,
+          cacheControl: '3600',
+          upsert: false
         });
 
       if (uploadError) {
         console.error('[VideoThumbnailGenerator] Upload error:', uploadError);
-        throw uploadError;
+        throw new Error(`Storage upload failed: ${uploadError.message}`);
       }
 
-      console.log('[VideoThumbnailGenerator] Upload successful');
+      console.log('[VideoThumbnailGenerator] ✓ Upload successful');
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('videos')
-        .getPublicUrl(`${session.user.id}/thumbnails/${fileName}`);
+        .getPublicUrl(fileName);
       
       console.log('[VideoThumbnailGenerator] Public URL:', publicUrl);
 
