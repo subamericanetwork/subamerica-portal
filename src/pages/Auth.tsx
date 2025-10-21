@@ -241,7 +241,7 @@ const Auth = () => {
                 <Alert className="mb-4">
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    Join as a fan and apply to become a Subamerican artist later
+                    Join as a fan and apply to become a Subamerican artist after registering
                   </AlertDescription>
                 </Alert>
                 <form onSubmit={handleSignUp} className="space-y-4">
