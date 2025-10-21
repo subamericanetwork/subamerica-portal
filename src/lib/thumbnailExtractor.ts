@@ -18,8 +18,12 @@ export const extractThumbnailFromVideo = (
       return;
     }
 
-    video.crossOrigin = 'anonymous';
+    // Only set crossOrigin for external URLs, not for same-origin Supabase URLs
+    if (typeof source === 'string' && !source.includes(window.location.hostname)) {
+      video.crossOrigin = 'anonymous';
+    }
     video.preload = 'metadata';
+    video.muted = true; // Mute to avoid autoplay restrictions
 
     video.addEventListener('loadedmetadata', () => {
       // Set video time to capture frame
@@ -56,11 +60,24 @@ export const extractThumbnailFromVideo = (
       }
     });
 
-    video.addEventListener('error', () => {
-      reject(new Error('Error loading video'));
+    video.addEventListener('error', (e) => {
+      const errorMsg = video.error ? `Video error code: ${video.error.code}` : 'Error loading video';
+      reject(new Error(errorMsg));
       video.remove();
       canvas.remove();
     });
+
+    // Add timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      reject(new Error('Timeout loading video'));
+      video.remove();
+      canvas.remove();
+    }, 30000); // 30 second timeout
+
+    // Clear timeout on success
+    video.addEventListener('seeked', () => {
+      clearTimeout(timeout);
+    }, { once: true });
 
     // Set video source
     if (source instanceof File) {
