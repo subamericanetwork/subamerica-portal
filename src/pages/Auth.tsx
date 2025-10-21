@@ -326,16 +326,22 @@ const Auth = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground">
-          By signing in, you agree to our{" "}
-          <button
-            onClick={() => navigate("/terms")}
-            className="text-primary hover:underline"
-          >
-            Terms of Service
-          </button>
-          {" "}and Privacy Policy
-        </p>
+                <p className="text-center text-xs text-muted-foreground">
+                  By signing in, you agree to our{" "}
+                  <button
+                    onClick={() => navigate("/terms")}
+                    className="text-primary hover:underline"
+                  >
+                    Terms of Service
+                  </button>
+                  {" "}and{" "}
+                  <button
+                    onClick={() => navigate("/privacy")}
+                    className="text-primary hover:underline"
+                  >
+                    Privacy Policy
+                  </button>
+                </p>
       </div>
     </div>
   );

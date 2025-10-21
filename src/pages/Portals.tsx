@@ -398,7 +398,7 @@ function PortalsFeed() {
             <div className="flex justify-center gap-4">
               <button onClick={() => window.location.href = '/terms'} className="text-primary hover:underline">Terms of Service</button>
               <span>•</span>
-              <span className="opacity-50">Privacy Policy</span>
+              <button onClick={() => window.location.href = '/privacy'} className="text-primary hover:underline">Privacy Policy</button>
             </div>
           </div>
         </div>

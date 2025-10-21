@@ -12,6 +12,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Features from "./pages/Features";
 import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 import Profile from "./pages/Profile";
 import Videos from "./pages/Videos";
 import Events from "./pages/Events";
@@ -43,6 +44,7 @@ const App = () => (
           <Route path="/artist-portal" element={<ArtistPortal />} />
           <Route path="/features" element={<Features />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

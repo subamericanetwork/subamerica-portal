@@ -324,7 +324,7 @@ const Watch = () => {
             <div className="flex justify-center gap-4">
               <button onClick={() => navigate("/terms")} className="text-primary hover:underline">Terms of Service</button>
               <span>•</span>
-              <span className="opacity-50">Privacy Policy</span>
+              <button onClick={() => navigate("/privacy")} className="text-primary hover:underline">Privacy Policy</button>
             </div>
           </div>
         </div>

@@ -190,7 +190,11 @@ const Terms = () => {
           <h2 className="text-2xl font-semibold mb-4">8. Data & Privacy</h2>
           <div className="space-y-4 text-muted-foreground">
             <p>
-              Our data practices are described in our <strong>Privacy Policy</strong>, which forms part of these Terms.
+              Our data practices are described in our{" "}
+              <button onClick={() => navigate("/privacy")} className="text-primary hover:underline">
+                Privacy Policy
+              </button>
+              , which forms part of these Terms.
             </p>
             <p>
               We comply with <strong>GDPR</strong>, <strong>CCPA</strong>, and other global privacy regulations.
@@ -353,7 +357,7 @@ const Terms = () => {
             <div className="flex justify-center gap-4">
               <button onClick={() => navigate("/terms")} className="text-primary hover:underline">Terms of Service</button>
               <span>•</span>
-              <span className="opacity-50">Privacy Policy</span>
+              <button onClick={() => navigate("/privacy")} className="text-primary hover:underline">Privacy Policy</button>
             </div>
           </div>
         </div>
