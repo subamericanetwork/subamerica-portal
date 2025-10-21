@@ -45,7 +45,7 @@ export const usePlaylist = () => {
     }
   };
 
-  const createPlaylist = async (name: string, description?: string, isPublic: boolean = false) => {
+  const createPlaylist = async (name: string, description?: string, isPublic: boolean = false, initialVideoId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -57,7 +57,7 @@ export const usePlaylist = () => {
           name,
           description,
           is_public: isPublic,
-          video_ids: [],
+          video_ids: initialVideoId ? [initialVideoId] : [],
           content_type: 'mixed',
         })
         .select()
@@ -66,9 +66,14 @@ export const usePlaylist = () => {
       if (error) throw error;
 
       setPlaylists([data, ...playlists]);
+      
+      const successMessage = initialVideoId 
+        ? `"${name}" created and video added`
+        : `"${name}" has been created`;
+      
       toast({
         title: "Playlist Created",
-        description: `"${name}" has been created`,
+        description: successMessage,
       });
 
       return data;

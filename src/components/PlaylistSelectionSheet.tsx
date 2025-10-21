@@ -63,11 +63,11 @@ export const PlaylistSelectionSheet = ({
       const playlist = await createPlaylist(
         newPlaylistName,
         newPlaylistDescription,
-        newPlaylistPublic
+        newPlaylistPublic,
+        videoId
       );
       
       if (playlist) {
-        await addVideoToPlaylist(playlist.id, videoId);
         setIsCreating(false);
         setNewPlaylistName('');
         setNewPlaylistDescription('');
