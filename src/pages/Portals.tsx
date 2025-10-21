@@ -467,7 +467,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
 
   return (
     <>
-      <div ref={slideRef} className="relative flex w-full items-stretch overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4">
+      <div ref={slideRef} className={`relative flex w-full overflow-hidden rounded-none p-0 md:rounded-2xl md:p-4 ${mode === 'post' ? 'items-center' : 'items-end'}`}>
         {/* Background Video or Image */}
         {isVideo && backgroundSource ? (
           <video
@@ -504,14 +504,14 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
         )}
 
         {/* Content (Info mode) */}
-        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-4 overflow-y-auto p-4 pb-20 md:grid-cols-12 md:gap-6 md:p-6 md:pb-6 ${mode === 'post' ? 'hidden' : 'block'}`}>
+        <div className={`relative z-10 grid h-full w-full grid-cols-1 gap-3 p-4 pb-16 md:grid-cols-12 md:gap-6 md:p-6 ${mode === 'post' ? 'hidden' : 'block'}`}>
           {/* Left: avatar + meta */}
-          <div className="flex flex-col justify-start md:col-span-8 md:justify-end">
+          <div className="flex flex-col justify-end md:col-span-8">
             <div className="flex items-center gap-4">
               <img
                 src={profilePhoto || `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.display_name)}&background=random`}
                 alt=""
-                className="h-16 w-16 shrink-0 rounded-full object-cover ring-4 ring-background/40 ring-offset-2 ring-offset-background"
+                className="h-12 w-12 shrink-0 rounded-full object-cover ring-2 ring-background/40 ring-offset-1 ring-offset-background md:h-16 md:w-16 md:ring-4 md:ring-offset-2"
                 loading="lazy"
               />
               <div>
@@ -523,9 +523,9 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
               </div>
             </div>
 
-            {artist.bio_short && <p className="mt-4 max-w-2xl text-sm/6 text-foreground/80">{artist.bio_short}</p>}
+            {artist.bio_short && <p className="line-clamp-2 mt-3 max-w-2xl text-sm/relaxed text-foreground/80 md:line-clamp-none">{artist.bio_short}</p>}
 
-            <div className="mt-5 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2 md:mt-5">
               <Button onClick={() => navigate(`/${artist.slug}`)} className="gap-2">
                 <ExternalLink className="h-4 w-4" />
                 View Port
@@ -677,7 +677,7 @@ function PostOverlay({
           <video
             key={post.media_url}
             ref={videoRef}
-            className="absolute inset-0 h-full w-full object-cover opacity-40 transition-opacity duration-300"
+            className="absolute inset-0 h-full w-full object-contain opacity-40 transition-opacity duration-300"
             src={post.media_url}
             muted
             autoPlay
@@ -695,7 +695,7 @@ function PostOverlay({
       ) : (
         <div
           key={post.media_url}
-          className="absolute inset-0 bg-cover bg-center opacity-40 transition-opacity duration-300"
+          className="absolute inset-0 bg-contain bg-center bg-no-repeat opacity-40 transition-opacity duration-300"
           style={{ backgroundImage: `url(${post.media_url})` }}
           aria-hidden
         />
@@ -728,16 +728,16 @@ function PostOverlay({
 
       {/* Title + caption */}
       <div className="absolute bottom-5 left-0 right-0 px-4 md:bottom-5 md:px-6">
-        <div className="max-h-[40vh] overflow-y-auto rounded-lg bg-card/60 p-4 backdrop-blur-sm md:p-5">
+        <div className="rounded-lg bg-card/60 p-4 backdrop-blur-sm md:p-5">
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl font-semibold leading-tight md:text-2xl">{post.title}</h2>
+            <h2 className="line-clamp-2 text-xl font-semibold leading-tight md:text-2xl">{post.title}</h2>
             {posts.length > 1 && (
               <span className="shrink-0 text-xs text-muted-foreground">
                 {activePostIndex + 1} / {posts.length}
               </span>
             )}
           </div>
-          {post.caption && <p className="mt-1 text-sm text-foreground/80 md:text-base">{post.caption}</p>}
+          {post.caption && <p className="line-clamp-3 mt-1 text-sm text-foreground/80 md:text-base">{post.caption}</p>}
         </div>
         
         {/* Pagination Indicators */}
