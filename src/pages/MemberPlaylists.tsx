@@ -151,7 +151,6 @@ export default function MemberPlaylists() {
       </AlertDialog>
 
       <PlaylistSelectionSheet
-        videoId=""
         isOpen={createSheetOpen}
         onOpenChange={setCreateSheetOpen}
       />

@@ -18,7 +18,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Music, Lock, Globe } from 'lucide-react';
 
 interface PlaylistSelectionSheetProps {
-  videoId: string;
+  videoId?: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -35,6 +35,15 @@ export const PlaylistSelectionSheet = ({
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('');
   const [newPlaylistPublic, setNewPlaylistPublic] = useState(false);
+
+  // Determine if we have a valid video to add
+  const hasVideoToAdd = videoId && videoId.trim() !== '';
+  
+  // Update sheet title and description based on context
+  const sheetTitle = hasVideoToAdd ? "Add to Playlist" : "Create New Playlist";
+  const sheetDescription = hasVideoToAdd 
+    ? "Select a playlist or create a new one"
+    : "Create a new playlist to organize your videos";
 
   if (!user) {
     return (
@@ -64,7 +73,7 @@ export const PlaylistSelectionSheet = ({
         newPlaylistName,
         newPlaylistDescription,
         newPlaylistPublic,
-        videoId
+        hasVideoToAdd ? videoId : undefined
       );
       
       if (playlist) {
@@ -88,9 +97,9 @@ export const PlaylistSelectionSheet = ({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Add to Playlist</SheetTitle>
+          <SheetTitle>{sheetTitle}</SheetTitle>
           <SheetDescription>
-            Select a playlist or create a new one
+            {sheetDescription}
           </SheetDescription>
         </SheetHeader>
 
@@ -106,51 +115,54 @@ export const PlaylistSelectionSheet = ({
                 Create New Playlist
               </Button>
 
-              <ScrollArea className="h-[400px] pr-4">
-                <div className="space-y-2">
-                  {playlists.length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground">
-                      <Music className="mx-auto mb-2 h-8 w-8 opacity-50" />
-                      <p>No playlists yet</p>
-                      <p className="text-sm">Create your first playlist above</p>
-                    </div>
-                  ) : (
-                    playlists.map((playlist) => (
-                      <button
-                        key={playlist.id}
-                        onClick={() => handleAddToPlaylist(playlist.id)}
-                        className="w-full rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-accent"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{playlist.name}</h4>
-                            {playlist.description && (
-                              <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
-                                {playlist.description}
-                              </p>
-                            )}
-                            <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                              <span>{playlist.video_ids.length} videos</span>
-                              <span>•</span>
-                              {playlist.is_public ? (
-                                <span className="flex items-center gap-1">
-                                  <Globe className="h-3 w-3" />
-                                  Public
-                                </span>
-                              ) : (
-                                <span className="flex items-center gap-1">
-                                  <Lock className="h-3 w-3" />
-                                  Private
-                                </span>
+              {/* Only show existing playlists if we have a video to add */}
+              {hasVideoToAdd && (
+                <ScrollArea className="h-[400px] pr-4">
+                  <div className="space-y-2">
+                    {playlists.length === 0 ? (
+                      <div className="py-8 text-center text-muted-foreground">
+                        <Music className="mx-auto mb-2 h-8 w-8 opacity-50" />
+                        <p>No playlists yet</p>
+                        <p className="text-sm">Create your first playlist above</p>
+                      </div>
+                    ) : (
+                      playlists.map((playlist) => (
+                        <button
+                          key={playlist.id}
+                          onClick={() => handleAddToPlaylist(playlist.id)}
+                          className="w-full rounded-lg border border-border bg-card p-4 text-left transition-colors hover:bg-accent"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h4 className="font-semibold">{playlist.name}</h4>
+                              {playlist.description && (
+                                <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
+                                  {playlist.description}
+                                </p>
                               )}
+                              <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
+                                <span>{playlist.video_ids.length} videos</span>
+                                <span>•</span>
+                                {playlist.is_public ? (
+                                  <span className="flex items-center gap-1">
+                                    <Globe className="h-3 w-3" />
+                                    Public
+                                  </span>
+                                ) : (
+                                  <span className="flex items-center gap-1">
+                                    <Lock className="h-3 w-3" />
+                                    Private
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </ScrollArea>
+              )}
             </>
           ) : (
             <div className="space-y-4">
@@ -199,7 +211,7 @@ export const PlaylistSelectionSheet = ({
                   disabled={!newPlaylistName.trim()}
                   className="flex-1"
                 >
-                  Create & Add
+                  {hasVideoToAdd ? "Create & Add" : "Create Playlist"}
                 </Button>
               </div>
             </div>
