@@ -66,7 +66,7 @@ function Header() {
   const navigate = useNavigate();
   
   return (
-    <header className="fixed top-0 z-40 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="fixed top-0 z-40 w-full border-b border-border bg-background/20 backdrop-blur-md supports-[backdrop-filter]:bg-background/10">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* Left: Logo + "Subamerica" */}
         <div className="flex items-center gap-3">
