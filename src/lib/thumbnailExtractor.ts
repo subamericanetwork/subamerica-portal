@@ -21,8 +21,9 @@ export const extractThumbnailFromVideo = (
       return;
     }
 
-    // Don't set crossOrigin for Supabase storage URLs or blob URLs
-    if (typeof source === 'string' && !source.includes('supabase') && !source.startsWith('blob:')) {
+    // Set crossOrigin for all string URLs (including Supabase storage) to allow canvas export
+    // This is required for CORS-enabled resources to avoid "tainted canvas" errors
+    if (typeof source === 'string') {
       video.crossOrigin = 'anonymous';
     }
     video.preload = 'metadata';
