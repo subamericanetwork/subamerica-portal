@@ -25,51 +25,93 @@ export const VideoThumbnailGenerator = ({
 
   const generateThumbnail = async () => {
     setGenerating(true);
-    console.log('[VideoThumbnailGenerator] Starting generation for video:', videoId);
+    console.log('[VideoThumbnailGenerator] ========== STARTING THUMBNAIL GENERATION ==========');
+    console.log('[VideoThumbnailGenerator] Video ID:', videoId);
     console.log('[VideoThumbnailGenerator] Video URL:', videoUrl);
     
     try {
       // Refresh session to ensure auth.uid() is current
+      console.log('[VideoThumbnailGenerator] Step 1: Refreshing session...');
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
+      
+      if (sessionError) {
+        console.error('[VideoThumbnailGenerator] Session error:', sessionError);
+        throw new Error('Session error: ' + sessionError.message);
+      }
+      
+      if (!session) {
+        console.error('[VideoThumbnailGenerator] No session found');
         throw new Error('Please sign in again to continue');
       }
+      
+      console.log('[VideoThumbnailGenerator] Session valid. User ID:', session.user.id);
+      console.log('[VideoThumbnailGenerator] Session user email:', session.user.email);
 
       // Verify video ownership
-      console.log('[VideoThumbnailGenerator] Verifying video ownership...');
+      console.log('[VideoThumbnailGenerator] Step 2: Fetching video data...');
       const { data: videoData, error: videoError } = await supabase
         .from('videos')
-        .select('artist_id')
+        .select('id, artist_id, title')
         .eq('id', videoId)
         .single();
 
-      if (videoError || !videoData) {
+      console.log('[VideoThumbnailGenerator] Video query result:', { videoData, videoError });
+
+      if (videoError) {
+        console.error('[VideoThumbnailGenerator] Video fetch error:', videoError);
+        throw new Error('Failed to fetch video: ' + videoError.message);
+      }
+      
+      if (!videoData) {
+        console.error('[VideoThumbnailGenerator] Video not found');
         throw new Error('Video not found');
       }
 
+      console.log('[VideoThumbnailGenerator] Video found:', videoData.title);
+      console.log('[VideoThumbnailGenerator] Video artist_id:', videoData.artist_id);
+
       // Verify artist ownership
+      console.log('[VideoThumbnailGenerator] Step 3: Verifying artist ownership...');
       const { data: artistData, error: artistError } = await supabase
         .from('artists')
-        .select('id')
+        .select('id, user_id, display_name')
         .eq('id', videoData.artist_id)
-        .eq('user_id', session.user.id)
         .single();
 
-      if (artistError || !artistData) {
+      console.log('[VideoThumbnailGenerator] Artist query result:', { artistData, artistError });
+
+      if (artistError) {
+        console.error('[VideoThumbnailGenerator] Artist fetch error:', artistError);
+        throw new Error('Failed to verify artist: ' + artistError.message);
+      }
+
+      if (!artistData) {
+        console.error('[VideoThumbnailGenerator] Artist not found');
+        throw new Error('Artist not found');
+      }
+
+      console.log('[VideoThumbnailGenerator] Artist found:', artistData.display_name);
+      console.log('[VideoThumbnailGenerator] Artist user_id:', artistData.user_id);
+      console.log('[VideoThumbnailGenerator] Session user_id:', session.user.id);
+      console.log('[VideoThumbnailGenerator] Match?', artistData.user_id === session.user.id);
+
+      if (artistData.user_id !== session.user.id) {
+        console.error('[VideoThumbnailGenerator] User ID mismatch!');
         throw new Error('You do not have permission to modify this video');
       }
 
-      console.log('[VideoThumbnailGenerator] Ownership verified, proceeding with thumbnail generation');
+      console.log('[VideoThumbnailGenerator] ✓ Ownership verified successfully');
 
       // Extract thumbnail from video
-      console.log('[VideoThumbnailGenerator] Calling extractThumbnailFromVideo...');
+      console.log('[VideoThumbnailGenerator] Step 4: Extracting thumbnail from video...');
       const thumbnailBlob = await extractThumbnailFromVideo(videoUrl, 2);
-      console.log('[VideoThumbnailGenerator] Thumbnail blob created:', thumbnailBlob.size, 'bytes');
+      console.log('[VideoThumbnailGenerator] ✓ Thumbnail extracted, size:', thumbnailBlob.size, 'bytes');
       
-      // Upload to Supabase storage - path must match RLS policy: user_id/thumbnails/...
+      // Upload to Supabase storage
       const fileName = `${videoId}-${Date.now()}.jpg`;
       const uploadPath = `${session.user.id}/thumbnails/${fileName}`;
-      console.log('[VideoThumbnailGenerator] Uploading to:', uploadPath);
+      console.log('[VideoThumbnailGenerator] Step 5: Uploading to storage...');
+      console.log('[VideoThumbnailGenerator] Upload path:', uploadPath);
       
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('videos')
