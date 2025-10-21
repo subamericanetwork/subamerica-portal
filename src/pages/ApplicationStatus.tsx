@@ -294,8 +294,8 @@ const ApplicationStatus = () => {
             </Card>
           )}
 
-          <Button variant="outline" onClick={() => navigate("/fan/dashboard")} className="w-full">
-            Back to Fan Dashboard
+          <Button variant="outline" onClick={() => navigate("/member/dashboard")} className="w-full">
+            Back to Member Dashboard
           </Button>
         </div>
       </div>

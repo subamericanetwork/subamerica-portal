@@ -168,7 +168,7 @@ export const VerificationRequestForm = ({
       <CardHeader>
         <CardTitle>Request Verification</CardTitle>
         <CardDescription>
-          Get a blue checkmark to show fans your profile is authentic
+          Get a blue checkmark to show members your profile is authentic
         </CardDescription>
       </CardHeader>
       <CardContent>

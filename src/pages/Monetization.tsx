@@ -121,7 +121,7 @@ const Monetization = () => {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            <strong>QR Codes for TV & Broadcasts:</strong> Generate trackable QR codes that fans can scan during your performances. 
+            <strong>QR Codes for TV & Broadcasts:</strong> Generate trackable QR codes that members can scan during your performances. 
             Choose what action happens when they scan (tip, tickets, merch, etc.). UTM parameters help you track where scans come from.
           </AlertDescription>
         </Alert>
@@ -146,7 +146,7 @@ const Monetization = () => {
                     <Info className="h-3 w-3 text-muted-foreground cursor-help" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">This determines what page or action fans are directed to when they scan your QR code from TV or live broadcasts.</p>
+                    <p className="max-w-xs">This determines what page or action members are directed to when they scan your QR code from TV or live broadcasts.</p>
                   </TooltipContent>
                 </Tooltip>
               </div>
@@ -161,7 +161,7 @@ const Monetization = () => {
                   <SelectItem value="tip">Tip (Network Default)</SelectItem>
                   <SelectItem value="tickets">Event Tickets</SelectItem>
                   <SelectItem value="product">Featured Product</SelectItem>
-                  <SelectItem value="fanclub">Fan Club / Patreon</SelectItem>
+                  <SelectItem value="memberclub">Member Club / Patreon</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">

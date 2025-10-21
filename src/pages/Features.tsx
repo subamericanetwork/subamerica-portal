@@ -68,7 +68,7 @@ const Features = () => {
               <span className="block mt-2 text-3xl md:text-5xl">Everything Independent Artists Need to Upload, Stream, and Earn on Subamerica</span>
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              Build your artist port, upload videos, sell merch, and stream your work worldwide — all from one creator-first dashboard. Subamerica gives independent artists the tools to own their art, connect with fans, and earn instantly.
+              Build your artist port, upload videos, sell merch, and stream your work worldwide — all from one creator-first dashboard. Subamerica gives independent artists the tools to own their art, connect with members, and earn instantly.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               <Button size="lg" className="text-lg glow-primary" onClick={() => navigate("/auth?tab=signup")}>Start Building Free<ArrowRight className="h-5 w-5" /></Button>
@@ -88,9 +88,9 @@ const Features = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {[
               { icon: Video, title: "Video Streaming", subtitle: "(Coming Soon!)", desc: "Professional HLS streaming with global CDN", features: ["Adaptive quality", "Unlimited uploads", "Analytics tracking"] },
-              { icon: Calendar, title: "Event Ticketing", desc: "Sell tickets directly to your fans", features: ["QR code tickets", "Stripe integration", "Keep 80-90%"] },
+              { icon: Calendar, title: "Event Ticketing", desc: "Sell tickets directly to your members", features: ["QR code tickets", "Stripe integration", "Keep 80-90%"] },
               { icon: ShoppingBag, title: "Merch Store", desc: "Sell products with zero inventory", features: ["Print-on-demand", "Auto fulfillment", "Global shipping"] },
-              { icon: DollarSign, title: "Direct Tips", desc: "Get paid directly by supporters", features: ["Custom amounts", "Instant payouts", "Fan messages"] }
+              { icon: DollarSign, title: "Direct Tips", desc: "Get paid directly by supporters", features: ["Custom amounts", "Instant payouts", "Member messages"] }
             ].map((feature, idx) => (
               <Card key={idx} className="gradient-card hover-scale transition-smooth">
                 <CardHeader>
@@ -135,7 +135,7 @@ const Features = () => {
                   {[
                     ["Revenue Share", "50-70% platform fee", "Keep 80-90%"],
                     ["Custom Domain", "Not available or expensive", "Included"],
-                    ["Direct Fan Payments", "Limited or restricted", "Tips, products, tickets"],
+                    ["Direct Member Payments", "Limited or restricted", "Tips, products, tickets"],
                     ["Content Ownership", "Platform owns rights", "Full ownership"],
                     ["Monetization Tools", "Scattered across platforms", "All-in-one dashboard"]
                   ].map(([feature, old, new_], idx) => (

@@ -43,7 +43,7 @@ const FAQ_TEMPLATES = [
   },
   { 
     id: "listen-watch",
-    question: "How can fans listen to or watch [Artist Name]'s performances?", 
+    question: "How can members listen to or watch [Artist Name]'s performances?", 
     placeholder: "Link to channels, platforms, or QR-commerce page. Example: 'Tune in on Subamerica TV via Roku, Fire TV, or Google TV, or stream clips on subamerica.net/[your-slug].'" 
   },
   { 
@@ -53,8 +53,8 @@ const FAQ_TEMPLATES = [
   },
   { 
     id: "support",
-    question: "How can fans support [Artist Name]?", 
-    placeholder: "Direct to QR-commerce: merch, tips, event tickets. Example: 'Buy merch, tip during live sets, or join her SubClub fan community through QR-commerce links on her artist page.'" 
+    question: "How can members support [Artist Name]?", 
+    placeholder: "Direct to QR-commerce: merch, tips, event tickets. Example: 'Buy merch, tip during live sets, or join her SubClub member community through QR-commerce links on her artist page.'" 
   },
   { 
     id: "releases",
@@ -243,7 +243,7 @@ export const FAQManagement = ({ artistId, artistName, faqs, onUpdate }: FAQManag
           {/* Template Interview Tab */}
           <TabsContent value="templates" className="space-y-4 mt-4">
             <p className="text-sm text-muted-foreground">
-              Answer these SEO-optimized questions to help fans and search engines discover you.
+              Answer these SEO-optimized questions to help members and search engines discover you.
             </p>
             {FAQ_TEMPLATES.map((template) => {
               const isAnswered = isTemplateAnswered(template.id);

@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Music, Video, Calendar, Heart, Sparkles, ArrowRight } from "lucide-react";
 import logo from "@/assets/subamerica-logo.jpg";
 
-const FanDashboard = () => {
+const MemberDashboard = () => {
   const navigate = useNavigate();
 
   return (
@@ -14,7 +14,7 @@ const FanDashboard = () => {
           <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-2">Welcome to Subamerica</h1>
           <p className="text-muted-foreground text-lg mb-4">
-            The underground music platform for independent artists and fans
+            The underground music platform for independent artists and members
           </p>
           <p className="text-sm text-muted-foreground">
             Choose your path below, or <Link to="/" className="text-primary hover:underline font-medium">explore artists now</Link>
@@ -29,7 +29,7 @@ const FanDashboard = () => {
               </div>
               <CardTitle className="text-2xl">Become an Artist</CardTitle>
               <CardDescription className="text-base">
-                Ready to share your music with the world? Create your artist Port and start building your fanbase.
+                Ready to share your music with the world? Create your artist Port and start building your member base.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -81,9 +81,9 @@ const FanDashboard = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Coming Soon: Fan Features</CardTitle>
+            <CardTitle>Coming Soon: Member Features</CardTitle>
             <CardDescription>
-              We're building amazing features for fans
+              We're building amazing features for members
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -103,7 +103,7 @@ const FanDashboard = () => {
               <div className="p-4 border rounded-lg">
                 <h3 className="font-semibold mb-2">Social Features</h3>
                 <p className="text-sm text-muted-foreground">
-                  Comment, like, and interact with artists and other fans
+                  Comment, like, and interact with artists and other members
                 </p>
               </div>
             </div>
@@ -114,4 +114,4 @@ const FanDashboard = () => {
   );
 };
 
-export default FanDashboard;
+export default MemberDashboard;

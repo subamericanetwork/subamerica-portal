@@ -73,7 +73,7 @@ const Privacy = () => {
           <div className="space-y-4 text-muted-foreground">
             <p>
               Subamerica Network is operated by <strong>Hercules Media, LLC</strong>, based in New York, NY, USA.
-              We're an independent media and entertainment company dedicated to giving creators ownership and fans access to fearless underground art.
+              We're an independent media and entertainment company dedicated to giving creators ownership and members access to fearless underground art.
             </p>
             <p>Contact:</p>
             <ul className="list-none space-y-2 ml-4">

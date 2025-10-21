@@ -198,8 +198,8 @@ const BecomeArtist = () => {
           <p className="text-muted-foreground text-lg mb-4">
             Join our curated community of independent artists
           </p>
-          <Button variant="ghost" onClick={() => navigate("/fan/dashboard")} className="gap-2">
-            ← Back to Fan Home
+          <Button variant="ghost" onClick={() => navigate("/member/dashboard")} className="gap-2">
+            ← Back to Member Home
           </Button>
         </div>
 

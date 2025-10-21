@@ -146,7 +146,7 @@ const ArtistPortal = () => {
               </div>
               <span className="eyebrow">Creator Empowerment</span>
               <p className="text-foreground/90 leading-relaxed">
-                Artists retain rights and keep up to 90% of merch, tips, and ticket revenue through QR-commerce and direct fan relationships.
+                Artists retain rights and keep up to 90% of merch, tips, and ticket revenue through QR-commerce and direct member relationships.
               </p>
             </Card>
 

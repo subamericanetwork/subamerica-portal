@@ -148,7 +148,7 @@ const PortPreview = () => {
           <div>
             <h1 className="text-3xl font-bold">Port Preview</h1>
             <p className="text-muted-foreground mt-1">
-              Preview how your Port appears to fans
+              Preview how your Port appears to members
             </p>
           </div>
           <div className="flex items-center gap-3">

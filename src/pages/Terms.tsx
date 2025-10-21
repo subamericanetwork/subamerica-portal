@@ -211,7 +211,7 @@ const Terms = () => {
           <h2 className="text-2xl font-semibold mb-4">9. Creator Commerce and QR Interactions</h2>
           <div className="space-y-4 text-muted-foreground">
             <p>
-              By using QR-Commerce and LivePush integration features, you authorize Subamerica to facilitate transactions between fans and creators.
+              By using QR-Commerce and LivePush integration features, you authorize Subamerica to facilitate transactions between members and creators.
               Subamerica is not responsible for third-party fulfillment of physical goods or external store links.
             </p>
             <p>

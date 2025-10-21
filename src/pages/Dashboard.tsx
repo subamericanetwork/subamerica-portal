@@ -80,12 +80,12 @@ const Dashboard = () => {
       });
 
       if (!roleData) {
-        navigate("/fan/dashboard");
+        navigate("/member/dashboard");
         return;
       }
     } catch (error) {
       console.error("Error checking artist role:", error);
-      navigate("/fan/dashboard");
+      navigate("/member/dashboard");
     } finally {
       setCheckingRole(false);
     }

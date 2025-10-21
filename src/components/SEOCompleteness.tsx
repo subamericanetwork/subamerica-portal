@@ -133,7 +133,7 @@ export const SEOCompleteness = ({ artist, faqs, portSettings }: SEOCompletenessP
                 Pro tip
               </p>
               <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                Completing all items helps search engines and AI assistants accurately represent your work to potential fans.
+                Completing all items helps search engines and AI assistants accurately represent your work to potential members.
               </p>
             </div>
           </div>

@@ -58,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) return { error };
       if (!data.user) return { error: { message: "Signup failed" } };
 
-      // User profile and fan role are auto-created by database triggers
+      // User profile and member role are auto-created by database triggers
 
       return { error: null };
     } catch (error: any) {

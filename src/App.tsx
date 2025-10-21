@@ -32,7 +32,7 @@ import Watch from "./pages/Watch";
 import Posts from "./pages/Posts";
 import BecomeArtist from "./pages/BecomeArtist";
 import ApplicationStatus from "./pages/ApplicationStatus";
-import FanDashboard from "./pages/FanDashboard";
+import MemberDashboard from "./pages/MemberDashboard";
 
 const queryClient = new QueryClient();
 
@@ -51,8 +51,8 @@ const App = () => (
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/auth" element={<Auth />} />
           
-          {/* Fan Routes */}
-          <Route path="/fan/dashboard" element={<ProtectedRoute><FanDashboard /></ProtectedRoute>} />
+          {/* Member Routes */}
+          <Route path="/member/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
           <Route path="/become-artist" element={<ProtectedRoute><BecomeArtist /></ProtectedRoute>} />
           <Route path="/application-status" element={<ProtectedRoute><ApplicationStatus /></ProtectedRoute>} />
           
