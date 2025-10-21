@@ -4,7 +4,7 @@ import { ArrowRight, Video, Users, Sparkles, Tv, TrendingUp, Globe, Shield, Targ
 import { useNavigate } from "react-router-dom";
 import logo from "@/assets/subamerica-logo.jpg";
 
-const Index = () => {
+const ArtistPortal = () => {
   const navigate = useNavigate();
 
   return (
@@ -268,4 +268,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default ArtistPortal;

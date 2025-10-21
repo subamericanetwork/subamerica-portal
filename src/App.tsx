@@ -6,7 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
-import Index from "./pages/Index";
+import Portals from "./pages/Portals";
+import ArtistPortal from "./pages/ArtistPortal";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Features from "./pages/Features";
@@ -17,7 +18,6 @@ import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
 import Payments from "./pages/Payments";
 import PortPreview from "./pages/PortPreview";
-import Portals from "./pages/Portals";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 import AdminVideos from "./pages/admin/AdminVideos";
@@ -38,7 +38,8 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<Portals />} />
+          <Route path="/artist-portal" element={<ArtistPortal />} />
           <Route path="/features" element={<Features />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -56,7 +57,6 @@ const App = () => (
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
           <Route path="/admin/verification/final-approval" element={<AdminRoute><RogerApproval /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />
-          <Route path="/portals" element={<Portals />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
