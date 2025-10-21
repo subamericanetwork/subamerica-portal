@@ -101,6 +101,20 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
             <h3 className="song-title">{currentTrack?.title} – {currentTrack?.artist_name}</h3>
           </div>
 
+          {/* Track Thumbnail */}
+          {currentTrack?.thumbnail_url && (
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-lg overflow-hidden shadow-2xl opacity-40 blur-sm pointer-events-none">
+              <img
+                src={currentTrack.thumbnail_url}
+                alt={currentTrack.title}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+
           {/* Central Play Button with Glow Rings */}
           <div className="play-button-container">
             <div className="glow-ring outer" />
