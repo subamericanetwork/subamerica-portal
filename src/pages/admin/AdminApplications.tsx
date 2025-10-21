@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, CheckCircle, XCircle, AlertCircle, ExternalLink, Loader2 } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Loader2, Clock, CheckCircle, XCircle, AlertCircle, ExternalLink, FileText, TrendingUp } from "lucide-react";
+import { format, formatDistanceToNow } from "date-fns";
+import DashboardLayout from "@/components/layout/DashboardLayout";
 
 interface Application {
   id: string;
@@ -20,42 +22,56 @@ interface Application {
   slug: string;
   bio: string;
   why_join: string;
-  scene: string;
+  scene: string | null;
   portfolio_links: any;
   status: string;
+  rejection_reason: string | null;
+  appeal_status: string | null;
+  appeal_reason: string | null;
   submitted_at: string;
   reviewed_at: string | null;
   reviewed_by: string | null;
-  rejection_reason: string | null;
   admin_notes: string | null;
-  appeal_status: string | null;
-  appeal_reason: string | null;
-  appealed_at: string | null;
+  created_at: string;
 }
 
-const AdminApplications = () => {
+interface Stats {
+  totalPending: number;
+  pendingAppeals: number;
+  approvedToday: number;
+  avgReviewTime: string;
+}
+
+export default function AdminApplications() {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
+  const [filteredApplications, setFilteredApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<Stats>({
+    totalPending: 0,
+    pendingAppeals: 0,
+    approvedToday: 0,
+    avgReviewTime: "N/A"
+  });
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [actionType, setActionType] = useState<"approve" | "reject" | "appeal-approve" | "appeal-reject" | null>(null);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [approvalNotes, setApprovalNotes] = useState("");
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
-
-  const [stats, setStats] = useState({
-    pending: 0,
-    pendingAppeals: 0,
-    approvedToday: 0,
-  });
+  
+  // Review form state
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
+  const [appealAction, setAppealAction] = useState("");
 
   useEffect(() => {
     fetchApplications();
   }, []);
+
+  useEffect(() => {
+    applyFilters();
+  }, [applications, searchTerm, statusFilter]);
 
   const fetchApplications = async () => {
     try {
@@ -68,36 +84,87 @@ const AdminApplications = () => {
       if (error) throw error;
 
       setApplications(data || []);
-
-      // Calculate stats
-      const now = new Date();
-      const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-      setStats({
-        pending: data?.filter((app) => app.status === "pending").length || 0,
-        pendingAppeals: data?.filter((app) => app.appeal_status === "pending").length || 0,
-        approvedToday: data?.filter((app) => app.status === "approved" && new Date(app.reviewed_at || "") > oneDayAgo).length || 0,
-      });
+      calculateStats(data || []);
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Failed to load applications: " + error.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const calculateStats = (apps: Application[]) => {
+    const pending = apps.filter(a => a.status === "pending").length;
+    const appeals = apps.filter(a => a.appeal_status === "pending").length;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const approvedToday = apps.filter(a => 
+      a.status === "approved" && 
+      a.reviewed_at && 
+      new Date(a.reviewed_at) >= today
+    ).length;
+
+    // Calculate average review time
+    const reviewedApps = apps.filter(a => a.reviewed_at && a.submitted_at);
+    if (reviewedApps.length > 0) {
+      const totalTime = reviewedApps.reduce((sum, app) => {
+        const submitted = new Date(app.submitted_at).getTime();
+        const reviewed = new Date(app.reviewed_at!).getTime();
+        return sum + (reviewed - submitted);
+      }, 0);
+      const avgMs = totalTime / reviewedApps.length;
+      const avgHours = Math.round(avgMs / (1000 * 60 * 60));
+      setStats({
+        totalPending: pending,
+        pendingAppeals: appeals,
+        approvedToday,
+        avgReviewTime: `${avgHours}h`
+      });
+    } else {
+      setStats({
+        totalPending: pending,
+        pendingAppeals: appeals,
+        approvedToday,
+        avgReviewTime: "N/A"
+      });
+    }
+  };
+
+  const applyFilters = () => {
+    let filtered = [...applications];
+
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(app =>
+        app.artist_name.toLowerCase().includes(term) ||
+        app.slug.toLowerCase().includes(term) ||
+        app.scene?.toLowerCase().includes(term)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== "all") {
+      if (statusFilter === "appealed") {
+        filtered = filtered.filter(app => app.appeal_status === "pending");
+      } else {
+        filtered = filtered.filter(app => app.status === statusFilter);
+      }
+    }
+
+    setFilteredApplications(filtered);
+  };
+
   const handleApprove = async () => {
     if (!selectedApp || !user) return;
 
-    setProcessing(true);
     try {
+      setProcessing(true);
+      
       const { data, error } = await supabase.rpc("approve_artist_application", {
         application_id: selectedApp.id,
         admin_id: user.id,
-        admin_notes: approvalNotes || null,
+        admin_notes: adminNotes || null
       });
 
       if (error) throw error;
@@ -108,21 +175,13 @@ const AdminApplications = () => {
         throw new Error(result.error || "Failed to approve application");
       }
 
-      toast({
-        title: "Success",
-        description: `Artist account created successfully for ${selectedApp.artist_name}!`,
-      });
-
-      setDialogOpen(false);
+      toast.success(`Artist account created for ${selectedApp.artist_name}!`);
+      setReviewDialogOpen(false);
       setSelectedApp(null);
-      setApprovalNotes("");
+      setAdminNotes("");
       fetchApplications();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Approval failed: " + error.message);
     } finally {
       setProcessing(false);
     }
@@ -130,16 +189,13 @@ const AdminApplications = () => {
 
   const handleReject = async () => {
     if (!selectedApp || !user || !rejectionReason.trim()) {
-      toast({
-        title: "Error",
-        description: "Rejection reason is required",
-        variant: "destructive",
-      });
+      toast.error("Please provide a rejection reason");
       return;
     }
 
-    setProcessing(true);
     try {
+      setProcessing(true);
+
       const { error } = await supabase
         .from("artist_applications")
         .update({
@@ -147,230 +203,221 @@ const AdminApplications = () => {
           rejection_reason: rejectionReason,
           reviewed_at: new Date().toISOString(),
           reviewed_by: user.id,
+          admin_notes: adminNotes || null
         })
         .eq("id", selectedApp.id);
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: "Application rejected",
-      });
-
-      setDialogOpen(false);
+      toast.success("Application rejected");
+      setReviewDialogOpen(false);
       setSelectedApp(null);
       setRejectionReason("");
+      setAdminNotes("");
       fetchApplications();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Rejection failed: " + error.message);
     } finally {
       setProcessing(false);
     }
   };
 
-  const handleAppealApprove = async () => {
-    if (!selectedApp || !user) return;
+  const handleAppealAction = async () => {
+    if (!selectedApp || !user || !appealAction) return;
 
-    setProcessing(true);
     try {
-      const { data, error } = await supabase.rpc("approve_artist_application", {
-        application_id: selectedApp.id,
-        admin_id: user.id,
-        admin_notes: approvalNotes || null,
-      });
+      setProcessing(true);
 
-      if (error) throw error;
+      if (appealAction === "approve") {
+        // First update status to pending so approve function works
+        await supabase
+          .from("artist_applications")
+          .update({ status: "pending" })
+          .eq("id", selectedApp.id);
 
-      const result = data as { success: boolean; error?: string };
+        // Approve the appeal - create artist account
+        const { data, error } = await supabase.rpc("approve_artist_application", {
+          application_id: selectedApp.id,
+          admin_id: user.id,
+          admin_notes: adminNotes || "Appeal approved"
+        });
 
-      if (!result.success) {
-        throw new Error(result.error || "Failed to approve appeal");
+        if (error) throw error;
+
+        const result = data as { success: boolean; error?: string };
+        if (!result.success) throw new Error(result.error);
+
+        // Update appeal status
+        await supabase
+          .from("artist_applications")
+          .update({ 
+            appeal_status: "approved",
+            appeal_reviewed_at: new Date().toISOString(),
+            appeal_reviewed_by: user.id
+          })
+          .eq("id", selectedApp.id);
+
+        toast.success(`Appeal approved! Artist account created for ${selectedApp.artist_name}`);
+      } else if (appealAction === "reject") {
+        // Reject the appeal
+        if (!rejectionReason.trim()) {
+          toast.error("Please provide a reason for appeal rejection");
+          return;
+        }
+
+        const { error } = await supabase
+          .from("artist_applications")
+          .update({
+            appeal_status: "rejected",
+            appeal_reviewed_at: new Date().toISOString(),
+            appeal_reviewed_by: user.id,
+            admin_notes: adminNotes || null
+          })
+          .eq("id", selectedApp.id);
+
+        if (error) throw error;
+        toast.success("Appeal rejected");
       }
 
-      // Update appeal status
-      await supabase
-        .from("artist_applications")
-        .update({
-          appeal_status: "approved",
-          appeal_reviewed_at: new Date().toISOString(),
-          appeal_reviewed_by: user.id,
-        })
-        .eq("id", selectedApp.id);
-
-      toast({
-        title: "Success",
-        description: `Appeal approved! Artist account created for ${selectedApp.artist_name}.`,
-      });
-
-      setDialogOpen(false);
+      setReviewDialogOpen(false);
       setSelectedApp(null);
-      setApprovalNotes("");
-      fetchApplications();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleAppealReject = async () => {
-    if (!selectedApp || !user || !rejectionReason.trim()) {
-      toast({
-        title: "Error",
-        description: "Rejection reason is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setProcessing(true);
-    try {
-      const { error } = await supabase
-        .from("artist_applications")
-        .update({
-          appeal_status: "rejected",
-          admin_notes: rejectionReason,
-          appeal_reviewed_at: new Date().toISOString(),
-          appeal_reviewed_by: user.id,
-        })
-        .eq("id", selectedApp.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Appeal rejected. This is the final decision.",
-      });
-
-      setDialogOpen(false);
-      setSelectedApp(null);
+      setAppealAction("");
       setRejectionReason("");
+      setAdminNotes("");
       fetchApplications();
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error("Failed to process appeal: " + error.message);
     } finally {
       setProcessing(false);
     }
-  };
-
-  const openReviewDialog = (app: Application, action: "approve" | "reject" | "appeal-approve" | "appeal-reject") => {
-    setSelectedApp(app);
-    setActionType(action);
-    setDialogOpen(true);
   };
 
   const getStatusBadge = (app: Application) => {
     if (app.appeal_status === "pending") {
-      return <Badge variant="secondary" className="bg-purple-500/10 text-purple-500 border-purple-500/20"><AlertCircle className="w-3 h-3 mr-1" />Appeal Pending</Badge>;
+      return <Badge variant="secondary" className="bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center gap-1"><AlertCircle className="w-3 h-3" />Appeal Pending</Badge>;
     }
     
     switch (app.status) {
       case "pending":
-        return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20"><Clock className="w-3 h-3 mr-1" />Pending</Badge>;
+        return <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 flex items-center gap-1"><Clock className="w-3 h-3" />Pending</Badge>;
       case "approved":
-        return <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20"><CheckCircle className="w-3 h-3 mr-1" />Approved</Badge>;
+        return <Badge variant="secondary" className="bg-green-500/10 text-green-600 dark:text-green-400 flex items-center gap-1"><CheckCircle className="w-3 h-3" />Approved</Badge>;
       case "rejected":
-        return <Badge variant="secondary" className="bg-red-500/10 text-red-500 border-red-500/20"><XCircle className="w-3 h-3 mr-1" />Rejected</Badge>;
+        return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="w-3 h-3" />Rejected</Badge>;
       default:
         return <Badge variant="outline">{app.status}</Badge>;
     }
   };
 
-  const filteredApplications = applications.filter((app) => {
-    const matchesSearch = 
-      app.artist_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      app.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (app.scene || "").toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" ||
-      (statusFilter === "pending" && app.status === "pending") ||
-      (statusFilter === "approved" && app.status === "approved") ||
-      (statusFilter === "rejected" && app.status === "rejected") ||
-      (statusFilter === "appealed" && app.appeal_status === "pending");
-
-    return matchesSearch && matchesStatus;
-  });
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Artist Applications</h1>
-        <p className="text-muted-foreground">Review and manage artist applications</p>
-      </div>
+    <DashboardLayout>
+      <div className="container mx-auto py-8 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Artist Applications</h1>
+          <p className="text-muted-foreground">Review and manage artist applications</p>
+        </div>
 
-      {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Pending Review</CardDescription>
-            <CardTitle className="text-4xl">{stats.pending}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Pending Appeals</CardDescription>
-            <CardTitle className="text-4xl">{stats.pendingAppeals}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Approved Today</CardDescription>
-            <CardTitle className="text-4xl">{stats.approvedToday}</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Pending</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-yellow-500" />
+                <span className="text-2xl font-bold">{stats.totalPending}</span>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <Input
-          placeholder="Search by artist name, slug, or scene..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1"
-        />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Filter by status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Applications</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
-            <SelectItem value="rejected">Rejected</SelectItem>
-            <SelectItem value="appealed">Appealed</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Pending Appeals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <AlertCircle className="h-5 w-5 text-purple-500" />
+                <span className="text-2xl font-bold">{stats.pendingAppeals}</span>
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Applications Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Applications</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          ) : filteredApplications.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {statusFilter === "pending" ? "All caught up! No pending applications to review." : "No applications match your search criteria."}
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Approved Today</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-500" />
+                <span className="text-2xl font-bold">{stats.approvedToday}</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Avg Review Time</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-blue-500" />
+                <span className="text-2xl font-bold">{stats.avgReviewTime}</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Filters</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col md:flex-row gap-4">
+            <Input
+              placeholder="Search by name, slug, or scene..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1"
+            />
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full md:w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Applications</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="appealed">Appealed</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+          </CardContent>
+        </Card>
+
+        {/* Applications Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Applications ({filteredApplications.length})</CardTitle>
+            <CardDescription>Click "Review" to view details and take action</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {filteredApplications.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No applications found matching your criteria</p>
+              </div>
+            ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -379,294 +426,259 @@ const AdminApplications = () => {
                     <TableHead>Port URL</TableHead>
                     <TableHead>Scene</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Actions</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredApplications.map((app) => (
                     <TableRow key={app.id}>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDistanceToNow(new Date(app.submitted_at), { addSuffix: true })}
+                      <TableCell>
+                        <div className="text-sm">
+                          {formatDistanceToNow(new Date(app.submitted_at), { addSuffix: true })}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {format(new Date(app.submitted_at), "MMM dd, yyyy")}
+                        </div>
                       </TableCell>
                       <TableCell className="font-medium">{app.artist_name}</TableCell>
                       <TableCell>
-                        <span className="text-sm text-muted-foreground">@{app.slug}</span>
+                        <code className="text-sm">@{app.slug}</code>
                       </TableCell>
-                      <TableCell>{app.scene || "-"}</TableCell>
+                      <TableCell>{app.scene || "—"}</TableCell>
                       <TableCell>{getStatusBadge(app)}</TableCell>
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedApp(app);
-                            setActionType(null);
-                            setDialogOpen(true);
-                          }}
-                        >
-                          Review
-                        </Button>
+                      <TableCell className="text-right">
+                        <Dialog open={reviewDialogOpen && selectedApp?.id === app.id} onOpenChange={(open) => {
+                          setReviewDialogOpen(open);
+                          if (!open) {
+                            setSelectedApp(null);
+                            setRejectionReason("");
+                            setAdminNotes("");
+                            setAppealAction("");
+                          }
+                        }}>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedApp(app)}
+                            >
+                              Review
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                            <DialogHeader>
+                              <DialogTitle className="text-2xl">{app.artist_name}</DialogTitle>
+                              <DialogDescription>
+                                Application submitted {formatDistanceToNow(new Date(app.submitted_at), { addSuffix: true })}
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <div className="grid md:grid-cols-2 gap-6 mt-4">
+                              {/* Left Panel - Application Details */}
+                              <div className="space-y-4">
+                                <div>
+                                  <Label className="text-sm font-semibold">Port URL</Label>
+                                  <p className="text-sm mt-1">@{app.slug}</p>
+                                </div>
+
+                                <div>
+                                  <Label className="text-sm font-semibold">Music Scene</Label>
+                                  <p className="text-sm mt-1">{app.scene || "Not specified"}</p>
+                                </div>
+
+                                <div>
+                                  <Label className="text-sm font-semibold">Bio</Label>
+                                  <div className="text-sm mt-1 max-h-32 overflow-y-auto bg-muted p-3 rounded-md">
+                                    {app.bio}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label className="text-sm font-semibold">Why Join</Label>
+                                  <div className="text-sm mt-1 max-h-32 overflow-y-auto bg-muted p-3 rounded-md">
+                                    {app.why_join}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <Label className="text-sm font-semibold">Portfolio Links</Label>
+                                  <div className="space-y-1 mt-1">
+                                    {Array.isArray(app.portfolio_links) && app.portfolio_links.length > 0 ? (
+                                      app.portfolio_links.map((link: any, idx: number) => (
+                                        <a
+                                          key={idx}
+                                          href={link.url || link}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-1 text-sm text-primary hover:underline"
+                                        >
+                                          <ExternalLink className="h-3 w-3" />
+                                          {link.label || link.url || link}
+                                        </a>
+                                      ))
+                                    ) : (
+                                      <p className="text-sm text-muted-foreground">No links provided</p>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {app.status !== "pending" && !app.appeal_status && (
+                                  <div className="pt-4 border-t">
+                                    <Label className="text-sm font-semibold">Review Information</Label>
+                                    <div className="text-sm mt-2 space-y-1">
+                                      <p><span className="font-medium">Status:</span> {app.status}</p>
+                                      {app.reviewed_at && (
+                                        <p><span className="font-medium">Reviewed:</span> {format(new Date(app.reviewed_at), "PPpp")}</p>
+                                      )}
+                                      {app.rejection_reason && (
+                                        <div>
+                                          <span className="font-medium">Rejection Reason:</span>
+                                          <p className="text-muted-foreground mt-1">{app.rejection_reason}</p>
+                                        </div>
+                                      )}
+                                      {app.admin_notes && (
+                                        <div>
+                                          <span className="font-medium">Admin Notes:</span>
+                                          <p className="text-muted-foreground mt-1">{app.admin_notes}</p>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {app.appeal_status === "pending" && app.appeal_reason && (
+                                  <div className="pt-4 border-t">
+                                    <Label className="text-sm font-semibold text-purple-600 dark:text-purple-400">Appeal Submitted</Label>
+                                    <div className="text-sm mt-2 space-y-1">
+                                      <p><span className="font-medium">Original Rejection:</span></p>
+                                      <p className="text-muted-foreground">{app.rejection_reason}</p>
+                                      <p className="mt-2"><span className="font-medium">Appeal Reason:</span></p>
+                                      <div className="bg-muted p-3 rounded-md max-h-32 overflow-y-auto">
+                                        {app.appeal_reason}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Right Panel - Review Actions */}
+                              <div className="space-y-4">
+                                {app.status === "pending" && app.appeal_status !== "pending" && (
+                                  <>
+                                    <div>
+                                      <Label htmlFor="admin-notes">Admin Notes (Optional)</Label>
+                                      <Textarea
+                                        id="admin-notes"
+                                        placeholder="Add any notes about this application..."
+                                        value={adminNotes}
+                                        onChange={(e) => setAdminNotes(e.target.value)}
+                                        className="mt-1"
+                                        rows={3}
+                                      />
+                                    </div>
+
+                                    <Button
+                                      className="w-full bg-green-600 hover:bg-green-700"
+                                      onClick={handleApprove}
+                                      disabled={processing}
+                                    >
+                                      {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <CheckCircle className="h-4 w-4 mr-2" />}
+                                      Approve & Create Artist Account
+                                    </Button>
+
+                                    <div className="pt-4 border-t">
+                                      <Label htmlFor="rejection-reason">Rejection Reason *</Label>
+                                      <Textarea
+                                        id="rejection-reason"
+                                        placeholder="Explain why this application is being rejected..."
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        className="mt-1"
+                                        rows={4}
+                                      />
+                                      <Button
+                                        variant="destructive"
+                                        className="w-full mt-2"
+                                        onClick={handleReject}
+                                        disabled={processing || !rejectionReason.trim()}
+                                      >
+                                        {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <XCircle className="h-4 w-4 mr-2" />}
+                                        Reject Application
+                                      </Button>
+                                    </div>
+                                  </>
+                                )}
+
+                                {app.appeal_status === "pending" && (
+                                  <>
+                                    <div>
+                                      <Label htmlFor="appeal-action">Appeal Decision *</Label>
+                                      <Select value={appealAction} onValueChange={setAppealAction}>
+                                        <SelectTrigger className="mt-1">
+                                          <SelectValue placeholder="Choose action..." />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          <SelectItem value="approve">Approve Appeal</SelectItem>
+                                          <SelectItem value="reject">Reject Appeal</SelectItem>
+                                        </SelectContent>
+                                      </Select>
+                                    </div>
+
+                                    {appealAction === "reject" && (
+                                      <div>
+                                        <Label htmlFor="appeal-rejection">Appeal Rejection Reason *</Label>
+                                        <Textarea
+                                          id="appeal-rejection"
+                                          placeholder="Explain why the appeal is being rejected..."
+                                          value={rejectionReason}
+                                          onChange={(e) => setRejectionReason(e.target.value)}
+                                          className="mt-1"
+                                          rows={4}
+                                        />
+                                      </div>
+                                    )}
+
+                                    <div>
+                                      <Label htmlFor="appeal-notes">Admin Notes (Optional)</Label>
+                                      <Textarea
+                                        id="appeal-notes"
+                                        placeholder="Add any notes..."
+                                        value={adminNotes}
+                                        onChange={(e) => setAdminNotes(e.target.value)}
+                                        className="mt-1"
+                                        rows={3}
+                                      />
+                                    </div>
+
+                                    <Button
+                                      className="w-full"
+                                      onClick={handleAppealAction}
+                                      disabled={processing || !appealAction || (appealAction === "reject" && !rejectionReason.trim())}
+                                    >
+                                      {processing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                                      Submit Appeal Decision
+                                    </Button>
+                                  </>
+                                )}
+
+                                {app.status !== "pending" && app.appeal_status !== "pending" && (
+                                  <div className="text-center py-8 text-muted-foreground">
+                                    <p>This application has already been reviewed.</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Review Dialog */}
-      <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <AlertDialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl">{selectedApp?.artist_name}</AlertDialogTitle>
-            <AlertDialogDescription>
-              @{selectedApp?.slug} • Submitted {selectedApp && formatDistanceToNow(new Date(selectedApp.submitted_at), { addSuffix: true })}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          {selectedApp && (
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Left Panel - Application Details */}
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold mb-2">Scene / Genre</h3>
-                  <p className="text-sm text-muted-foreground">{selectedApp.scene || "Not specified"}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Bio</h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto">{selectedApp.bio}</p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold mb-2">Why Join Subamerica?</h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto">{selectedApp.why_join}</p>
-                </div>
-
-                {selectedApp.portfolio_links && Array.isArray(selectedApp.portfolio_links) && selectedApp.portfolio_links.length > 0 && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Portfolio Links</h3>
-                    <div className="space-y-1">
-                      {selectedApp.portfolio_links.map((link: any, idx: number) => (
-                        <a
-                          key={idx}
-                          href={link.url || link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-primary hover:underline flex items-center gap-1"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          {link.label || link.url || link}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedApp.rejection_reason && (
-                  <div className="p-3 bg-destructive/10 rounded-md">
-                    <h3 className="font-semibold text-sm mb-1">Original Rejection Reason</h3>
-                    <p className="text-sm text-muted-foreground">{selectedApp.rejection_reason}</p>
-                  </div>
-                )}
-
-                {selectedApp.appeal_reason && (
-                  <div className="p-3 bg-purple-500/10 rounded-md">
-                    <h3 className="font-semibold text-sm mb-1">Appeal Explanation</h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">{selectedApp.appeal_reason}</p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Appealed {formatDistanceToNow(new Date(selectedApp.appealed_at || ""), { addSuffix: true })}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Right Panel - Actions */}
-              <div className="space-y-4">
-                {selectedApp.status === "pending" && !actionType && (
-                  <>
-                    <Button
-                      className="w-full"
-                      onClick={() => openReviewDialog(selectedApp, "approve")}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Approve Application
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      onClick={() => openReviewDialog(selectedApp, "reject")}
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject Application
-                    </Button>
-                  </>
-                )}
-
-                {selectedApp.appeal_status === "pending" && !actionType && (
-                  <>
-                    <div className="p-3 bg-purple-500/10 rounded-md mb-4">
-                      <p className="text-sm font-semibold">This application has been appealed</p>
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={() => openReviewDialog(selectedApp, "appeal-approve")}
-                    >
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Approve Appeal
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      onClick={() => openReviewDialog(selectedApp, "appeal-reject")}
-                    >
-                      <XCircle className="w-4 h-4 mr-2" />
-                      Reject Appeal (Final)
-                    </Button>
-                  </>
-                )}
-
-                {actionType === "approve" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Welcome Notes (Optional)</label>
-                      <Textarea
-                        placeholder="Add a welcome message for the artist..."
-                        value={approvalNotes}
-                        onChange={(e) => setApprovalNotes(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={handleApprove}
-                      disabled={processing}
-                    >
-                      {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                      Confirm Approval & Create Artist Account
-                    </Button>
-                  </div>
-                )}
-
-                {actionType === "reject" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Rejection Reason (Required)</label>
-                      <Select value={rejectionReason} onValueChange={setRejectionReason}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a reason" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Insufficient portfolio">Insufficient portfolio</SelectItem>
-                          <SelectItem value="Does not align with Subamerica scene">Does not align with Subamerica scene</SelectItem>
-                          <SelectItem value="Incomplete application">Incomplete application</SelectItem>
-                          <SelectItem value="Other">Other (specify below)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {rejectionReason && (
-                        <Textarea
-                          className="mt-2"
-                          placeholder="Additional details..."
-                          value={rejectionReason === "Insufficient portfolio" || rejectionReason === "Does not align with Subamerica scene" || rejectionReason === "Incomplete application" ? rejectionReason : rejectionReason}
-                          onChange={(e) => setRejectionReason(e.target.value)}
-                          rows={3}
-                        />
-                      )}
-                    </div>
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      onClick={handleReject}
-                      disabled={!rejectionReason.trim() || processing}
-                    >
-                      {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <XCircle className="w-4 h-4 mr-2" />}
-                      Confirm Rejection
-                    </Button>
-                  </div>
-                )}
-
-                {actionType === "appeal-approve" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Notes (Optional)</label>
-                      <Textarea
-                        placeholder="Add notes about the appeal approval..."
-                        value={approvalNotes}
-                        onChange={(e) => setApprovalNotes(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                    <Button
-                      className="w-full"
-                      onClick={handleAppealApprove}
-                      disabled={processing}
-                    >
-                      {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                      Approve Appeal & Create Artist Account
-                    </Button>
-                  </div>
-                )}
-
-                {actionType === "appeal-reject" && (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Final Rejection Reason (Required)</label>
-                      <Textarea
-                        placeholder="Explain why the appeal is being rejected..."
-                        value={rejectionReason}
-                        onChange={(e) => setRejectionReason(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                    <Button
-                      variant="destructive"
-                      className="w-full"
-                      onClick={handleAppealReject}
-                      disabled={!rejectionReason.trim() || processing}
-                    >
-                      {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <XCircle className="w-4 h-4 mr-2" />}
-                      Final Rejection - No Further Appeals
-                    </Button>
-                  </div>
-                )}
-
-                {(selectedApp.status === "approved" || (selectedApp.status === "rejected" && !selectedApp.appeal_status)) && !actionType && (
-                  <div className="p-4 bg-muted rounded-md space-y-2">
-                    <p className="text-sm font-semibold">Review Complete</p>
-                    {selectedApp.reviewed_at && (
-                      <p className="text-xs text-muted-foreground">
-                        Reviewed {formatDistanceToNow(new Date(selectedApp.reviewed_at), { addSuffix: true })}
-                      </p>
-                    )}
-                    {selectedApp.admin_notes && (
-                      <>
-                        <p className="text-xs font-medium mt-2">Admin Notes:</p>
-                        <p className="text-xs text-muted-foreground">{selectedApp.admin_notes}</p>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => {
-              setDialogOpen(false);
-              setSelectedApp(null);
-              setActionType(null);
-              setRejectionReason("");
-              setApprovalNotes("");
-            }}>
-              Close
-            </AlertDialogCancel>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </DashboardLayout>
   );
-};
-
-export default AdminApplications;
+}
