@@ -83,7 +83,7 @@ const Features = () => {
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <span className="eyebrow">Core Capabilities</span>
-            <h2 className="text-3xl md:text-4xl font-bold mt-2">Your Complete Creator Toolkit</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mt-2">Your Complete Artist Toolkit</h2>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {[
