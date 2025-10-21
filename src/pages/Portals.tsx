@@ -645,6 +645,9 @@ function PostOverlay({
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[5]">
+      {/* Solid background to prevent see-through */}
+      <div className="absolute inset-0 bg-background" aria-hidden />
+      
       {/* Media layer */}
       {post.media_type === 'video' ? (
         active ? (
