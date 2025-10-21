@@ -49,7 +49,16 @@ const Videos = () => {
 
   const handleSubmitVideo = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!artist) return;
+    console.log('[Videos] handleSubmitVideo called');
+    console.log('[Videos] Current artist:', artist);
+    console.log('[Videos] Editing video:', editingVideo);
+    console.log('[Videos] Video file:', videoFile);
+    
+    if (!artist) {
+      console.error('[Videos] No artist data available');
+      toast.error("Artist data not loaded");
+      return;
+    }
 
     // Check video limit for new videos
     if (!editingVideo && videos.length >= 10) {
