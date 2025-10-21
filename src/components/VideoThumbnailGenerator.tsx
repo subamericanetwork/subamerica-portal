@@ -29,6 +29,38 @@ export const VideoThumbnailGenerator = ({
     console.log('[VideoThumbnailGenerator] Video URL:', videoUrl);
     
     try {
+      // Refresh session to ensure auth.uid() is current
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session) {
+        throw new Error('Please sign in again to continue');
+      }
+
+      // Verify video ownership
+      console.log('[VideoThumbnailGenerator] Verifying video ownership...');
+      const { data: videoData, error: videoError } = await supabase
+        .from('videos')
+        .select('artist_id')
+        .eq('id', videoId)
+        .single();
+
+      if (videoError || !videoData) {
+        throw new Error('Video not found');
+      }
+
+      // Verify artist ownership
+      const { data: artistData, error: artistError } = await supabase
+        .from('artists')
+        .select('id')
+        .eq('id', videoData.artist_id)
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (artistError || !artistData) {
+        throw new Error('You do not have permission to modify this video');
+      }
+
+      console.log('[VideoThumbnailGenerator] Ownership verified, proceeding with thumbnail generation');
+
       // Extract thumbnail from video
       console.log('[VideoThumbnailGenerator] Calling extractThumbnailFromVideo...');
       const thumbnailBlob = await extractThumbnailFromVideo(videoUrl, 2);
@@ -36,13 +68,7 @@ export const VideoThumbnailGenerator = ({
       
       // Upload to Supabase storage - path must match RLS policy: user_id/thumbnails/...
       const fileName = `${videoId}-${Date.now()}.jpg`;
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error('User not authenticated');
-      }
-
-      const uploadPath = `${user.id}/thumbnails/${fileName}`;
+      const uploadPath = `${session.user.id}/thumbnails/${fileName}`;
       console.log('[VideoThumbnailGenerator] Uploading to:', uploadPath);
       
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -62,7 +88,7 @@ export const VideoThumbnailGenerator = ({
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('videos')
-        .getPublicUrl(`${user.id}/thumbnails/${fileName}`);
+        .getPublicUrl(`${session.user.id}/thumbnails/${fileName}`);
       
       console.log('[VideoThumbnailGenerator] Public URL:', publicUrl);
 
