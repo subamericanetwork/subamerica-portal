@@ -16,7 +16,7 @@ export interface Playlist {
 
 export const usePlaylist = () => {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchPlaylists = async () => {
