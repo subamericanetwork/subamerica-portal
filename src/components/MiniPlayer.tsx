@@ -88,8 +88,8 @@ export const MiniPlayer = () => {
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (currentTrack.artist_id) {
-                    navigate(`/port/${currentTrack.artist_id}`);
+                  if (currentTrack.artist_slug) {
+                    navigate(`/${currentTrack.artist_slug}`);
                   }
                 }}
                 className="text-xs text-muted-foreground truncate hover:text-primary hover:underline transition-colors text-left"

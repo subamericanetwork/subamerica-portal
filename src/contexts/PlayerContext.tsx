@@ -8,6 +8,7 @@ interface Track {
   title: string;
   artist_name: string;
   artist_id: string;
+  artist_slug: string;
   thumbnail_url: string;
   video_url: string;
   duration: number;
@@ -102,20 +103,21 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             .in('id', playlist.video_ids);
 
           if (videos) {
-            // Get artist names
+            // Get artist names and slugs
             const artistIds = videos.map(v => v.artist_id);
             const { data: artists } = await supabase
               .from('artists')
-              .select('id, display_name')
+              .select('id, display_name, slug')
               .in('id', artistIds);
 
-            const artistMap = new Map(artists?.map(a => [a.id, a.display_name]) || []);
+            const artistMap = new Map(artists?.map(a => [a.id, { name: a.display_name, slug: a.slug }]) || []);
 
             const tracksData: Track[] = videos.map(v => ({
               id: v.id,
               title: v.title,
-              artist_name: artistMap.get(v.artist_id) || 'Unknown Artist',
+              artist_name: artistMap.get(v.artist_id)?.name || 'Unknown Artist',
               artist_id: v.artist_id,
+              artist_slug: artistMap.get(v.artist_id)?.slug || '',
               thumbnail_url: v.thumb_url,
               video_url: v.video_url || '',
               duration: v.duration || 0,
