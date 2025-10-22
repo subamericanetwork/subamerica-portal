@@ -11,16 +11,22 @@ import { useEffect, useState } from "react";
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const { playlists, loading } = usePlaylist();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [displayName, setDisplayName] = useState<string>("");
 
   useEffect(() => {
     const fetchUserProfile = async () => {
       console.log("MemberDashboard: Starting to fetch user profile");
+      console.log("MemberDashboard: Auth loading:", authLoading);
       console.log("MemberDashboard: User object:", user);
       
+      if (authLoading) {
+        console.log("MemberDashboard: Auth still loading, waiting...");
+        return;
+      }
+      
       if (!user) {
-        console.log("MemberDashboard: No user found, skipping fetch");
+        console.log("MemberDashboard: No user found after auth loaded");
         return;
       }
       
@@ -50,7 +56,7 @@ const MemberDashboard = () => {
     };
 
     fetchUserProfile();
-  }, [user]);
+  }, [user, authLoading]);
 
   return (
     <div className="min-h-screen p-4 gradient-hero">
