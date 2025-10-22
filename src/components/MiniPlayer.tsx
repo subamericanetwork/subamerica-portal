@@ -3,13 +3,86 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X, Info } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X, Info, GripVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { enablePictureInPicture } from '@/lib/mediaUtils';
+import { useState, useEffect, useRef } from 'react';
 
 export const MiniPlayer = () => {
   const { currentTrack, isPlaying, contentType, viewMode, videoRef, miniPlayerVisible, play, pause, next, previous, setViewMode, setMiniPlayerVisible } = usePlayer();
   const navigate = useNavigate();
+  
+  const [position, setPosition] = useState({ x: 0, y: 64 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  // Load position from localStorage on mount
+  useEffect(() => {
+    const savedPosition = localStorage.getItem('miniPlayerPosition');
+    if (savedPosition) {
+      try {
+        const parsed = JSON.parse(savedPosition);
+        setPosition(parsed);
+      } catch (e) {
+        // Default to top-right if parsing fails
+        setPosition({ x: window.innerWidth - 400, y: 64 });
+      }
+    } else {
+      // Default to top-right
+      setPosition({ x: window.innerWidth - 400, y: 64 });
+    }
+  }, []);
+
+  // Handle viewport resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (!playerRef.current) return;
+      const rect = playerRef.current.getBoundingClientRect();
+      const newX = Math.min(position.x, window.innerWidth - rect.width - 16);
+      const newY = Math.min(position.y, window.innerHeight - rect.height - 16);
+      if (newX !== position.x || newY !== position.y) {
+        const newPosition = { x: Math.max(16, newX), y: Math.max(64, newY) };
+        setPosition(newPosition);
+        localStorage.setItem('miniPlayerPosition', JSON.stringify(newPosition));
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [position]);
+
+  // Handle dragging
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleDrag = (e: MouseEvent) => {
+      if (!playerRef.current) return;
+      
+      const rect = playerRef.current.getBoundingClientRect();
+      let newX = e.clientX - dragStart.x;
+      let newY = e.clientY - dragStart.y;
+
+      // Boundary checking
+      newX = Math.max(16, Math.min(newX, window.innerWidth - rect.width - 16));
+      newY = Math.max(64, Math.min(newY, window.innerHeight - rect.height - 16));
+
+      setPosition({ x: newX, y: newY });
+    };
+
+    const handleDragEnd = () => {
+      setIsDragging(false);
+      localStorage.setItem('miniPlayerPosition', JSON.stringify(position));
+    };
+
+    window.addEventListener('mousemove', handleDrag);
+    window.addEventListener('mouseup', handleDragEnd);
+
+    return () => {
+      window.removeEventListener('mousemove', handleDrag);
+      window.removeEventListener('mouseup', handleDragEnd);
+    };
+  }, [isDragging, dragStart, position]);
 
   if (!currentTrack || !miniPlayerVisible) return null;
 
@@ -46,10 +119,38 @@ export const MiniPlayer = () => {
     }
   };
 
+  const handleDragStart = (e: React.MouseEvent) => {
+    if (!playerRef.current) return;
+    const rect = playerRef.current.getBoundingClientRect();
+    setDragStart({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+    setIsDragging(true);
+  };
+
   return (
-    <div className="fixed top-[64px] right-4 z-30 border rounded-lg bg-background/95 backdrop-blur-sm shadow-lg animate-slide-in-from-top max-w-fit">
+    <div 
+      ref={playerRef}
+      className={cn(
+        "fixed z-30 border rounded-lg bg-background/95 backdrop-blur-sm max-w-fit transition-shadow",
+        isDragging ? "shadow-2xl cursor-grabbing" : "shadow-lg"
+      )}
+      style={{ left: `${position.x}px`, top: `${position.y}px` }}
+    >
       <div className="px-3 py-2">
         <div className="flex items-center gap-3">
+          {/* Drag Handle */}
+          <div
+            className={cn(
+              "shrink-0 border-r pr-2 -ml-1",
+              isDragging ? "cursor-grabbing" : "cursor-grab"
+            )}
+            onMouseDown={handleDragStart}
+            title="Drag to move player"
+          >
+            <GripVertical className="h-4 w-4 text-muted-foreground" />
+          </div>
           {/* Track Info */}
           <div 
             className="flex items-center gap-2 cursor-pointer group"
