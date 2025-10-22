@@ -4,17 +4,44 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Music, Video, Calendar, Heart, Sparkles, ArrowRight, ListMusic, Headphones, Users, Ticket } from "lucide-react";
 import logo from "@/assets/subamerica-logo.jpg";
 import { usePlaylist } from "@/hooks/usePlaylist";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
   const { playlists, loading } = usePlaylist();
+  const { user } = useAuth();
+  const [displayName, setDisplayName] = useState<string>("");
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("display_name")
+        .eq("user_id", user.id)
+        .single();
+      
+      if (data?.display_name) {
+        // Extract first name from display name
+        const firstName = data.display_name.split(" ")[0];
+        setDisplayName(firstName);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   return (
     <div className="min-h-screen p-4 gradient-hero">
       <div className="max-w-6xl mx-auto py-8">
         <div className="text-center mb-8">
           <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold mb-2">Welcome to Subamerica</h1>
+          <h1 className="text-4xl font-bold mb-2">
+            Welcome to Subamerica{displayName && `, ${displayName}`}!
+          </h1>
           <p className="text-muted-foreground text-lg mb-2">
             The Indie Underground Lives Here<br />
             Stream fearless art, music, and stories 24/7. You're not just watching — you're part of the crew.
