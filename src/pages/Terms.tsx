@@ -1,43 +1,15 @@
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Home, Play, Sparkles, Info, LogIn } from "lucide-react";
-import logo from "@/assets/subamerica-logo-small.jpg";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
 
 const Terms = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/20 backdrop-blur-md supports-[backdrop-filter]:bg-background/10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            {/* Left: Logo + "Subamerica" */}
-            <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-              <img src={logo} alt="Subamerica" className="h-10 w-10 rounded-lg" />
-              <span className="text-xl font-bold">Subamerica</span>
-            </div>
-
-            {/* Right: Navigation */}
-            <nav className="hidden md:flex items-center gap-2">
-              <Button variant="ghost" onClick={() => navigate("/")}><Home className="h-4 w-4 mr-2" />Home</Button>
-              <Button variant="ghost" onClick={() => navigate("/watch")}><Play className="h-4 w-4 mr-2" />Watch</Button>
-              <Button variant="ghost" onClick={() => navigate("/features")}><Sparkles className="h-4 w-4 mr-2" />Features</Button>
-              <Button variant="ghost" onClick={() => navigate("/auth")}><LogIn className="h-4 w-4 mr-2" />Login</Button>
-              <Button onClick={() => navigate("/auth?tab=signup")}>Get Started</Button>
-            </nav>
-
-            {/* Mobile: Auth Buttons */}
-            <div className="flex md:hidden items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}><LogIn className="h-4 w-4" /></Button>
-              <Button size="sm" onClick={() => navigate("/auth?tab=signup")}>Get Started</Button>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ConditionalHeader />
 
       {/* Terms Content */}
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
+      <div className="container mx-auto px-4 py-16 max-w-4xl pt-[80px]">
         {/* Title */}
         <h1 className="text-4xl font-bold mb-2">Subamerica Network – Terms of Service</h1>
         

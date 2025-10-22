@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight, X, Home, Sparkles, LogIn, ArrowRight } from "lucide-react";
+import { Play, ShoppingBag, Ticket, ExternalLink, ChevronUp, ChevronDown, Heart, Share2, Radio, Info, Volume2, VolumeX, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
 
 interface ArtistPost {
   title: string;
@@ -55,53 +55,10 @@ export default function Portals() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <ConditionalHeader />
       <PortalsFeed />
       <FooterRibbon isVisible={showInstructions} onClose={handleDismissInstructions} />
     </div>
-  );
-}
-
-function Header() {
-  const navigate = useNavigate();
-  
-  return (
-    <header className="fixed top-0 z-40 w-full border-b border-border bg-background/20 backdrop-blur-md supports-[backdrop-filter]:bg-background/10">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        {/* Left: Logo + "Subamerica" */}
-        <div className="flex items-center gap-3">
-          <img src={subamericaLogo} alt="Subamerica" className="h-8" />
-          <span className="text-lg font-semibold">Subamerica</span>
-        </div>
-        
-        {/* Right: Navigation Links */}
-        <div className="flex items-center gap-2">
-          {/* Desktop Navigation */}
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/")}>
-            <Home className="h-4 w-4" />
-            Home
-          </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/watch")}>
-            <Play className="h-4 w-4" />
-            Watch
-          </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/features")}>
-            <Sparkles className="h-4 w-4" />
-            Features
-          </Button>
-          
-          {/* Mobile + Desktop */}
-          <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
-            <LogIn className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Login</span>
-          </Button>
-          <Button size="sm" className="glow-primary" onClick={() => navigate("/auth?tab=signup")}>
-            Get Started
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-    </header>
   );
 }
 
@@ -360,7 +317,7 @@ function PortalsFeed() {
   return (
     <main
       ref={containerRef}
-      className="mx-auto h-[calc(100vh-64px)] w-full max-w-6xl snap-y snap-mandatory overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      className="mx-auto h-[calc(100vh-64px)] w-full max-w-6xl snap-y snap-mandatory overflow-y-scroll [scrollbar-width:none] [&::-webkit-scrollbar]:hidden mt-[64px]"
       aria-label="Artist portals feed"
     >
       {artists.map((artist, idx) => (

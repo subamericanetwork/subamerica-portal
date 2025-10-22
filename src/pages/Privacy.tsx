@@ -1,49 +1,15 @@
-import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Home, Play, Sparkles, Info, LogIn } from "lucide-react";
-import logo from "@/assets/subamerica-logo-small.jpg";
+import { ConditionalHeader } from "@/components/ConditionalHeader";
 
 const Privacy = () => {
   const navigate = useNavigate();
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/20 backdrop-blur-md supports-[backdrop-filter]:bg-background/10">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src={logo} alt="Subamerica Logo" className="h-10 w-auto" />
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
-            <Button variant="ghost" onClick={() => navigate("/")} className="gap-2">
-              <Home className="h-4 w-4" />
-              Home
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/watch")} className="gap-2">
-              <Play className="h-4 w-4" />
-              Watch
-            </Button>
-            <Button variant="ghost" onClick={() => navigate("/features")} className="gap-2">
-              <Sparkles className="h-4 w-4" />
-              Features
-            </Button>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" onClick={() => navigate("/auth")} className="gap-2">
-              <LogIn className="h-4 w-4" />
-              Login
-            </Button>
-            <Button onClick={() => navigate("/auth?tab=signup")}>
-              Get Started
-            </Button>
-          </div>
-        </div>
-      </header>
+      <ConditionalHeader />
 
       {/* Privacy Policy Content */}
-      <div className="container mx-auto px-4 py-16 max-w-4xl">
+      <div className="container mx-auto px-4 py-16 max-w-4xl pt-[80px]">
         <h1 className="text-4xl font-bold mb-2">Subamerica Network – Privacy Policy</h1>
         
         <div className="text-muted-foreground mb-8">
