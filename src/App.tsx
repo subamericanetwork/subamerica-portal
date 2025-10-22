@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { PlayerProvider } from "@/contexts/PlayerContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import ArtistRoute from "@/components/ArtistRoute";
@@ -49,7 +50,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-        <Routes>
+          <PlayerProvider>
+            <Routes>
           <Route path="/" element={<ArtistPortal />} />
           <Route path="/portals" element={<Portals />} />
           <Route path="/features" element={<Features />} />
@@ -90,7 +92,8 @@ const App = () => (
           <Route path="/watch" element={<Watch />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
-        </Routes>
+            </Routes>
+          </PlayerProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

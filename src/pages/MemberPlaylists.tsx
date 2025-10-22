@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePlaylist } from '@/hooks/usePlaylist';
+import { usePlayer } from '@/contexts/PlayerContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 export default function MemberPlaylists() {
   const navigate = useNavigate();
   const { playlists, loading, deletePlaylist } = usePlaylist();
+  const { setPlaylist } = usePlayer();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [playlistToDelete, setPlaylistToDelete] = useState<string | null>(null);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
@@ -35,9 +37,10 @@ export default function MemberPlaylists() {
       const firstPlaylistWithVideos = playlists.find(p => p.video_ids.length > 0);
       if (firstPlaylistWithVideos) {
         setSelectedPlaylistId(firstPlaylistWithVideos.id);
+        setPlaylist(firstPlaylistWithVideos.id);
       }
     }
-  }, [playlists, selectedPlaylistId]);
+  }, [playlists, selectedPlaylistId, setPlaylist]);
 
   const handleDeleteClick = (playlistId: string) => {
     setPlaylistToDelete(playlistId);
@@ -122,7 +125,10 @@ export default function MemberPlaylists() {
                       "cursor-pointer transition-all hover:shadow-md",
                       selectedPlaylistId === playlist.id && "border-primary bg-primary/5 shadow-lg"
                     )}
-                    onClick={() => setSelectedPlaylistId(playlist.id)}
+                    onClick={() => {
+                      setSelectedPlaylistId(playlist.id);
+                      setPlaylist(playlist.id);
+                    }}
                   >
                     <CardHeader className="p-4">
                       <div className="flex items-start justify-between gap-2">

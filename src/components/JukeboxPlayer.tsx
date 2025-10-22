@@ -1,4 +1,5 @@
-import { useJukeboxPlayer } from '@/hooks/useJukeboxPlayer';
+import { useEffect } from 'react';
+import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
@@ -29,7 +30,6 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     loading,
     shuffle,
     repeat,
-    audioRef,
     play,
     pause,
     next,
@@ -38,7 +38,15 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     seek,
     toggleShuffle,
     toggleRepeat,
-  } = useJukeboxPlayer(playlistId);
+    setPlaylist,
+  } = usePlayer();
+
+  // Set playlist when component mounts or playlistId changes
+  useEffect(() => {
+    if (playlistId) {
+      setPlaylist(playlistId);
+    }
+  }, [playlistId, setPlaylist]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -68,14 +76,6 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
 
   return (
     <div className={cn("jukebox-container", className)}>
-      {/* Hidden Audio Element */}
-      <audio
-        ref={audioRef}
-        src={currentTrack?.video_url}
-        onPlay={() => play()}
-        onPause={() => pause()}
-      />
-
       {/* Top Section - Now Playing */}
       <div className="jukebox-top">
         {/* Main playback area */}
