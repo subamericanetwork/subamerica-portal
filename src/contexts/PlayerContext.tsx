@@ -32,6 +32,7 @@ interface PlayerContextType {
   miniPlayerVisible: boolean;
   audioRef: React.RefObject<HTMLAudioElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
+  visibleVideoRef: React.RefObject<HTMLVideoElement>;
   setPlaylist: (playlistId: string) => void;
   play: () => void;
   pause: () => void;
@@ -59,6 +60,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const visibleVideoRef = useRef<HTMLVideoElement>(null);
   
   const [playlistId, setPlaylistIdState] = useState<string | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -301,6 +303,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     miniPlayerVisible,
     audioRef,
     videoRef,
+    visibleVideoRef,
     setPlaylist,
     play,
     pause,

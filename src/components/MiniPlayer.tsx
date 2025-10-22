@@ -9,7 +9,7 @@ import { enablePictureInPicture, toggleFullscreen } from '@/lib/mediaUtils';
 import { useState, useEffect, useRef } from 'react';
 
 export const MiniPlayer = () => {
-  const { currentTrack, isPlaying, contentType, viewMode, videoRef, miniPlayerVisible, play, pause, next, previous, setViewMode, setMiniPlayerVisible } = usePlayer();
+  const { currentTrack, isPlaying, contentType, viewMode, videoRef, visibleVideoRef, miniPlayerVisible, play, pause, next, previous, setViewMode, setMiniPlayerVisible } = usePlayer();
   const navigate = useNavigate();
   
   const [position, setPosition] = useState({ x: 0, y: 64 });
@@ -131,15 +131,17 @@ export const MiniPlayer = () => {
 
   const handlePictureInPicture = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (videoRef?.current) {
-      await enablePictureInPicture(videoRef.current);
+    const targetVideo = visibleVideoRef?.current || videoRef?.current;
+    if (targetVideo) {
+      await enablePictureInPicture(targetVideo);
     }
   };
 
   const handleFullscreen = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (videoRef?.current?.parentElement) {
-      await toggleFullscreen(videoRef.current.parentElement);
+    const targetVideo = visibleVideoRef?.current || videoRef?.current;
+    if (targetVideo?.parentElement) {
+      await toggleFullscreen(targetVideo.parentElement);
     }
   };
 
@@ -223,7 +225,7 @@ export const MiniPlayer = () => {
             )}
             
             {/* Video Controls - Only show when in video mode */}
-            {contentType === 'video' && viewMode === 'video' && videoRef?.current && (
+            {contentType === 'video' && viewMode === 'video' && (visibleVideoRef?.current || videoRef?.current) && (
               <>
                 <TooltipProvider>
                   <Tooltip>

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,7 +37,8 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     repeat,
     viewMode,
     contentType,
-    videoRef,
+    videoRef: contextVideoRef,
+    visibleVideoRef,
     play,
     pause,
     next,
@@ -50,6 +51,7 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     setViewMode,
   } = usePlayer();
   
+  const localVideoRef = useRef<HTMLVideoElement>(null);
   const effectiveViewMode = viewMode === 'auto' ? contentType : viewMode;
 
   // Set playlist when component mounts or playlistId changes
@@ -58,6 +60,18 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
       setPlaylist(playlistId);
     }
   }, [playlistId, setPlaylist]);
+
+  // Sync local video ref to context's visible video ref
+  useEffect(() => {
+    if (localVideoRef.current && visibleVideoRef) {
+      (visibleVideoRef as React.MutableRefObject<HTMLVideoElement>).current = localVideoRef.current;
+    }
+    return () => {
+      if (visibleVideoRef) {
+        (visibleVideoRef as React.MutableRefObject<HTMLVideoElement>).current = null;
+      }
+    };
+  }, [localVideoRef.current, visibleVideoRef]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -117,7 +131,7 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
             {effectiveViewMode === 'video' && currentTrack?.video_url ? (
               <div className="relative w-80 h-80 rounded-lg overflow-hidden shadow-2xl">
                 <video
-                  ref={videoRef}
+                  ref={localVideoRef}
                   src={currentTrack.video_url}
                   poster={currentTrack.thumbnail_url}
                   className="w-full h-full object-cover"
@@ -131,8 +145,8 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
                     className="h-8 w-8 bg-background/80 backdrop-blur-sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (videoRef.current) {
-                        enablePictureInPicture(videoRef.current);
+                      if (localVideoRef.current) {
+                        enablePictureInPicture(localVideoRef.current);
                       }
                     }}
                   >
@@ -144,8 +158,8 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
                     className="h-8 w-8 bg-background/80 backdrop-blur-sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (videoRef.current?.parentElement) {
-                        toggleFullscreen(videoRef.current.parentElement);
+                      if (localVideoRef.current?.parentElement) {
+                        toggleFullscreen(localVideoRef.current.parentElement);
                       }
                     }}
                   >
