@@ -1,7 +1,7 @@
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Music, Video, Calendar, Heart, Sparkles, ArrowRight, ListMusic } from "lucide-react";
+import { Music, Video, Calendar, Heart, Sparkles, ArrowRight, ListMusic, Headphones, Users, Ticket } from "lucide-react";
 import logo from "@/assets/subamerica-logo.jpg";
 import { usePlaylist } from "@/hooks/usePlaylist";
 
@@ -69,21 +69,21 @@ const MemberDashboard = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-3 mb-6 text-sm">
+              <ul className="space-y-2 mb-6 text-sm">
                 <li className="flex items-start gap-2">
-                  <span>🎧</span>
+                  <Headphones className="h-4 w-4 mt-0.5 text-violet-500" />
                   <span><strong>Curate Your Vibe</strong> — Build unlimited playlists with our Jukebox player.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span>💫</span>
+                  <Users className="h-4 w-4 mt-0.5 text-violet-500" />
                   <span><strong>Discover Artists</strong> — Explore fearless creators and exclusive drops.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span>💜</span>
+                  <Heart className="h-4 w-4 mt-0.5 text-violet-500" />
                   <span><strong>Support & Share</strong> — Tip, follow, and show love to your favorites.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span>🎟️</span>
+                  <Ticket className="h-4 w-4 mt-0.5 text-violet-500" />
                   <span><strong>Shop & Show Up</strong> — Buy merch, grab tickets, and power independent culture.</span>
                 </li>
               </ul>
