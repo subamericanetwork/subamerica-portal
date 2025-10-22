@@ -5,14 +5,16 @@ import { Progress } from './ui/progress';
 import { VideoFeedControls } from './VideoFeedControls';
 
 interface VideoFeedItemProps {
-  video: {
+  content: {
     id: string;
     title: string;
     kind: string;
-    video_url: string;
+    video_url?: string;
+    audio_url?: string;
     thumb_url?: string;
     duration?: number;
     artist_id: string;
+    content_type: 'video' | 'audio';
     artists?: {
       display_name: string;
       slug: string;
@@ -22,13 +24,16 @@ interface VideoFeedItemProps {
   onVideoRef?: (ref: HTMLVideoElement | null) => void;
 }
 
-export const VideoFeedItem = ({ video, isActive, onVideoRef }: VideoFeedItemProps) => {
+export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+
+  const isAudio = content.content_type === 'audio';
 
   useEffect(() => {
     if (videoRef.current && onVideoRef) {
@@ -37,64 +42,66 @@ export const VideoFeedItem = ({ video, isActive, onVideoRef }: VideoFeedItemProp
   }, [onVideoRef]);
 
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
+    const mediaElement = isAudio ? audioRef.current : videoRef.current;
+    if (!mediaElement) return;
 
     if (isActive) {
-      videoElement.play().then(() => {
+      mediaElement.play().then(() => {
         setIsPlaying(true);
       }).catch(() => {
         setIsPlaying(false);
       });
     } else {
-      videoElement.pause();
+      mediaElement.pause();
       setIsPlaying(false);
     }
-  }, [isActive]);
+  }, [isActive, isAudio]);
 
   useEffect(() => {
-    const videoElement = videoRef.current;
-    if (!videoElement) return;
+    const mediaElement = isAudio ? audioRef.current : videoRef.current;
+    if (!mediaElement) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(videoElement.currentTime);
-      setProgress((videoElement.currentTime / videoElement.duration) * 100);
+      setCurrentTime(mediaElement.currentTime);
+      setProgress((mediaElement.currentTime / mediaElement.duration) * 100);
     };
 
     const handleLoadedMetadata = () => {
-      setDuration(videoElement.duration);
+      setDuration(mediaElement.duration);
     };
 
     const handleEnded = () => {
       setIsPlaying(false);
     };
 
-    videoElement.addEventListener('timeupdate', handleTimeUpdate);
-    videoElement.addEventListener('loadedmetadata', handleLoadedMetadata);
-    videoElement.addEventListener('ended', handleEnded);
+    mediaElement.addEventListener('timeupdate', handleTimeUpdate);
+    mediaElement.addEventListener('loadedmetadata', handleLoadedMetadata);
+    mediaElement.addEventListener('ended', handleEnded);
 
     return () => {
-      videoElement.removeEventListener('timeupdate', handleTimeUpdate);
-      videoElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      videoElement.removeEventListener('ended', handleEnded);
+      mediaElement.removeEventListener('timeupdate', handleTimeUpdate);
+      mediaElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      mediaElement.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [isAudio]);
 
   const togglePlayPause = () => {
-    if (!videoRef.current) return;
+    const mediaElement = isAudio ? audioRef.current : videoRef.current;
+    if (!mediaElement) return;
 
     if (isPlaying) {
-      videoRef.current.pause();
+      mediaElement.pause();
       setIsPlaying(false);
     } else {
-      videoRef.current.play();
+      mediaElement.play();
       setIsPlaying(true);
     }
   };
 
   const toggleMute = () => {
-    if (!videoRef.current) return;
-    videoRef.current.muted = !isMuted;
+    const mediaElement = isAudio ? audioRef.current : videoRef.current;
+    if (!mediaElement) return;
+    mediaElement.muted = !isMuted;
     setIsMuted(!isMuted);
   };
 
@@ -106,16 +113,40 @@ export const VideoFeedItem = ({ video, isActive, onVideoRef }: VideoFeedItemProp
 
   return (
     <div className="relative w-full h-full bg-black snap-start snap-always">
-      <video
-        ref={videoRef}
-        src={video.video_url}
-        poster={video.thumb_url}
-        className="w-full h-full object-contain"
-        loop
-        playsInline
-        muted={isMuted}
-        onClick={togglePlayPause}
-      />
+      {isAudio ? (
+        <>
+          {/* Audio with Thumbnail Background */}
+          <div 
+            className="w-full h-full bg-cover bg-center flex items-center justify-center relative"
+            style={{
+              backgroundImage: content.thumb_url ? `url(${content.thumb_url})` : 'none',
+              backgroundColor: content.thumb_url ? 'transparent' : '#000'
+            }}
+          >
+            {/* Dark overlay for better text readability */}
+            <div className="absolute inset-0 bg-black/40" />
+            
+            {/* Audio element */}
+            <audio
+              ref={audioRef}
+              src={content.audio_url}
+              loop
+              muted={isMuted}
+            />
+          </div>
+        </>
+      ) : (
+        <video
+          ref={videoRef}
+          src={content.video_url}
+          poster={content.thumb_url}
+          className="w-full h-full object-contain"
+          loop
+          playsInline
+          muted={isMuted}
+          onClick={togglePlayPause}
+        />
+      )}
 
       {/* Center Play/Pause Button */}
       <button
@@ -130,9 +161,9 @@ export const VideoFeedItem = ({ video, isActive, onVideoRef }: VideoFeedItemProp
       </button>
 
       {/* Top Controls */}
-      <div className="absolute top-4 left-4 right-4 flex justify-between items-center">
+      <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
         <div className="bg-background/80 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium">
-          {video.kind || 'Video'}
+          {content.kind || (isAudio ? 'Audio Track' : 'Video')}
         </div>
         <Button
           size="icon"
@@ -145,14 +176,14 @@ export const VideoFeedItem = ({ video, isActive, onVideoRef }: VideoFeedItemProp
       </div>
 
       {/* Bottom Progress Bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10">
         <div className="space-y-2">
           <Progress value={progress} className="h-1" />
           <div className="flex justify-between items-end">
             <div className="text-white space-y-1 flex-1">
-              <h3 className="font-semibold text-lg line-clamp-1">{video.title}</h3>
-              {video.artists && (
-                <p className="text-sm text-white/80">@{video.artists.display_name}</p>
+              <h3 className="font-semibold text-lg line-clamp-1">{content.title}</h3>
+              {content.artists && (
+                <p className="text-sm text-white/80">@{content.artists.display_name}</p>
               )}
             </div>
             <div className="text-white/80 text-xs ml-4">
@@ -164,9 +195,9 @@ export const VideoFeedItem = ({ video, isActive, onVideoRef }: VideoFeedItemProp
 
       {/* Right Side Controls */}
       <VideoFeedControls 
-        videoId={video.id} 
-        artistId={video.artist_id}
-        artistSlug={video.artists?.slug}
+        videoId={content.id} 
+        artistId={content.artist_id}
+        artistSlug={content.artists?.slug}
       />
     </div>
   );

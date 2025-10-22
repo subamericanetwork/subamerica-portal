@@ -3,14 +3,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { VideoFeedItem } from './VideoFeedItem';
 import { Loader2 } from 'lucide-react';
 
-interface Video {
+interface ContentItem {
   id: string;
   title: string;
   kind: string;
-  video_url: string;
+  video_url?: string;
+  audio_url?: string;
   thumb_url?: string;
   duration?: number;
   artist_id: string;
+  content_type: 'video' | 'audio';
   artists?: {
     display_name: string;
     slug: string;
@@ -23,7 +25,7 @@ interface VerticalVideoFeedProps {
 }
 
 export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVideoFeedProps) => {
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -32,16 +34,19 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
   const fetchVideos = useCallback(async () => {
     setLoading(true);
     try {
+      const allContent: ContentItem[] = [];
+
       if (mode === 'playlist' && playlistId) {
-        // Get videos from specific playlist
+        // Get content from specific playlist
         const { data: playlist, error: playlistError } = await supabase
           .from('member_playlists')
-          .select('video_ids')
+          .select('video_ids, audio_ids')
           .eq('id', playlistId)
           .single();
 
         if (playlistError) throw playlistError;
 
+        // Fetch videos
         if (playlist?.video_ids && playlist.video_ids.length > 0) {
           const { data: videosData, error: videosError } = await supabase
             .from('videos')
@@ -63,18 +68,49 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
 
           if (videosError) throw videosError;
 
-          // Maintain playlist order
-          const orderedVideos = playlist.video_ids
-            .map(id => videosData?.find(v => v.id === id))
-            .filter((v): v is any => v !== undefined) as Video[];
+          const videos = videosData?.map(v => ({
+            ...v,
+            content_type: 'video' as const
+          })) || [];
 
-          setVideos(orderedVideos);
-        } else {
-          setVideos([]);
+          allContent.push(...videos);
         }
+
+        // Fetch audio tracks
+        if (playlist?.audio_ids && playlist.audio_ids.length > 0) {
+          const { data: audioData, error: audioError } = await supabase
+            .from('audio_tracks')
+            .select(`
+              id,
+              title,
+              audio_url,
+              thumb_url,
+              duration,
+              artist_id,
+              artists!inner (
+                display_name,
+                slug
+              )
+            `)
+            .in('id', playlist.audio_ids)
+            .eq('status', 'ready');
+
+          if (audioError) throw audioError;
+
+          const audio = audioData?.map(a => ({
+            ...a,
+            kind: 'audio',
+            content_type: 'audio' as const
+          })) || [];
+
+          allContent.push(...audio);
+        }
+
+        setContentItems(allContent);
       } else {
-        // Get all published videos from catalog
-        const { data, error } = await supabase
+        // Get all published content from catalog
+        // Fetch videos
+        const { data: videosData, error: videosError } = await supabase
           .from('videos')
           .select(`
             id,
@@ -96,14 +132,59 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
           .not('published_at', 'is', null)
           .eq('artists.port_settings.publish_status', 'published')
           .order('published_at', { ascending: false })
-          .limit(50);
+          .limit(25);
 
-        if (error) throw error;
-        setVideos((data as any[]) || []);
+        if (videosError) throw videosError;
+
+        const videos = (videosData as any[])?.map(v => ({
+          ...v,
+          content_type: 'video' as const
+        })) || [];
+
+        allContent.push(...videos);
+
+        // Fetch audio tracks
+        const { data: audioData, error: audioError } = await supabase
+          .from('audio_tracks')
+          .select(`
+            id,
+            title,
+            audio_url,
+            thumb_url,
+            duration,
+            artist_id,
+            artists!inner (
+              display_name,
+              slug,
+              port_settings!inner (
+                publish_status
+              )
+            )
+          `)
+          .eq('status', 'ready')
+          .not('published_at', 'is', null)
+          .eq('artists.port_settings.publish_status', 'published')
+          .order('published_at', { ascending: false })
+          .limit(25);
+
+        if (audioError) throw audioError;
+
+        const audio = (audioData as any[])?.map(a => ({
+          ...a,
+          kind: 'audio',
+          content_type: 'audio' as const
+        })) || [];
+
+        allContent.push(...audio);
+
+        // Shuffle to mix videos and audio
+        allContent.sort(() => Math.random() - 0.5);
+
+        setContentItems(allContent);
       }
     } catch (error) {
-      console.error('Error fetching videos:', error);
-      setVideos([]);
+      console.error('Error fetching content:', error);
+      setContentItems([]);
     } finally {
       setLoading(false);
     }
@@ -137,7 +218,7 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
     return () => {
       observers.forEach((observer) => observer.disconnect());
     };
-  }, [videos.length]);
+  }, [contentItems.length]);
 
   if (loading) {
     return (
@@ -147,13 +228,13 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
     );
   }
 
-  if (videos.length === 0) {
+  if (contentItems.length === 0) {
     return (
       <div className="flex items-center justify-center h-full bg-background">
         <div className="text-center text-muted-foreground">
-          <p className="text-lg font-medium">No videos available</p>
+          <p className="text-lg font-medium">No content available</p>
           <p className="text-sm mt-2">
-            {mode === 'playlist' ? 'This playlist is empty' : 'No videos in the catalog yet'}
+            {mode === 'playlist' ? 'This playlist is empty' : 'No content in the catalog yet'}
           </p>
         </div>
       </div>
@@ -171,13 +252,13 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
           display: none;
         }
       `}</style>
-      {videos.map((video, index) => (
+      {contentItems.map((item, index) => (
         <div
-          key={video.id}
+          key={item.id}
           ref={(el) => (observerRefs.current[index] = el)}
           className="h-full w-full"
         >
-          <VideoFeedItem video={video} isActive={activeIndex === index} />
+          <VideoFeedItem content={item} isActive={activeIndex === index} />
         </div>
       ))}
     </div>
