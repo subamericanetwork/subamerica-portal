@@ -4,13 +4,15 @@ import subamericaLogo from '@/assets/subamerica-logo-small.jpg';
 import { PlaylistSelectionSheet } from './PlaylistSelectionSheet';
 
 interface AddToPlaylistButtonProps {
-  videoId: string;
+  videoId?: string;
+  audioId?: string;
   className?: string;
   variant?: 'overlay' | 'inline';
 }
 
 export const AddToPlaylistButton = ({ 
-  videoId, 
+  videoId,
+  audioId, 
   className = '',
   variant = 'overlay'
 }: AddToPlaylistButtonProps) => {
@@ -32,6 +34,7 @@ export const AddToPlaylistButton = ({
         </button>
         <PlaylistSelectionSheet 
           videoId={videoId}
+          audioId={audioId}
           isOpen={isOpen}
           onOpenChange={setIsOpen}
         />
@@ -56,6 +59,7 @@ export const AddToPlaylistButton = ({
       </Button>
       <PlaylistSelectionSheet 
         videoId={videoId}
+        audioId={audioId}
         isOpen={isOpen}
         onOpenChange={setIsOpen}
       />

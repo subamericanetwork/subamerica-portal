@@ -19,31 +19,34 @@ import { Plus, Music, Lock, Globe } from 'lucide-react';
 
 interface PlaylistSelectionSheetProps {
   videoId?: string;
+  audioId?: string;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
 export const PlaylistSelectionSheet = ({
   videoId,
+  audioId,
   isOpen,
   onOpenChange,
 }: PlaylistSelectionSheetProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { playlists, addVideoToPlaylist, createPlaylist } = usePlaylist();
+  const { playlists, addVideoToPlaylist, addAudioToPlaylist, createPlaylist } = usePlaylist();
   const [isCreating, setIsCreating] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [newPlaylistDescription, setNewPlaylistDescription] = useState('');
   const [newPlaylistPublic, setNewPlaylistPublic] = useState(false);
 
-  // Determine if we have a valid video to add
-  const hasVideoToAdd = videoId && videoId.trim() !== '';
+  // Determine if we have content to add
+  const hasContentToAdd = (videoId && videoId.trim() !== '') || (audioId && audioId.trim() !== '');
+  const contentType = videoId ? 'video' : audioId ? 'audio' : null;
   
   // Update sheet title and description based on context
-  const sheetTitle = hasVideoToAdd ? "Add to Playlist" : "Create New Playlist";
-  const sheetDescription = hasVideoToAdd 
+  const sheetTitle = hasContentToAdd ? "Add to Playlist" : "Create New Playlist";
+  const sheetDescription = hasContentToAdd 
     ? "Select a playlist or create a new one"
-    : "Create a new playlist to organize your videos";
+    : "Create a new playlist to organize your content";
 
   if (!user) {
     return (
@@ -73,7 +76,8 @@ export const PlaylistSelectionSheet = ({
         newPlaylistName,
         newPlaylistDescription,
         newPlaylistPublic,
-        hasVideoToAdd ? videoId : undefined
+        videoId && hasContentToAdd ? videoId : undefined,
+        audioId && hasContentToAdd ? audioId : undefined
       );
       
       if (playlist) {
@@ -89,7 +93,11 @@ export const PlaylistSelectionSheet = ({
   };
 
   const handleAddToPlaylist = async (playlistId: string) => {
-    await addVideoToPlaylist(playlistId, videoId);
+    if (videoId) {
+      await addVideoToPlaylist(playlistId, videoId);
+    } else if (audioId) {
+      await addAudioToPlaylist(playlistId, audioId);
+    }
     onOpenChange(false);
   };
 
@@ -115,8 +123,8 @@ export const PlaylistSelectionSheet = ({
                 Create New Playlist
               </Button>
 
-              {/* Only show existing playlists if we have a video to add */}
-              {hasVideoToAdd && (
+              {/* Only show existing playlists if we have content to add */}
+              {hasContentToAdd && (
                 <ScrollArea className="h-[400px] pr-4">
                   <div className="space-y-2">
                     {playlists.length === 0 ? (
@@ -141,7 +149,7 @@ export const PlaylistSelectionSheet = ({
                                 </p>
                               )}
                               <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
-                                <span>{playlist.video_ids.length} videos</span>
+                                <span>{playlist.video_ids.length + playlist.audio_ids.length} items</span>
                                 <span>•</span>
                                 {playlist.is_public ? (
                                   <span className="flex items-center gap-1">
@@ -211,7 +219,7 @@ export const PlaylistSelectionSheet = ({
                   disabled={!newPlaylistName.trim()}
                   className="flex-1"
                 >
-                  {hasVideoToAdd ? "Create & Add" : "Create Playlist"}
+                  {hasContentToAdd ? "Create & Add" : "Create Playlist"}
                 </Button>
               </div>
             </div>

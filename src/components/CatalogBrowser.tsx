@@ -368,7 +368,8 @@ export const CatalogBrowser = ({
 
                     {mode === 'standalone' && (
                       <AddToPlaylistButton
-                        videoId={item.id}
+                        videoId={item.content_type === 'video' ? item.id : undefined}
+                        audioId={item.content_type === 'audio' ? item.id : undefined}
                         variant="inline"
                         className="h-7 text-xs px-2"
                       />

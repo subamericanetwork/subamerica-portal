@@ -8,6 +8,7 @@ export interface Playlist {
   name: string;
   description: string | null;
   video_ids: string[];
+  audio_ids: string[];
   content_type: string | null;
   is_public: boolean;
   created_at: string;
@@ -45,7 +46,7 @@ export const usePlaylist = () => {
     }
   };
 
-  const createPlaylist = async (name: string, description?: string, isPublic: boolean = false, initialVideoId?: string) => {
+  const createPlaylist = async (name: string, description?: string, isPublic: boolean = false, initialVideoId?: string, initialAudioId?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
@@ -58,6 +59,7 @@ export const usePlaylist = () => {
           description,
           is_public: isPublic,
           video_ids: initialVideoId ? [initialVideoId] : [],
+          audio_ids: initialAudioId ? [initialAudioId] : [],
           content_type: 'mixed',
         })
         .select()
@@ -67,8 +69,8 @@ export const usePlaylist = () => {
 
       setPlaylists([data, ...playlists]);
       
-      const successMessage = initialVideoId 
-        ? `"${name}" created and video added`
+      const successMessage = initialVideoId || initialAudioId
+        ? `"${name}" created and content added`
         : `"${name}" has been created`;
       
       toast({
@@ -142,6 +144,61 @@ export const usePlaylist = () => {
     }
   };
 
+  const addAudioToPlaylist = async (playlistId: string, audioId: string) => {
+    try {
+      const playlist = playlists.find(p => p.id === playlistId);
+      if (!playlist) throw new Error('Playlist not found');
+
+      // Check if audio already exists
+      if (playlist.audio_ids.includes(audioId)) {
+        toast({
+          title: "Already Added",
+          description: "This audio track is already in the playlist",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check max limit (100 total items)
+      const totalItems = playlist.video_ids.length + playlist.audio_ids.length;
+      if (totalItems >= 100) {
+        toast({
+          title: "Playlist Full",
+          description: "Maximum 100 items per playlist",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const updatedAudioIds = [...playlist.audio_ids, audioId];
+
+      const { error } = await supabase
+        .from('member_playlists')
+        .update({ audio_ids: updatedAudioIds })
+        .eq('id', playlistId);
+
+      if (error) throw error;
+
+      // Update local state
+      setPlaylists(playlists.map(p => 
+        p.id === playlistId ? { ...p, audio_ids: updatedAudioIds } : p
+      ));
+
+      toast({
+        title: "Added to Playlist",
+        description: `Added to "${playlist.name}"`,
+      });
+    } catch (error) {
+      console.error('Error adding audio to playlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add audio to playlist",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
   const removeVideoFromPlaylist = async (playlistId: string, videoId: string) => {
     try {
       const playlist = playlists.find(p => p.id === playlistId);
@@ -169,6 +226,39 @@ export const usePlaylist = () => {
       toast({
         title: "Error",
         description: "Failed to remove video",
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const removeAudioFromPlaylist = async (playlistId: string, audioId: string) => {
+    try {
+      const playlist = playlists.find(p => p.id === playlistId);
+      if (!playlist) throw new Error('Playlist not found');
+
+      const updatedAudioIds = playlist.audio_ids.filter(id => id !== audioId);
+
+      const { error } = await supabase
+        .from('member_playlists')
+        .update({ audio_ids: updatedAudioIds })
+        .eq('id', playlistId);
+
+      if (error) throw error;
+
+      setPlaylists(playlists.map(p => 
+        p.id === playlistId ? { ...p, audio_ids: updatedAudioIds } : p
+      ));
+
+      toast({
+        title: "Removed",
+        description: "Audio track removed from playlist",
+      });
+    } catch (error) {
+      console.error('Error removing audio from playlist:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove audio",
         variant: "destructive",
       });
       throw error;
@@ -238,7 +328,9 @@ export const usePlaylist = () => {
     loading,
     createPlaylist,
     addVideoToPlaylist,
+    addAudioToPlaylist,
     removeVideoFromPlaylist,
+    removeAudioFromPlaylist,
     updatePlaylist,
     deletePlaylist,
     refreshPlaylists: fetchPlaylists,
