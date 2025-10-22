@@ -18,11 +18,16 @@ const MemberDashboard = () => {
     const fetchUserProfile = async () => {
       if (!user) return;
       
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("user_profiles")
         .select("display_name")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle();
+      
+      if (error) {
+        console.error("Error fetching user profile:", error);
+        return;
+      }
       
       if (data?.display_name) {
         // Extract first name from display name
