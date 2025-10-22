@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePlaylist } from '@/hooks/usePlaylist';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { MemberLayout } from '@/components/layout/MemberLayout';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
+import { JukeboxPlayer } from '@/components/JukeboxPlayer';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,8 +17,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Music, Trash2, Edit, Play, Lock, Globe, Library } from 'lucide-react';
+import { Plus, Music, Trash2, Edit, Lock, Globe, Library } from 'lucide-react';
 import { PlaylistSelectionSheet } from '@/components/PlaylistSelectionSheet';
+import { cn } from '@/lib/utils';
 
 export default function MemberPlaylists() {
   const navigate = useNavigate();
@@ -23,6 +27,17 @@ export default function MemberPlaylists() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [playlistToDelete, setPlaylistToDelete] = useState<string | null>(null);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
+  const [selectedPlaylistId, setSelectedPlaylistId] = useState<string | null>(null);
+
+  // Auto-select first playlist with videos
+  useEffect(() => {
+    if (playlists.length > 0 && !selectedPlaylistId) {
+      const firstPlaylistWithVideos = playlists.find(p => p.video_ids.length > 0);
+      if (firstPlaylistWithVideos) {
+        setSelectedPlaylistId(firstPlaylistWithVideos.id);
+      }
+    }
+  }, [playlists, selectedPlaylistId]);
 
   const handleDeleteClick = (playlistId: string) => {
     setPlaylistToDelete(playlistId);
@@ -32,13 +47,13 @@ export default function MemberPlaylists() {
   const confirmDelete = async () => {
     if (playlistToDelete) {
       await deletePlaylist(playlistToDelete);
+      // If deleted playlist was selected, clear selection
+      if (playlistToDelete === selectedPlaylistId) {
+        setSelectedPlaylistId(null);
+      }
       setPlaylistToDelete(null);
       setDeleteDialogOpen(false);
     }
-  };
-
-  const handlePlayPlaylist = (playlistId: string) => {
-    navigate(`/member/playlists/${playlistId}/jukebox`);
   };
 
   if (loading) {
@@ -92,59 +107,101 @@ export default function MemberPlaylists() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {playlists.map((playlist) => (
-            <Card key={playlist.id} className="group hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="line-clamp-1">{playlist.name}</CardTitle>
-                    <CardDescription className="mt-2 line-clamp-2">
-                      {playlist.description || 'No description'}
-                    </CardDescription>
-                  </div>
-                  <div className="ml-2">
-                    {playlist.is_public ? (
-                      <Globe className="h-4 w-4 text-primary" />
-                    ) : (
-                      <Lock className="h-4 w-4 text-muted-foreground" />
+        <ResizablePanelGroup 
+          direction="horizontal" 
+          className="min-h-[calc(100vh-280px)] rounded-lg border"
+        >
+          {/* LEFT PANEL - Playlist List */}
+          <ResizablePanel defaultSize={35} minSize={25} maxSize={50}>
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-2">
+                {playlists.map((playlist) => (
+                  <Card
+                    key={playlist.id}
+                    className={cn(
+                      "cursor-pointer transition-all hover:shadow-md",
+                      selectedPlaylistId === playlist.id && "border-primary bg-primary/5 shadow-lg"
                     )}
+                    onClick={() => setSelectedPlaylistId(playlist.id)}
+                  >
+                    <CardHeader className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-base line-clamp-1">{playlist.name}</CardTitle>
+                          <CardDescription className="mt-1 text-xs line-clamp-1">
+                            {playlist.description || 'No description'}
+                          </CardDescription>
+                        </div>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {playlist.is_public ? (
+                            <Globe className="h-3 w-3 text-primary" />
+                          ) : (
+                            <Lock className="h-3 w-3 text-muted-foreground" />
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0">
+                      <div className="mb-3 flex items-center justify-between text-xs text-muted-foreground">
+                        <span>{playlist.video_ids.length} videos</span>
+                        <span>{playlist.is_public ? 'Public' : 'Private'}</span>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 h-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/member/playlists/${playlist.id}/edit`);
+                          }}
+                        >
+                          <Edit className="mr-1 h-3 w-3" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(playlist.id);
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </ResizablePanel>
+
+          {/* RESIZABLE HANDLE */}
+          <ResizableHandle withHandle />
+
+          {/* RIGHT PANEL - Jukebox Player */}
+          <ResizablePanel defaultSize={65}>
+            <div className="h-full p-4">
+              {selectedPlaylistId ? (
+                <JukeboxPlayer
+                  key={selectedPlaylistId}
+                  playlistId={selectedPlaylistId}
+                  className="h-full"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center">
+                  <div className="text-center text-muted-foreground">
+                    <Music className="h-16 w-16 mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium">Select a playlist to start playing</p>
+                    <p className="text-sm mt-2">Choose from your playlists on the left</p>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{playlist.video_ids.length} videos</span>
-                  <span>{playlist.is_public ? 'Public' : 'Private'}</span>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    onClick={() => handlePlayPlaylist(playlist.id)}
-                    className="flex-1 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    disabled={playlist.video_ids.length === 0}
-                  >
-                    <Play className="mr-2 h-4 w-4" />
-                    Play
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => navigate(`/member/playlists/${playlist.id}/edit`)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => handleDeleteClick(playlist.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              )}
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
       )}
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
