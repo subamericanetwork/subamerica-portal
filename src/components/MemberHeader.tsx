@@ -16,7 +16,9 @@ export function MemberHeader() {
     const checkPortalAccess = async () => {
       if (!user) return;
       
-      const { data, error } = await supabase.rpc('get_user_primary_role');
+      const { data, error } = await supabase.rpc('get_user_primary_role', {
+        user_id_param: user.id
+      });
       
       if (!error && data) {
         setHasPortalAccess(data === 'artist' || data === 'admin');
