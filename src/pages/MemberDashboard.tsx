@@ -150,7 +150,7 @@ const MemberDashboard = () => {
           <CardHeader>
             <CardTitle>More Features Coming Soon</CardTitle>
             <CardDescription>
-              We're building even more amazing features for members
+              We're building even more amazing features for our crew
             </CardDescription>
           </CardHeader>
           <CardContent>
