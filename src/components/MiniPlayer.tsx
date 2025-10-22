@@ -26,12 +26,17 @@ export const MiniPlayer = () => {
     
     if (viewMode === 'video') {
       setViewMode('audio');
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      }
     } else {
       setViewMode('video');
-      // Auto-enable PIP when switching to video mode
-      if (videoRef?.current) {
-        await enablePictureInPicture(videoRef.current);
-      }
+      // Wait a moment for the video element to load before enabling PIP
+      setTimeout(async () => {
+        if (videoRef?.current && videoRef.current.readyState >= 2) {
+          await enablePictureInPicture(videoRef.current);
+        }
+      }, 300);
     }
   };
 
