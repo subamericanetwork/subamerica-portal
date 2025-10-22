@@ -179,12 +179,6 @@ const MemberDashboard = () => {
                   Your 24/7 personal broadcast feed — mix live drops, videos, and fan chat.
                 </p>
               </div>
-              <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">Fan Tip Jars & QR Commerce</h3>
-                <p className="text-sm text-muted-foreground">
-                  Fans scan, tip, or buy merch instantly during performances.
-                </p>
-              </div>
             </div>
           </CardContent>
         </Card>
