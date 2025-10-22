@@ -8,8 +8,25 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Trash2, Loader2, Plus } from 'lucide-react';
+import { ArrowLeft, Trash2, Loader2, Plus, GripVertical } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +52,55 @@ interface Video {
   title: string;
 }
 
+interface SortableVideoItemProps {
+  video: Video;
+  onRemove: (id: string) => void;
+}
+
+const SortableVideoItem = ({ video, onRemove }: SortableVideoItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: video.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Card ref={setNodeRef} style={style} className="p-4">
+      <div className="flex items-center gap-4">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="h-5 w-5 text-muted-foreground" />
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium truncate">{video.title}</h3>
+        </div>
+        
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => onRemove(video.id)}
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
+    </Card>
+  );
+};
+
 const EditPlaylist = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -50,6 +116,13 @@ const EditPlaylist = () => {
   const [videoToRemove, setVideoToRemove] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
   const [browseSheetOpen, setBrowseSheetOpen] = useState(false);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     const loadPlaylistData = async () => {
@@ -226,6 +299,42 @@ const EditPlaylist = () => {
     }
   };
 
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id) {
+      return;
+    }
+
+    const oldIndex = videos.findIndex((v) => v.id === active.id);
+    const newIndex = videos.findIndex((v) => v.id === over.id);
+
+    const newVideos = arrayMove(videos, oldIndex, newIndex);
+    setVideos(newVideos);
+
+    if (id) {
+      try {
+        const newVideoIds = newVideos.map(v => v.id);
+        await updatePlaylist(id, {
+          video_ids: newVideoIds,
+        });
+        
+        toast({
+          title: "Order Updated",
+          description: "Video order saved successfully",
+        });
+      } catch (error) {
+        console.error('Error updating video order:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save video order",
+          variant: "destructive",
+        });
+        setVideos(videos);
+      }
+    }
+  };
+
   // Show loading while playlists are being fetched
   if (playlistsLoading || !initialized) {
     return (
@@ -321,25 +430,26 @@ const EditPlaylist = () => {
                   </p>
                 </Card>
               ) : (
-                <div className="space-y-2">
-                  {videos.map((video) => (
-                    <Card key={video.id} className="p-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{video.title}</h3>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setVideoToRemove(video.id)}
-                          className="text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={videos.map(v => v.id)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="space-y-2">
+                      {videos.map((video) => (
+                        <SortableVideoItem
+                          key={video.id}
+                          video={video}
+                          onRemove={setVideoToRemove}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               )}
             </div>
 
