@@ -38,7 +38,6 @@ export function MemberHeader() {
   };
 
   const memberNavItems = [
-    { title: "Home", url: "/member/dashboard", icon: Home },
     { title: "Discover", url: "/portals", icon: Compass },
     { title: "Watch", url: "/watch", icon: Play },
     { title: "Playlists", url: "/member/playlists", icon: ListMusic },
@@ -49,7 +48,7 @@ export function MemberHeader() {
     <header className="fixed top-0 z-40 w-full border-b border-border bg-background/20 backdrop-blur-md supports-[backdrop-filter]:bg-background/10">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
         {/* Left: Logo + "Subamerica" */}
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/member/dashboard")}>
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
           <img src={subamericaLogo} alt="Subamerica" className="h-8" />
           <span className="text-lg font-semibold">Subamerica</span>
         </div>
