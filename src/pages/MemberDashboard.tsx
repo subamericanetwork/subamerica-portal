@@ -63,63 +63,40 @@ const MemberDashboard = () => {
           <Card className="border-violet-500/30 bg-gradient-to-br from-violet-500/5 to-violet-500/10 hover:border-violet-500/50 transition-all">
             <CardHeader>
               <div className="h-12 w-12 rounded-full bg-violet-500/20 flex items-center justify-center mb-4">
-                <ListMusic className="h-6 w-6 text-violet-500" />
+                <Sparkles className="h-6 w-6 text-violet-500" />
               </div>
-              <CardTitle className="text-2xl">My Playlists</CardTitle>
+              <CardTitle className="text-2xl">My Membership</CardTitle>
               <CardDescription className="text-base">
-                Create custom playlists and enjoy your favorite content with our Jukebox player.
+                Step inside the frequency. Create, explore, and connect with the Indie Underground.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ul className="space-y-2 mb-6 text-sm">
+              <ul className="space-y-3 mb-6 text-sm">
                 <li className="flex items-start gap-2">
-                  <Music className="h-4 w-4 mt-0.5 text-violet-500" />
-                  <span>Create unlimited playlists</span>
+                  <span>🎧</span>
+                  <span><strong>Curate Your Vibe</strong> — Build unlimited playlists with our Jukebox player.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Video className="h-4 w-4 mt-0.5 text-violet-500" />
-                  <span>Custom Jukebox player experience</span>
+                  <span>💫</span>
+                  <span><strong>Discover Artists</strong> — Explore fearless creators and exclusive drops.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Heart className="h-4 w-4 mt-0.5 text-violet-500" />
-                  <span>Private or public sharing options</span>
+                  <span>💜</span>
+                  <span><strong>Support & Share</strong> — Tip, follow, and show love to your favorites.</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <Sparkles className="h-4 w-4 mt-0.5 text-violet-500" />
-                  <span>Add videos from any artist</span>
+                  <span>🎟️</span>
+                  <span><strong>Shop & Show Up</strong> — Buy merch, grab tickets, and power independent culture.</span>
                 </li>
               </ul>
-              {!loading && (
-                <p className="text-xs text-muted-foreground mb-4">
-                  {playlists.length > 0 
-                    ? `You have ${playlists.length} playlist${playlists.length === 1 ? '' : 's'}`
-                    : "Get started creating your first playlist"}
-                </p>
-              )}
-              <Button onClick={() => navigate("/member/playlists")} variant="outline" className="w-full gap-2 border-violet-500/50 hover:bg-violet-500/10">
-                My Playlists
+              <p className="text-sm mb-4 italic">
+                You're not just watching — you're tuning in.<br />
+                Welcome to the Underground.
+              </p>
+              <Button onClick={() => navigate("/")} variant="outline" className="w-full gap-2 border-violet-500/50 hover:bg-violet-500/10">
+                Enter the Network
                 <ArrowRight className="h-4 w-4" />
               </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:border-primary/30 transition-all">
-            <CardHeader>
-              <CardTitle className="text-2xl">Just Browsing</CardTitle>
-              <CardDescription className="text-base">
-                Not ready to create? Explore our curated collection of independent artists.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-sm text-muted-foreground">
-                  Browse our curated collection of independent artists, watch exclusive content, and support your favorites.
-                </p>
-                <Button variant="outline" onClick={() => navigate("/")} className="w-full gap-2">
-                  Explore Ports
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </div>
