@@ -129,10 +129,6 @@ const Watch = () => {
                 <Sparkles className="h-4 w-4" />
                 Features
               </Button>
-              <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/portals")}>
-                <Info className="h-4 w-4" />
-                Discover
-              </Button>
               
               {/* Mobile + Desktop */}
               <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>

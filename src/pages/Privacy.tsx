@@ -28,10 +28,6 @@ const Privacy = () => {
               <Sparkles className="h-4 w-4" />
               Features
             </Button>
-            <Button variant="ghost" onClick={() => navigate("/portals")} className="gap-2">
-              <Info className="h-4 w-4" />
-              Discover
-            </Button>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -39,7 +35,7 @@ const Privacy = () => {
               <LogIn className="h-4 w-4" />
               Login
             </Button>
-            <Button onClick={() => navigate("/auth")}>
+            <Button onClick={() => navigate("/auth?tab=signup")}>
               Get Started
             </Button>
           </div>

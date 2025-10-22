@@ -23,12 +23,15 @@ const Terms = () => {
               <Button variant="ghost" onClick={() => navigate("/")}><Home className="h-4 w-4 mr-2" />Home</Button>
               <Button variant="ghost" onClick={() => navigate("/watch")}><Play className="h-4 w-4 mr-2" />Watch</Button>
               <Button variant="ghost" onClick={() => navigate("/features")}><Sparkles className="h-4 w-4 mr-2" />Features</Button>
-              <Button variant="ghost" onClick={() => navigate("/portals")}><Info className="h-4 w-4 mr-2" />Discover</Button>
-              <Button onClick={() => navigate("/auth")}><LogIn className="h-4 w-4 mr-2" />Login / Signup</Button>
+              <Button variant="ghost" onClick={() => navigate("/auth")}><LogIn className="h-4 w-4 mr-2" />Login</Button>
+              <Button onClick={() => navigate("/auth?tab=signup")}>Get Started</Button>
             </nav>
 
-            {/* Mobile: Login Button Only */}
-            <Button className="md:hidden" onClick={() => navigate("/auth")}><LogIn className="h-4 w-4 mr-2" />Login</Button>
+            {/* Mobile: Auth Buttons */}
+            <div className="flex md:hidden items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}><LogIn className="h-4 w-4" /></Button>
+              <Button size="sm" onClick={() => navigate("/auth?tab=signup")}>Get Started</Button>
+            </div>
           </div>
         </div>
       </header>
