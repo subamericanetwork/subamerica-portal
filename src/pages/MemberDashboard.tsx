@@ -42,7 +42,7 @@ const MemberDashboard = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <Video className="h-4 w-4 mt-0.5 text-primary" />
-                  <span>Share unlimited videos and livestreams</span>
+                  <span>Share videos and playlists</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Calendar className="h-4 w-4 mt-0.5 text-primary" />
