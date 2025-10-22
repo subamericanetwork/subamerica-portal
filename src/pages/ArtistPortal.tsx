@@ -301,6 +301,8 @@ const ArtistPortal = () => {
               <button onClick={() => navigate("/terms")} className="text-primary hover:underline">Terms of Service</button>
               <span aria-hidden="true">•</span>
               <button onClick={() => navigate("/privacy")} className="text-primary hover:underline">Privacy Policy</button>
+              <span aria-hidden="true">•</span>
+              <button onClick={() => navigate("/copyright")} className="text-primary hover:underline">Copyright Policy</button>
             </div>
           </div>
         </div>

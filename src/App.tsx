@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard";
 import Features from "./pages/Features";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
+import Copyright from "./pages/Copyright";
 import Profile from "./pages/Profile";
 import Videos from "./pages/Videos";
 import Audio from "./pages/Audio";
@@ -67,6 +68,7 @@ const AppRoutes = () => {
           <Route path="/features" element={<Features />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy" element={<Privacy />} />
+          <Route path="/copyright" element={<Copyright />} />
           <Route path="/auth" element={<Auth />} />
           
           {/* Member Routes */}

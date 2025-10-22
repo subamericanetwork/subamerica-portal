@@ -331,6 +331,9 @@ const Privacy = () => {
               <button onClick={() => navigate("/privacy")} className="text-primary hover:underline">
                 Privacy Policy
               </button>
+              <button onClick={() => navigate("/copyright")} className="text-primary hover:underline">
+                Copyright Policy
+              </button>
             </div>
           </div>
         </div>

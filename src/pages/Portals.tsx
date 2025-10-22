@@ -352,6 +352,8 @@ function PortalsFeed() {
               <button onClick={() => window.location.href = '/terms'} className="text-primary hover:underline">Terms of Service</button>
               <span>•</span>
               <button onClick={() => window.location.href = '/privacy'} className="text-primary hover:underline">Privacy Policy</button>
+              <span>•</span>
+              <button onClick={() => window.location.href = '/copyright'} className="text-primary hover:underline">Copyright Policy</button>
             </div>
           </div>
         </div>

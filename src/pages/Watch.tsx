@@ -283,6 +283,8 @@ const Watch = () => {
               <button onClick={() => navigate("/terms")} className="text-primary hover:underline">Terms of Service</button>
               <span>•</span>
               <button onClick={() => navigate("/privacy")} className="text-primary hover:underline">Privacy Policy</button>
+              <span>•</span>
+              <button onClick={() => navigate("/copyright")} className="text-primary hover:underline">Copyright Policy</button>
             </div>
           </div>
         </div>
