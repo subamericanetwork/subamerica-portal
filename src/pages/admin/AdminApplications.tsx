@@ -175,6 +175,31 @@ export default function AdminApplications() {
         throw new Error(result.error || "Failed to approve application");
       }
 
+      // Send approval email
+      try {
+        // Get user email from user_profiles
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('email')
+          .eq('user_id', selectedApp.user_id)
+          .single();
+
+        if (profileData?.email) {
+          await supabase.functions.invoke('send-approval-email', {
+            body: {
+              artist_email: profileData.email,
+              artist_name: selectedApp.artist_name,
+              slug: result.slug || selectedApp.slug,
+              admin_notes: adminNotes || undefined
+            }
+          });
+          console.log('Approval email sent to:', profileData.email);
+        }
+      } catch (emailError: any) {
+        console.error('Failed to send approval email:', emailError);
+        // Don't fail the approval if email fails
+      }
+
       // Show appropriate success message based on whether slug was modified
       if (result.message?.includes('modified slug')) {
         toast.success(result.message);
@@ -262,6 +287,31 @@ export default function AdminApplications() {
             appeal_reviewed_by: user.id
           })
           .eq("id", selectedApp.id);
+
+        // Send approval email
+        try {
+          // Get user email from user_profiles
+          const { data: profileData } = await supabase
+            .from('user_profiles')
+            .select('email')
+            .eq('user_id', selectedApp.user_id)
+            .single();
+
+          if (profileData?.email) {
+            await supabase.functions.invoke('send-approval-email', {
+              body: {
+                artist_email: profileData.email,
+                artist_name: selectedApp.artist_name,
+                slug: result.slug || selectedApp.slug,
+                admin_notes: adminNotes || "Appeal approved"
+              }
+            });
+            console.log('Approval email sent to:', profileData.email);
+          }
+        } catch (emailError: any) {
+          console.error('Failed to send approval email:', emailError);
+          // Don't fail the approval if email fails
+        }
 
         // Show appropriate success message based on whether slug was modified
         if (result.message?.includes('modified slug')) {
