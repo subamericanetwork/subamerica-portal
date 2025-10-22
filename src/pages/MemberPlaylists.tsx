@@ -91,7 +91,7 @@ export default function MemberPlaylists() {
               {miniPlayerVisible ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
               {miniPlayerVisible ? 'Hide Player' : 'Show Player'}
             </Button>
-            <Button onClick={() => setCreateSheetOpen(true)} className="bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700">
+            <Button onClick={() => setCreateSheetOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Playlist
             </Button>
