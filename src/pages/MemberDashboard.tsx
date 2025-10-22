@@ -31,7 +31,7 @@ const MemberDashboard = () => {
               </div>
               <CardTitle className="text-2xl">Become an Artist</CardTitle>
               <CardDescription className="text-base">
-                Ready to share your music with the world? Create your artist Port and start building your member base.
+                Ready to share your art and music with the world? Create your artist Port and start building your member base.
               </CardDescription>
             </CardHeader>
             <CardContent>
