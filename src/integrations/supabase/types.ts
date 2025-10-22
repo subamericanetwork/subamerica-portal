@@ -2074,14 +2074,8 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_artist: {
-        Args: { user_id_param: string }
-        Returns: boolean
-      }
-      is_artist_owner: {
-        Args: { _artist_id: string }
-        Returns: boolean
-      }
+      is_artist: { Args: { user_id_param: string }; Returns: boolean }
+      is_artist_owner: { Args: { _artist_id: string }; Returns: boolean }
       should_auto_approve_content: {
         Args: { artist_id_param: string }
         Returns: boolean

@@ -169,13 +169,19 @@ export default function AdminApplications() {
 
       if (error) throw error;
 
-      const result = data as { success: boolean; error?: string; message?: string };
+      const result = data as { success: boolean; error?: string; message?: string; slug?: string };
 
       if (!result.success) {
         throw new Error(result.error || "Failed to approve application");
       }
 
-      toast.success(`Artist account created for ${selectedApp.artist_name}!`);
+      // Show appropriate success message based on whether slug was modified
+      if (result.message?.includes('modified slug')) {
+        toast.success(result.message);
+      } else {
+        toast.success(`Artist account created for ${selectedApp.artist_name}!`);
+      }
+      
       setReviewDialogOpen(false);
       setSelectedApp(null);
       setAdminNotes("");
@@ -244,7 +250,7 @@ export default function AdminApplications() {
 
         if (error) throw error;
 
-        const result = data as { success: boolean; error?: string };
+        const result = data as { success: boolean; error?: string; message?: string; slug?: string };
         if (!result.success) throw new Error(result.error);
 
         // Update appeal status
@@ -257,7 +263,12 @@ export default function AdminApplications() {
           })
           .eq("id", selectedApp.id);
 
-        toast.success(`Appeal approved! Artist account created for ${selectedApp.artist_name}`);
+        // Show appropriate success message based on whether slug was modified
+        if (result.message?.includes('modified slug')) {
+          toast.success(`Appeal approved! ${result.message}`);
+        } else {
+          toast.success(`Appeal approved! Artist account created for ${selectedApp.artist_name}`);
+        }
       } else if (appealAction === "reject") {
         // Reject the appeal
         if (!rejectionReason.trim()) {
