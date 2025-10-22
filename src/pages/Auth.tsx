@@ -81,8 +81,8 @@ const Auth = () => {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Welcome to Subamerica!");
-      navigate("/member/dashboard");
+      toast.success("Account created! Please check your email to verify your account.");
+      // Don't auto-navigate - keep user on auth page until they verify
     }
     
     setIsLoading(false);
@@ -114,6 +114,35 @@ const Auth = () => {
       toast.success("Password reset email sent! Check your inbox.");
       setShowResetPassword(false);
       setResetEmail("");
+    }
+    
+    setIsLoading(false);
+  };
+
+  const handleResendVerification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    try {
+      emailSchema.parse(email);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: email,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Verification email resent! Check your inbox.");
     }
     
     setIsLoading(false);
@@ -233,6 +262,17 @@ const Auth = () => {
                     >
                       {isLoading ? "Signing in..." : "Sign In"}
                     </Button>
+                    <div className="mt-4 text-center text-sm text-muted-foreground">
+                      Haven't verified your email yet?{" "}
+                      <button
+                        type="button"
+                        onClick={handleResendVerification}
+                        className="text-primary hover:underline"
+                        disabled={isLoading || !email}
+                      >
+                        Resend verification email
+                      </button>
+                    </div>
                   </form>
                 )}
               </TabsContent>
