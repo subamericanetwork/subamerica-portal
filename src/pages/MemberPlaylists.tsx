@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Music, Trash2, Edit, Lock, Globe, Grid3x3 } from 'lucide-react';
+import { Plus, Music, Trash2, Edit, Lock, Globe } from 'lucide-react';
 import { PlaylistSelectionSheet } from '@/components/PlaylistSelectionSheet';
 import { cn } from '@/lib/utils';
 
@@ -80,13 +80,6 @@ export default function MemberPlaylists() {
               </p>
             </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={handleViewCatalog}
-              variant={feedMode === 'catalog' ? 'default' : 'outline'}
-            >
-              <Grid3x3 className="mr-2 h-4 w-4" />
-              Browse Catalog
-            </Button>
             <Button onClick={() => setCreateSheetOpen(true)}>
               <Plus className="mr-2 h-4 w-4" />
               New Playlist
