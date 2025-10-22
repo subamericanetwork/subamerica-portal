@@ -2,11 +2,12 @@ import { usePlayer } from '@/contexts/PlayerContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { enablePictureInPicture } from '@/lib/mediaUtils';
 
 export const MiniPlayer = () => {
-  const { currentTrack, isPlaying, contentType, play, pause, next, previous } = usePlayer();
+  const { currentTrack, isPlaying, contentType, viewMode, videoRef, play, pause, next, previous, setViewMode } = usePlayer();
   const navigate = useNavigate();
 
   if (!currentTrack) return null;
@@ -18,6 +19,20 @@ export const MiniPlayer = () => {
   const handleControlClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     action();
+  };
+
+  const handleVideoToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (viewMode === 'video') {
+      setViewMode('audio');
+    } else {
+      setViewMode('video');
+      // Auto-enable PIP when switching to video mode
+      if (videoRef?.current) {
+        await enablePictureInPicture(videoRef.current);
+      }
+    }
   };
 
   return (
@@ -57,6 +72,21 @@ export const MiniPlayer = () => {
 
           {/* Right: Controls */}
           <div className="flex items-center gap-2">
+            {contentType === 'video' && (
+              <Button
+                size="sm"
+                variant={viewMode === 'video' ? 'default' : 'ghost'}
+                className="h-8 w-8"
+                onClick={handleVideoToggle}
+                title={viewMode === 'video' ? 'Switch to audio mode' : 'Watch video (PIP)'}
+              >
+                {viewMode === 'video' ? (
+                  <VideoIcon className="h-4 w-4" />
+                ) : (
+                  <Music className="h-4 w-4" />
+                )}
+              </Button>
+            )}
             <Button
               size="sm"
               variant="ghost"
