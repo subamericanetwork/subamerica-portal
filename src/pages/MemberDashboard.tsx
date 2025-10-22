@@ -16,7 +16,8 @@ const MemberDashboard = () => {
           <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
           <h1 className="text-4xl font-bold mb-2">Welcome to Subamerica</h1>
           <p className="text-muted-foreground text-lg mb-2">
-            The underground music platform for independent artists and members
+            The Indie Underground Lives Here<br />
+            Stream fearless art, music, and stories 24/7. You're not just watching — you're part of the crew.
           </p>
           <p className="text-sm italic mb-4">
             You're not just watching — you're tuning in.<br />
