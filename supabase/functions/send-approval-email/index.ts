@@ -31,7 +31,7 @@ serve(async (req: Request) => {
     }
 
     // Admin email addresses to CC
-    const adminEmails = ['colleen.nagle@subamerica.net'];
+    const adminEmails = ['colleen.nagle@subamerica.net', 'subamerica@gmail.com'];
 
     const emailData = {
       personalizations: [
