@@ -19,10 +19,6 @@ const MemberDashboard = () => {
             The Indie Underground Lives Here<br />
             Stream fearless art, music, and stories 24/7. You're not just watching — you're part of the crew.
           </p>
-          <p className="text-sm italic mb-4">
-            You're not just watching — you're tuning in.<br />
-            Welcome to the Underground.
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-5xl mx-auto">
