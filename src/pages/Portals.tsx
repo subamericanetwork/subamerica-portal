@@ -89,7 +89,7 @@ function Header() {
             <Sparkles className="h-4 w-4" />
             Features
           </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/artist-portal")}>
+          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/")}>
             <Info className="h-4 w-4" />
             About
           </Button>

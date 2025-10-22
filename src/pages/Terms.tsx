@@ -23,7 +23,7 @@ const Terms = () => {
               <Button variant="ghost" onClick={() => navigate("/")}><Home className="h-4 w-4 mr-2" />Home</Button>
               <Button variant="ghost" onClick={() => navigate("/watch")}><Play className="h-4 w-4 mr-2" />Watch</Button>
               <Button variant="ghost" onClick={() => navigate("/features")}><Sparkles className="h-4 w-4 mr-2" />Features</Button>
-              <Button variant="ghost" onClick={() => navigate("/artist-portal")}><Info className="h-4 w-4 mr-2" />About</Button>
+              <Button variant="ghost" onClick={() => navigate("/portals")}><Info className="h-4 w-4 mr-2" />Discover</Button>
               <Button onClick={() => navigate("/auth")}><LogIn className="h-4 w-4 mr-2" />Login / Signup</Button>
             </nav>
 
