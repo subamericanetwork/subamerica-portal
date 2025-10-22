@@ -20,7 +20,8 @@ import {
   Sparkles,
   ArrowRight,
   Package,
-  HeartHandshake
+  HeartHandshake,
+  Music
 } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useNavigate } from "react-router-dom";
@@ -48,7 +49,7 @@ interface Order {
 }
 
 const Dashboard = () => {
-  const { artist, videos, events, products, portSettings, loading, surfaceProducts, featuredVideo, faqs } = useArtistData();
+  const { artist, videos, events, products, audioTracks, portSettings, loading, surfaceProducts, featuredVideo, featuredAudio, faqs } = useArtistData();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [tips, setTips] = useState<Tip[]>([]);
@@ -356,7 +357,7 @@ const Dashboard = () => {
         )}
 
         {/* Content Stats & Port Status Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Content Stats */}
           <Card className="cursor-pointer hover:border-primary/30 transition-smooth" onClick={() => navigate("/videos")}>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -367,6 +368,19 @@ const Dashboard = () => {
               <div className="text-2xl font-bold">{videos.length}</div>
               <p className="text-xs text-muted-foreground">
                 {featuredVideo ? "1 featured" : "No featured video"}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:border-primary/30 transition-smooth" onClick={() => navigate("/audio")}>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Audio Tracks</CardTitle>
+              <Music className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{audioTracks?.length || 0}</div>
+              <p className="text-xs text-muted-foreground">
+                {featuredAudio ? "1 featured" : "No featured track"}
               </p>
             </CardContent>
           </Card>

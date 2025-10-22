@@ -511,6 +511,74 @@ export type Database = {
         }
         Relationships: []
       }
+      audio_tracks: {
+        Row: {
+          artist_id: string
+          audio_url: string | null
+          created_at: string
+          description: string | null
+          duration: number | null
+          explicit: boolean
+          id: string
+          is_featured: boolean
+          moderated_by: string | null
+          moderation_notes: string | null
+          moderation_status: string
+          published_at: string | null
+          status: string
+          tags: string[] | null
+          thumb_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          artist_id: string
+          audio_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          explicit?: boolean
+          id?: string
+          is_featured?: boolean
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string
+          published_at?: string | null
+          status?: string
+          tags?: string[] | null
+          thumb_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          artist_id?: string
+          audio_url?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: number | null
+          explicit?: boolean
+          id?: string
+          is_featured?: boolean
+          moderated_by?: string | null
+          moderation_notes?: string | null
+          moderation_status?: string
+          published_at?: string | null
+          status?: string
+          tags?: string[] | null
+          thumb_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audio_tracks_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit: {
         Row: {
           action: string | null
@@ -908,6 +976,7 @@ export type Database = {
       }
       member_playlists: {
         Row: {
+          audio_ids: string[] | null
           content_type: string | null
           created_at: string
           description: string | null
@@ -919,6 +988,7 @@ export type Database = {
           video_ids: string[] | null
         }
         Insert: {
+          audio_ids?: string[] | null
           content_type?: string | null
           created_at?: string
           description?: string | null
@@ -930,6 +1000,7 @@ export type Database = {
           video_ids?: string[] | null
         }
         Update: {
+          audio_ids?: string[] | null
           content_type?: string | null
           created_at?: string
           description?: string | null

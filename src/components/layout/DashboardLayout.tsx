@@ -16,7 +16,8 @@ import {
   Shield,
   QrCode,
   Image,
-  FileText
+  FileText,
+  Music2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -77,6 +78,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Profile", href: "/profile", icon: User },
     { name: "Videos", href: "/videos", icon: Video },
+    { name: "Audio", href: "/audio", icon: Music2 },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Posts", href: "/posts", icon: Image },
     { name: "Merch", href: "/merch", icon: ShoppingBag },

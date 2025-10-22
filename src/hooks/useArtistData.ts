@@ -68,6 +68,19 @@ interface FAQ {
   is_visible: boolean;
 }
 
+interface Audio {
+  id: string;
+  title: string;
+  description: string | null;
+  audio_url: string | null;
+  thumb_url: string | null;
+  duration: number | null;
+  tags: string[] | null;
+  is_featured: boolean;
+  explicit: boolean;
+  status: string;
+}
+
 interface PortSettings {
   publish_status: string;
   background_type?: string;
@@ -89,6 +102,7 @@ export const useArtistData = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [faqs, setFaqs] = useState<FAQ[]>([]);
+  const [audioTracks, setAudioTracks] = useState<Audio[]>([]);
   const [portSettings, setPortSettings] = useState<PortSettings & {
     custom_domain?: string;
     custom_domain_verified?: boolean;
@@ -152,6 +166,15 @@ export const useArtistData = () => {
 
         setFaqs(faqsData || []);
 
+        // Fetch audio tracks
+        const { data: audioData } = await supabase
+          .from("audio_tracks")
+          .select("*")
+          .eq("artist_id", artistData.id)
+          .order("created_at", { ascending: false });
+
+        setAudioTracks(audioData || []);
+
         // Fetch port settings
         const { data: settingsData } = await supabase
           .from("port_settings")
@@ -178,9 +201,11 @@ export const useArtistData = () => {
     events,
     products,
     faqs,
+    audioTracks,
     portSettings,
     loading,
     surfaceProducts: products.filter(p => p.is_surface),
     featuredVideo: videos.find(v => v.is_featured),
+    featuredAudio: audioTracks.find(a => a.is_featured),
   };
 };

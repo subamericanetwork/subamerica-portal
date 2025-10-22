@@ -18,6 +18,7 @@ import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Profile from "./pages/Profile";
 import Videos from "./pages/Videos";
+import Audio from "./pages/Audio";
 import Events from "./pages/Events";
 import Merch from "./pages/Merch";
 import Monetization from "./pages/Monetization";
@@ -78,6 +79,7 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<ArtistRoute><Dashboard /></ArtistRoute>} />
           <Route path="/profile" element={<ArtistRoute><Profile /></ArtistRoute>} />
           <Route path="/videos" element={<ArtistRoute><Videos /></ArtistRoute>} />
+          <Route path="/audio" element={<ArtistRoute><Audio /></ArtistRoute>} />
           <Route path="/events" element={<ArtistRoute><Events /></ArtistRoute>} />
           <Route path="/posts" element={<ArtistRoute><Posts /></ArtistRoute>} />
           <Route path="/merch" element={<ArtistRoute><Merch /></ArtistRoute>} />
