@@ -138,7 +138,7 @@ const MemberDashboard = () => {
                   <span><strong>Shop & Show Up</strong> — Buy merch, grab tickets, and power independent culture.</span>
                 </li>
               </ul>
-              <Button onClick={() => navigate("/")} variant="outline" className="w-full gap-2 border-violet-500/50 hover:bg-violet-500/10">
+              <Button onClick={() => navigate("/portals")} variant="outline" className="w-full gap-2 border-violet-500/50 hover:bg-violet-500/10">
                 Enter the Network
                 <ArrowRight className="h-4 w-4" />
               </Button>
