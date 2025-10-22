@@ -18,9 +18,6 @@ const MemberDashboard = () => {
           <p className="text-muted-foreground text-lg mb-4">
             The underground music platform for independent artists and members
           </p>
-          <p className="text-sm text-muted-foreground">
-            Choose your path below, or <Link to="/" className="text-primary hover:underline font-medium">explore artists now</Link>
-          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-5xl mx-auto">
