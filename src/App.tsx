@@ -4,7 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { PlayerProvider } from "@/contexts/PlayerContext";
+import { PlayerProvider, usePlayer } from "@/contexts/PlayerContext";
+import { MiniPlayer } from "@/components/MiniPlayer";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import ArtistRoute from "@/components/ArtistRoute";
@@ -40,18 +41,26 @@ import BecomeArtist from "./pages/BecomeArtist";
 import ApplicationStatus from "./pages/ApplicationStatus";
 import MemberDashboard from "./pages/MemberDashboard";
 import MemberProfile from "./pages/MemberProfile";
+import { useEffect } from "react";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <PlayerProvider>
-            <Routes>
+const AppRoutes = () => {
+  const { currentTrack } = usePlayer();
+
+  // Add class to body when mini-player is active for proper spacing
+  useEffect(() => {
+    if (currentTrack) {
+      document.body.classList.add('has-mini-player');
+    } else {
+      document.body.classList.remove('has-mini-player');
+    }
+  }, [currentTrack]);
+
+  return (
+    <>
+      <MiniPlayer />
+      <Routes>
           <Route path="/" element={<ArtistPortal />} />
           <Route path="/portals" element={<Portals />} />
           <Route path="/features" element={<Features />} />
@@ -92,7 +101,20 @@ const App = () => (
           <Route path="/watch" element={<Watch />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
-            </Routes>
+      </Routes>
+    </>
+  );
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <PlayerProvider>
+            <AppRoutes />
           </PlayerProvider>
         </AuthProvider>
       </BrowserRouter>
