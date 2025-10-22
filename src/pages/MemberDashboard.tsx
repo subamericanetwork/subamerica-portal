@@ -16,7 +16,15 @@ const MemberDashboard = () => {
 
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!user) return;
+      console.log("MemberDashboard: Starting to fetch user profile");
+      console.log("MemberDashboard: User object:", user);
+      
+      if (!user) {
+        console.log("MemberDashboard: No user found, skipping fetch");
+        return;
+      }
+      
+      console.log("MemberDashboard: Fetching profile for user_id:", user.id);
       
       const { data, error } = await supabase
         .from("user_profiles")
@@ -24,15 +32,20 @@ const MemberDashboard = () => {
         .eq("user_id", user.id)
         .maybeSingle();
       
+      console.log("MemberDashboard: Query result - data:", data, "error:", error);
+      
       if (error) {
-        console.error("Error fetching user profile:", error);
+        console.error("MemberDashboard: Error fetching user profile:", error);
         return;
       }
       
       if (data?.display_name) {
         // Extract first name from display name
         const firstName = data.display_name.split(" ")[0];
+        console.log("MemberDashboard: Setting display name to:", firstName);
         setDisplayName(firstName);
+      } else {
+        console.log("MemberDashboard: No display_name found in data");
       }
     };
 
