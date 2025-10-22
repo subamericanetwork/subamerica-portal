@@ -47,34 +47,24 @@ export const MiniPlayer = () => {
   };
 
   return (
-    <div className="fixed top-[64px] left-0 right-0 z-30 border-b bg-background/80 backdrop-blur-sm animate-slide-in-from-top">
-      <div className="mx-auto max-w-7xl px-4 py-2">
-        <div className="relative">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="absolute -top-4 right-0 h-8 w-8 opacity-50 hover:opacity-100 z-10"
-            onClick={handleClose}
-            title="Hide mini-player"
-          >
-            <X className="h-4 w-4" />
-          </Button>
+    <div className="fixed top-[64px] right-4 z-30 border rounded-lg bg-background/95 backdrop-blur-sm shadow-lg animate-slide-in-from-top max-w-fit">
+      <div className="px-3 py-2">
+        <div className="flex items-center gap-3">
+          {/* Track Info */}
           <div 
-            className="flex items-center gap-4 cursor-pointer group"
+            className="flex items-center gap-2 cursor-pointer group"
             onClick={handleNavigateToPlaylists}
           >
-          {/* Left: Track Info */}
-          <div className="flex items-center gap-3 flex-1 min-w-0">
             <img
               src={currentTrack.thumbnail_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400'}
               alt={currentTrack.title}
-              className="h-12 w-12 rounded object-cover"
+              className="h-10 w-10 rounded object-cover"
               onError={(e) => {
                 e.currentTarget.src = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400';
               }}
             />
-            <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 max-w-[200px]">
+              <div className="flex items-center gap-1.5">
                 <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
                   {currentTrack.title}
                 </p>
@@ -99,37 +89,8 @@ export const MiniPlayer = () => {
             </div>
           </div>
 
-          {/* Center: Instructional Hint */}
-          <div className="flex items-center gap-2 mx-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 w-6 p-0 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Info className="h-3 w-3" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs">
-                  <div className="text-sm space-y-1">
-                    <p className="font-semibold">Mini-Player Guide</p>
-                    <ul className="list-disc list-inside space-y-0.5 text-xs">
-                      <li>Click track info to open full player</li>
-                      <li>Toggle between video (PIP) and audio modes</li>
-                      <li>Use controls to manage playback</li>
-                      <li>Click X to hide mini-player</li>
-                    </ul>
-                  </div>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-
-          {/* Right: Controls */}
-          <div className="flex items-center gap-2 shrink-0">
+          {/* Controls */}
+          <div className="flex items-center gap-1.5 shrink-0">
             {contentType === 'video' && (
               <Button
                 size="sm"
@@ -173,7 +134,17 @@ export const MiniPlayer = () => {
               <SkipForward className="h-4 w-4" />
             </Button>
           </div>
-        </div>
+          
+          {/* Close Button */}
+          <Button
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 opacity-50 hover:opacity-100"
+            onClick={handleClose}
+            title="Hide mini-player"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
