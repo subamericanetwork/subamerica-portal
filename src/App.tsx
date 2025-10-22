@@ -46,16 +46,16 @@ import { useEffect } from "react";
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
-  const { currentTrack } = usePlayer();
+  const { currentTrack, miniPlayerVisible } = usePlayer();
 
   // Add class to body when mini-player is active for proper spacing
   useEffect(() => {
-    if (currentTrack) {
+    if (currentTrack && miniPlayerVisible) {
       document.body.classList.add('has-mini-player');
     } else {
       document.body.classList.remove('has-mini-player');
     }
-  }, [currentTrack]);
+  }, [currentTrack, miniPlayerVisible]);
 
   return (
     <>

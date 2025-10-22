@@ -27,6 +27,7 @@ interface PlayerContextType {
   repeat: 'off' | 'one' | 'all';
   viewMode: ViewMode;
   contentType: 'video' | 'audio';
+  miniPlayerVisible: boolean;
   audioRef: React.RefObject<HTMLAudioElement>;
   videoRef: React.RefObject<HTMLVideoElement>;
   setPlaylist: (playlistId: string) => void;
@@ -39,6 +40,7 @@ interface PlayerContextType {
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   setViewMode: (mode: ViewMode) => void;
+  setMiniPlayerVisible: (visible: boolean) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -66,6 +68,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<'off' | 'one' | 'all'>('off');
   const [viewMode, setViewModeState] = useState<ViewMode>('auto');
+  const [miniPlayerVisible, setMiniPlayerVisible] = useState(true);
 
   const currentTrack = tracks[currentTrackIndex] || null;
   
@@ -271,6 +274,13 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentTrack, effectiveViewMode]);
 
+  // Auto-show mini-player when a new track plays
+  useEffect(() => {
+    if (currentTrack) {
+      setMiniPlayerVisible(true);
+    }
+  }, [currentTrack]);
+
   const value: PlayerContextType = {
     playlistId,
     tracks,
@@ -284,6 +294,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     repeat,
     viewMode,
     contentType,
+    miniPlayerVisible,
     audioRef,
     videoRef,
     setPlaylist,
@@ -296,6 +307,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     toggleShuffle,
     toggleRepeat,
     setViewMode,
+    setMiniPlayerVisible,
   };
 
   return (

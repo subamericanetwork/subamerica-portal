@@ -2,15 +2,15 @@ import { usePlayer } from '@/contexts/PlayerContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { enablePictureInPicture } from '@/lib/mediaUtils';
 
 export const MiniPlayer = () => {
-  const { currentTrack, isPlaying, contentType, viewMode, videoRef, play, pause, next, previous, setViewMode } = usePlayer();
+  const { currentTrack, isPlaying, contentType, viewMode, videoRef, miniPlayerVisible, play, pause, next, previous, setViewMode, setMiniPlayerVisible } = usePlayer();
   const navigate = useNavigate();
 
-  if (!currentTrack) return null;
+  if (!currentTrack || !miniPlayerVisible) return null;
 
   const handleNavigateToPlaylists = () => {
     navigate('/member/playlists');
@@ -19,6 +19,11 @@ export const MiniPlayer = () => {
   const handleControlClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     action();
+  };
+
+  const handleClose = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMiniPlayerVisible(false);
   };
 
   const handleVideoToggle = async (e: React.MouseEvent) => {
@@ -43,10 +48,20 @@ export const MiniPlayer = () => {
   return (
     <div className="fixed top-[64px] left-0 right-0 z-30 border-b bg-background/80 backdrop-blur-sm animate-slide-in-from-top">
       <div className="mx-auto max-w-7xl px-4 py-2">
-        <div 
-          className="flex items-center gap-4 cursor-pointer group"
-          onClick={handleNavigateToPlaylists}
-        >
+        <div className="relative">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="absolute -top-1 right-0 h-8 w-8 opacity-50 hover:opacity-100 z-10"
+            onClick={handleClose}
+            title="Hide mini-player"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+          <div 
+            className="flex items-center gap-4 cursor-pointer group"
+            onClick={handleNavigateToPlaylists}
+          >
           {/* Left: Track Info */}
           <div className="flex items-center gap-3 flex-1 min-w-0">
             <img
@@ -120,6 +135,7 @@ export const MiniPlayer = () => {
               <SkipForward className="h-4 w-4" />
             </Button>
           </div>
+        </div>
         </div>
       </div>
     </div>
