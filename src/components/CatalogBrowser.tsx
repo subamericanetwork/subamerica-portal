@@ -10,7 +10,7 @@ import { Loader2, Music, Search } from 'lucide-react';
 import { AddToPlaylistButton } from './AddToPlaylistButton';
 import { useToast } from '@/hooks/use-toast';
 
-interface Video {
+interface CatalogItem {
   id: string;
   title: string;
   kind: string;
@@ -19,6 +19,7 @@ interface Video {
   artist_id: string;
   artist_name: string;
   artist_slug: string;
+  content_type: 'video' | 'audio';
 }
 
 interface CatalogBrowserProps {
@@ -26,97 +27,154 @@ interface CatalogBrowserProps {
   onSelect?: (videoIds: string[]) => void;
   excludeVideoIds?: string[];
   multiSelect?: boolean;
+  contentFilter?: 'all' | 'video' | 'audio';
 }
 
 export const CatalogBrowser = ({
   mode = 'standalone',
   onSelect,
   excludeVideoIds = [],
-  multiSelect = true
+  multiSelect = true,
+  contentFilter = 'all'
 }: CatalogBrowserProps) => {
-  const [videos, setVideos] = useState<Video[]>([]);
+  const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>(contentFilter);
   const [kindFilter, setKindFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchVideos();
-  }, [searchQuery, kindFilter, sortBy]);
+    fetchCatalog();
+  }, [searchQuery, typeFilter, kindFilter, sortBy]);
 
-  const fetchVideos = async () => {
+  const fetchCatalog = async () => {
     setLoading(true);
     try {
-      let query = supabase
-        .from('videos')
-        .select(`
-          id,
-          title,
-          kind,
-          thumb_url,
-          duration,
-          artist_id,
-          artists!inner (
-            display_name,
-            slug,
-            port_settings!inner (
-              publish_status
-            )
-          )
-        `)
-        .eq('status', 'ready')
-        .not('published_at', 'is', null)
-        .eq('artists.port_settings.publish_status', 'published');
+      const allItems: CatalogItem[] = [];
 
-      // Apply search filter
-      if (searchQuery.trim()) {
-        query = query.or(`title.ilike.%${searchQuery}%,artists.display_name.ilike.%${searchQuery}%`);
+      // Fetch videos if needed
+      if (typeFilter === 'all' || typeFilter === 'video') {
+        let videoQuery = supabase
+          .from('videos')
+          .select(`
+            id,
+            title,
+            kind,
+            thumb_url,
+            duration,
+            artist_id,
+            artists!inner (
+              display_name,
+              slug,
+              port_settings!inner (
+                publish_status
+              )
+            )
+          `)
+          .eq('status', 'ready')
+          .not('published_at', 'is', null)
+          .eq('artists.port_settings.publish_status', 'published');
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+          videoQuery = videoQuery.or(`title.ilike.%${searchQuery}%,artists.display_name.ilike.%${searchQuery}%`);
+        }
+
+        // Apply kind filter for videos
+        if (kindFilter !== 'all') {
+          videoQuery = videoQuery.eq('kind', kindFilter as any);
+        }
+
+        const { data: videosData, error: videosError } = await videoQuery.limit(100);
+
+        if (videosError) throw videosError;
+
+        const transformedVideos = videosData?.map((video: any) => ({
+          id: video.id,
+          title: video.title,
+          kind: video.kind,
+          thumb_url: video.thumb_url,
+          duration: video.duration,
+          artist_id: video.artist_id,
+          artist_name: video.artists.display_name,
+          artist_slug: video.artists.slug,
+          content_type: 'video' as const
+        })) || [];
+
+        allItems.push(...transformedVideos);
       }
 
-      // Apply kind filter
-      if (kindFilter !== 'all') {
-        query = query.eq('kind', kindFilter as any);
+      // Fetch audio tracks if needed
+      if (typeFilter === 'all' || typeFilter === 'audio') {
+        let audioQuery = supabase
+          .from('audio_tracks')
+          .select(`
+            id,
+            title,
+            thumb_url,
+            duration,
+            artist_id,
+            published_at,
+            artists!inner (
+              display_name,
+              slug,
+              port_settings!inner (
+                publish_status
+              )
+            )
+          `)
+          .eq('status', 'ready')
+          .not('published_at', 'is', null)
+          .eq('artists.port_settings.publish_status', 'published');
+
+        // Apply search filter
+        if (searchQuery.trim()) {
+          audioQuery = audioQuery.or(`title.ilike.%${searchQuery}%,artists.display_name.ilike.%${searchQuery}%`);
+        }
+
+        const { data: audioData, error: audioError } = await audioQuery.limit(100);
+
+        if (audioError) throw audioError;
+
+        const transformedAudio = audioData?.map((audio: any) => ({
+          id: audio.id,
+          title: audio.title,
+          kind: 'audio',
+          thumb_url: audio.thumb_url,
+          duration: audio.duration,
+          artist_id: audio.artist_id,
+          artist_name: audio.artists.display_name,
+          artist_slug: audio.artists.slug,
+          content_type: 'audio' as const
+        })) || [];
+
+        allItems.push(...transformedAudio);
       }
 
       // Apply sorting
       switch (sortBy) {
         case 'newest':
-          query = query.order('published_at', { ascending: false });
+          allItems.sort((a, b) => b.id.localeCompare(a.id));
           break;
         case 'oldest':
-          query = query.order('published_at', { ascending: true });
+          allItems.sort((a, b) => a.id.localeCompare(b.id));
           break;
         case 'title':
-          query = query.order('title', { ascending: true });
+          allItems.sort((a, b) => a.title.localeCompare(b.title));
           break;
       }
 
-      const { data, error } = await query.limit(100);
-
-      if (error) throw error;
-
-      // Transform data to flat structure
-      const transformedVideos = data?.map((video: any) => ({
-        id: video.id,
-        title: video.title,
-        kind: video.kind,
-        thumb_url: video.thumb_url,
-        duration: video.duration,
-        artist_id: video.artist_id,
-        artist_name: video.artists.display_name,
-        artist_slug: video.artists.slug
-      })) || [];
-
-      // Filter out excluded videos
-      const filteredVideos = transformedVideos.filter(
-        v => !excludeVideoIds.includes(v.id)
+      // Filter out excluded items
+      const filteredItems = allItems.filter(
+        item => !excludeVideoIds.includes(item.id)
       );
 
-      setVideos(filteredVideos);
+      setItems(filteredItems);
     } catch (error) {
-      console.error('Error fetching videos:', error);
+      console.error('Error fetching catalog:', error);
       toast({
         title: "Error",
         description: "Failed to load catalog",
@@ -141,10 +199,10 @@ export const CatalogBrowser = ({
   };
 
   const handleSelectAll = () => {
-    if (selectedIds.length === videos.length) {
+    if (selectedIds.length === items.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(videos.map(v => v.id));
+      setSelectedIds(items.map(item => item.id));
     }
   };
 
@@ -165,6 +223,7 @@ export const CatalogBrowser = ({
     const labels: Record<string, string> = {
       music_video: 'Music Video',
       audio_only: 'Audio',
+      audio: 'Audio Track',
       performance_clip: 'Performance',
       lyric_video: 'Lyric Video',
       behind_the_scenes: 'BTS',
@@ -187,18 +246,30 @@ export const CatalogBrowser = ({
             className="pl-9"
           />
         </div>
-        <Select value={kindFilter} onValueChange={setKindFilter}>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Content type" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="music_video">Music Videos</SelectItem>
-            <SelectItem value="audio_only">Audio Only</SelectItem>
-            <SelectItem value="performance_clip">Performances</SelectItem>
-            <SelectItem value="lyric_video">Lyric Videos</SelectItem>
+            <SelectItem value="all">All Content</SelectItem>
+            <SelectItem value="video">Video Only</SelectItem>
+            <SelectItem value="audio">Audio Only</SelectItem>
           </SelectContent>
         </Select>
+        {typeFilter !== 'audio' && (
+          <Select value={kindFilter} onValueChange={setKindFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Video type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Video Types</SelectItem>
+              <SelectItem value="music_video">Music Videos</SelectItem>
+              <SelectItem value="audio_only">Audio Only</SelectItem>
+              <SelectItem value="performance_clip">Performances</SelectItem>
+              <SelectItem value="lyric_video">Lyric Videos</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Sort by" />
@@ -216,7 +287,7 @@ export const CatalogBrowser = ({
         <div className="flex items-center justify-between py-2 border-b">
           <div className="flex items-center gap-3">
             <Checkbox
-              checked={selectedIds.length === videos.length && videos.length > 0}
+              checked={selectedIds.length === items.length && items.length > 0}
               onCheckedChange={handleSelectAll}
             />
             <span className="text-sm text-muted-foreground">
@@ -233,23 +304,23 @@ export const CatalogBrowser = ({
         </div>
       )}
 
-      {/* Videos Grid */}
+      {/* Content Grid */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : videos.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="text-center py-12">
           <Music className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <p className="text-muted-foreground">No videos found</p>
+          <p className="text-muted-foreground">No content found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2">
-          {videos.map((video) => (
+          {items.map((item) => (
             <Card
-              key={video.id}
+              key={item.id}
               className={`p-4 hover:shadow-md transition-shadow ${
-                mode === 'selection' && selectedIds.includes(video.id)
+                mode === 'selection' && selectedIds.includes(item.id)
                   ? 'ring-2 ring-primary'
                   : ''
               }`}
@@ -257,17 +328,17 @@ export const CatalogBrowser = ({
               <div className="flex gap-3">
                 {mode === 'selection' && (
                   <Checkbox
-                    checked={selectedIds.includes(video.id)}
-                    onCheckedChange={() => handleSelectToggle(video.id)}
+                    checked={selectedIds.includes(item.id)}
+                    onCheckedChange={() => handleSelectToggle(item.id)}
                     className="mt-1"
                   />
                 )}
                 <div className="flex-1 min-w-0">
                   {/* Thumbnail placeholder or image */}
-                  {video.thumb_url ? (
+                  {item.thumb_url ? (
                     <img
-                      src={video.thumb_url}
-                      alt={video.title}
+                      src={item.thumb_url}
+                      alt={item.title}
                       className="w-full h-32 object-cover rounded-md mb-3"
                     />
                   ) : (
@@ -277,27 +348,27 @@ export const CatalogBrowser = ({
                   )}
 
                   <h3 className="font-semibold text-sm truncate mb-1">
-                    {video.title}
+                    {item.title}
                   </h3>
                   <p className="text-xs text-muted-foreground truncate mb-2">
-                    {video.artist_name}
+                    {item.artist_name}
                   </p>
 
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">
                       <Badge variant="secondary" className="text-xs">
-                        {getKindLabel(video.kind)}
+                        {getKindLabel(item.kind)}
                       </Badge>
-                      {video.duration && (
+                      {item.duration && (
                         <Badge variant="outline" className="text-xs">
-                          {formatDuration(video.duration)}
+                          {formatDuration(item.duration)}
                         </Badge>
                       )}
                     </div>
 
                     {mode === 'standalone' && (
                       <AddToPlaylistButton
-                        videoId={video.id}
+                        videoId={item.id}
                         variant="inline"
                         className="h-7 text-xs px-2"
                       />
