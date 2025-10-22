@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import { detectMediaType } from '@/lib/mediaUtils';
 
 interface Track {
   id: string;
@@ -10,6 +11,8 @@ interface Track {
   video_url: string;
   duration: number;
 }
+
+type ViewMode = 'audio' | 'video' | 'auto';
 
 interface PlayerContextType {
   playlistId: string | null;
@@ -22,7 +25,10 @@ interface PlayerContextType {
   loading: boolean;
   shuffle: boolean;
   repeat: 'off' | 'one' | 'all';
+  viewMode: ViewMode;
+  contentType: 'video' | 'audio';
   audioRef: React.RefObject<HTMLAudioElement>;
+  videoRef: React.RefObject<HTMLVideoElement>;
   setPlaylist: (playlistId: string) => void;
   play: () => void;
   pause: () => void;
@@ -32,6 +38,7 @@ interface PlayerContextType {
   seek: (time: number) => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
+  setViewMode: (mode: ViewMode) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -47,6 +54,7 @@ export const usePlayer = () => {
 export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   
   const [playlistId, setPlaylistIdState] = useState<string | null>(null);
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -57,8 +65,15 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(false);
   const [shuffle, setShuffle] = useState(false);
   const [repeat, setRepeat] = useState<'off' | 'one' | 'all'>('off');
+  const [viewMode, setViewModeState] = useState<ViewMode>('auto');
 
   const currentTrack = tracks[currentTrackIndex] || null;
+  
+  // Detect content type based on current track
+  const contentType = currentTrack ? detectMediaType(currentTrack.video_url) : 'audio';
+  
+  // Determine effective view mode
+  const effectiveViewMode = viewMode === 'auto' ? contentType : viewMode;
 
   // Fetch playlist tracks when playlistId changes
   useEffect(() => {
@@ -118,20 +133,23 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     fetchPlaylistTracks();
   }, [playlistId]);
 
-  // Handle audio events
+  // Handle audio/video events
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    const video = videoRef.current;
+    const activeMedia = effectiveViewMode === 'video' ? video : audio;
+    
+    if (!activeMedia) return;
 
     const updateProgress = () => {
-      setProgress(audio.currentTime);
-      setDuration(audio.duration || 0);
+      setProgress(activeMedia.currentTime);
+      setDuration(activeMedia.duration || 0);
     };
 
     const handleEnded = () => {
       if (repeat === 'one') {
-        audio.currentTime = 0;
-        audio.play();
+        activeMedia.currentTime = 0;
+        activeMedia.play();
       } else if (repeat === 'all' || currentTrackIndex < tracks.length - 1) {
         next();
       } else {
@@ -139,16 +157,16 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    audio.addEventListener('timeupdate', updateProgress);
-    audio.addEventListener('loadedmetadata', updateProgress);
-    audio.addEventListener('ended', handleEnded);
+    activeMedia.addEventListener('timeupdate', updateProgress);
+    activeMedia.addEventListener('loadedmetadata', updateProgress);
+    activeMedia.addEventListener('ended', handleEnded);
 
     return () => {
-      audio.removeEventListener('timeupdate', updateProgress);
-      audio.removeEventListener('loadedmetadata', updateProgress);
-      audio.removeEventListener('ended', handleEnded);
+      activeMedia.removeEventListener('timeupdate', updateProgress);
+      activeMedia.removeEventListener('loadedmetadata', updateProgress);
+      activeMedia.removeEventListener('ended', handleEnded);
     };
-  }, [currentTrackIndex, tracks.length, repeat]);
+  }, [currentTrackIndex, tracks.length, repeat, effectiveViewMode]);
 
   // Clear player on logout
   useEffect(() => {
@@ -165,18 +183,38 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const play = () => {
-    if (audioRef.current && currentTrack) {
-      audioRef.current.play();
+    if (currentTrack) {
+      if (effectiveViewMode === 'video' && videoRef.current) {
+        videoRef.current.play();
+      } else if (audioRef.current) {
+        audioRef.current.play();
+      }
       setIsPlaying(true);
     }
   };
 
   const pause = () => {
+    if (videoRef.current) {
+      videoRef.current.pause();
+    }
     if (audioRef.current) {
       audioRef.current.pause();
-      setIsPlaying(false);
     }
+    setIsPlaying(false);
   };
+  
+  const setViewMode = (mode: ViewMode) => {
+    setViewModeState(mode);
+    localStorage.setItem('player-view-mode', mode);
+  };
+  
+  // Load saved view mode
+  useEffect(() => {
+    const saved = localStorage.getItem('player-view-mode') as ViewMode;
+    if (saved) {
+      setViewModeState(saved);
+    }
+  }, []);
 
   const next = () => {
     if (tracks.length === 0) return;
@@ -207,8 +245,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const seek = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
+    const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
+    if (activeMedia) {
+      activeMedia.currentTime = time;
       setProgress(time);
     }
   };
@@ -223,10 +262,14 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   // Auto-play when track changes
   useEffect(() => {
-    if (currentTrack && isPlaying && audioRef.current) {
-      audioRef.current.play();
+    if (currentTrack && isPlaying) {
+      if (effectiveViewMode === 'video' && videoRef.current) {
+        videoRef.current.play();
+      } else if (audioRef.current) {
+        audioRef.current.play();
+      }
     }
-  }, [currentTrack]);
+  }, [currentTrack, effectiveViewMode]);
 
   const value: PlayerContextType = {
     playlistId,
@@ -239,7 +282,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     loading,
     shuffle,
     repeat,
+    viewMode,
+    contentType,
     audioRef,
+    videoRef,
     setPlaylist,
     play,
     pause,
@@ -249,14 +295,21 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     seek,
     toggleShuffle,
     toggleRepeat,
+    setViewMode,
   };
 
   return (
     <PlayerContext.Provider value={value}>
       <audio
         ref={audioRef}
-        src={currentTrack?.video_url}
+        src={effectiveViewMode === 'audio' ? currentTrack?.video_url : undefined}
         className="hidden"
+      />
+      <video
+        ref={videoRef}
+        src={effectiveViewMode === 'video' ? currentTrack?.video_url : undefined}
+        className="hidden"
+        playsInline
       />
       {children}
     </PlayerContext.Provider>

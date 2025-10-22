@@ -1,11 +1,12 @@
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, SkipBack, SkipForward } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const MiniPlayer = () => {
-  const { currentTrack, isPlaying, play, pause, next, previous } = usePlayer();
+  const { currentTrack, isPlaying, contentType, play, pause, next, previous } = usePlayer();
   const navigate = useNavigate();
 
   if (!currentTrack) return null;
@@ -37,9 +38,17 @@ export const MiniPlayer = () => {
               }}
             />
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
-                {currentTrack.title}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm font-medium truncate group-hover:text-primary transition-colors">
+                  {currentTrack.title}
+                </p>
+                {contentType === 'video' && (
+                  <Badge variant="secondary" className="h-5 px-1.5 gap-1 shrink-0">
+                    <VideoIcon className="w-3 h-3" />
+                    <span className="text-xs">Video</span>
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground truncate">
                 {currentTrack.artist_name}
               </p>

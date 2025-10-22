@@ -10,9 +10,14 @@ import {
   Menu,
   Shuffle,
   Repeat,
-  Repeat1
+  Repeat1,
+  Music,
+  Video,
+  Maximize,
+  PictureInPicture
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { enablePictureInPicture, toggleFullscreen } from '@/lib/mediaUtils';
 
 interface JukeboxPlayerProps {
   playlistId: string;
@@ -30,6 +35,9 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     loading,
     shuffle,
     repeat,
+    viewMode,
+    contentType,
+    videoRef,
     play,
     pause,
     next,
@@ -39,7 +47,10 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     toggleShuffle,
     toggleRepeat,
     setPlaylist,
+    setViewMode,
   } = usePlayer();
+  
+  const effectiveViewMode = viewMode === 'auto' ? contentType : viewMode;
 
   // Set playlist when component mounts or playlistId changes
   useEffect(() => {
@@ -101,19 +112,62 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
             <h3 className="song-title">{currentTrack?.title} – {currentTrack?.artist_name}</h3>
           </div>
 
-          {/* Track Thumbnail */}
-          {currentTrack?.thumbnail_url && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-lg overflow-hidden shadow-2xl opacity-40 blur-sm pointer-events-none">
-              <img
-                src={currentTrack.thumbnail_url}
-                alt={currentTrack.title}
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-              />
-            </div>
-          )}
+          {/* Media Display Area - Video or Album Art */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+            {effectiveViewMode === 'video' && currentTrack?.video_url ? (
+              <div className="relative w-80 h-80 rounded-lg overflow-hidden shadow-2xl">
+                <video
+                  ref={videoRef}
+                  src={currentTrack.video_url}
+                  poster={currentTrack.thumbnail_url}
+                  className="w-full h-full object-cover"
+                  playsInline
+                  onClick={isPlaying ? pause : play}
+                />
+                <div className="absolute top-2 right-2 flex gap-2">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (videoRef.current) {
+                        enablePictureInPicture(videoRef.current);
+                      }
+                    }}
+                  >
+                    <PictureInPicture className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    className="h-8 w-8 bg-background/80 backdrop-blur-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (videoRef.current?.parentElement) {
+                        toggleFullscreen(videoRef.current.parentElement);
+                      }
+                    }}
+                  >
+                    <Maximize className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              currentTrack?.thumbnail_url && (
+                <div className="w-48 h-48 rounded-lg overflow-hidden shadow-2xl opacity-40 blur-sm pointer-events-none">
+                  <img
+                    src={currentTrack.thumbnail_url}
+                    alt={currentTrack.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                    }}
+                  />
+                </div>
+              )
+            )}
+          </div>
 
           {/* Central Play Button with Glow Rings */}
           <div className="play-button-container">
@@ -178,6 +232,17 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
                 <Repeat1 className={cn("h-5 w-5", "text-primary")} />
               ) : (
                 <Repeat className={cn("h-5 w-5", repeat !== 'off' && "text-primary")} />
+              )}
+            </button>
+            <button 
+              className="control-btn" 
+              onClick={() => setViewMode(effectiveViewMode === 'video' ? 'audio' : 'video')}
+              title={effectiveViewMode === 'video' ? 'Switch to Audio Mode' : 'Switch to Video Mode'}
+            >
+              {effectiveViewMode === 'video' ? (
+                <Music className={cn("h-5 w-5")} />
+              ) : (
+                <Video className={cn("h-5 w-5")} />
               )}
             </button>
           </div>
