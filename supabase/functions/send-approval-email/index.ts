@@ -30,14 +30,15 @@ serve(async (req: Request) => {
       throw new Error('SENDGRID_API_KEY is not configured');
     }
 
-    // Admin email addresses to CC
+    // Admin email addresses to CC (excluding the recipient)
     const adminEmails = ['colleen.nagle@subamerica.net', 'subamerica@gmail.com'];
+    const ccEmails = adminEmails.filter(email => email !== artist_email);
 
     const emailData = {
       personalizations: [
         {
           to: [{ email: artist_email, name: artist_name }],
-          cc: adminEmails.map(email => ({ email })),
+          cc: ccEmails.map(email => ({ email })),
           subject: '🎉 Congratulations! Your Artist Application Has Been Approved'
         }
       ],
