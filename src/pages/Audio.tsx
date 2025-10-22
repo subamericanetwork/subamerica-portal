@@ -74,7 +74,7 @@ export default function Audio() {
 
   const extractAudioDuration = (file: File): Promise<number> => {
     return new Promise((resolve, reject) => {
-      const audioElement = new HTMLAudioElement();
+      const audioElement = document.createElement('audio');
       audioElement.preload = 'metadata';
       
       audioElement.onloadedmetadata = () => {
