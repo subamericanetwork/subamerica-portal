@@ -47,17 +47,18 @@ import {
 import { CatalogBrowser } from '@/components/CatalogBrowser';
 import { MemberLayout } from '@/components/layout/MemberLayout';
 
-interface Video {
+interface ContentItem {
   id: string;
   title: string;
+  content_type: 'video' | 'audio';
 }
 
-interface SortableVideoItemProps {
-  video: Video;
+interface SortableContentItemProps {
+  item: ContentItem;
   onRemove: (id: string) => void;
 }
 
-const SortableVideoItem = ({ video, onRemove }: SortableVideoItemProps) => {
+const SortableContentItem = ({ item, onRemove }: SortableContentItemProps) => {
   const {
     attributes,
     listeners,
@@ -65,7 +66,7 @@ const SortableVideoItem = ({ video, onRemove }: SortableVideoItemProps) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: video.id });
+  } = useSortable({ id: item.id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -85,13 +86,16 @@ const SortableVideoItem = ({ video, onRemove }: SortableVideoItemProps) => {
         </div>
         
         <div className="flex-1 min-w-0">
-          <h3 className="font-medium truncate">{video.title}</h3>
+          <h3 className="font-medium truncate">{item.title}</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            {item.content_type === 'audio' ? 'Audio Track' : 'Video'}
+          </p>
         </div>
         
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => onRemove(video.id)}
+          onClick={() => onRemove(item.id)}
           className="text-destructive hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
@@ -104,14 +108,14 @@ const SortableVideoItem = ({ video, onRemove }: SortableVideoItemProps) => {
 const EditPlaylist = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { playlists, loading: playlistsLoading, updatePlaylist, removeVideoFromPlaylist, addVideoToPlaylist } = usePlaylist();
+  const { playlists, loading: playlistsLoading, updatePlaylist, removeVideoFromPlaylist, removeAudioFromPlaylist, addVideoToPlaylist, addAudioToPlaylist } = usePlaylist();
   const { toast } = useToast();
   
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [videos, setVideos] = useState<Video[]>([]);
-  const [videosLoading, setVideosLoading] = useState(false);
+  const [contentItems, setContentItems] = useState<ContentItem[]>([]);
+  const [contentLoading, setContentLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [videoToRemove, setVideoToRemove] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -158,32 +162,59 @@ const EditPlaylist = () => {
       setDescription(currentPlaylist.description || '');
       setIsPublic(currentPlaylist.is_public);
 
-      // Fetch video details
-      if (currentPlaylist.video_ids.length > 0) {
-        setVideosLoading(true);
+      // Fetch content details (videos and audio)
+      const hasVideos = currentPlaylist.video_ids.length > 0;
+      const hasAudio = currentPlaylist.audio_ids?.length > 0;
+
+      if (hasVideos || hasAudio) {
+        setContentLoading(true);
         try {
-          const { data, error } = await supabase
-            .from('videos')
-            .select('id, title')
-            .in('id', currentPlaylist.video_ids);
+          const items: ContentItem[] = [];
 
-          if (error) throw error;
+          // Fetch videos
+          if (hasVideos) {
+            const { data: videosData, error: videosError } = await supabase
+              .from('videos')
+              .select('id, title')
+              .in('id', currentPlaylist.video_ids);
 
-          // Maintain the order from video_ids
-          const orderedVideos = currentPlaylist.video_ids
-            .map(videoId => data?.find(v => v.id === videoId))
-            .filter(Boolean) as Video[];
+            if (videosError) throw videosError;
 
-          setVideos(orderedVideos);
+            const orderedVideos = currentPlaylist.video_ids
+              .map(videoId => videosData?.find(v => v.id === videoId))
+              .filter(Boolean)
+              .map(v => ({ ...v, content_type: 'video' as const }));
+
+            items.push(...orderedVideos);
+          }
+
+          // Fetch audio tracks
+          if (hasAudio) {
+            const { data: audioData, error: audioError } = await supabase
+              .from('audio_tracks')
+              .select('id, title')
+              .in('id', currentPlaylist.audio_ids);
+
+            if (audioError) throw audioError;
+
+            const orderedAudio = currentPlaylist.audio_ids
+              .map(audioId => audioData?.find(a => a.id === audioId))
+              .filter(Boolean)
+              .map(a => ({ ...a, content_type: 'audio' as const }));
+
+            items.push(...orderedAudio);
+          }
+
+          setContentItems(items);
         } catch (error) {
-          console.error('Error fetching videos:', error);
+          console.error('Error fetching content:', error);
           toast({
             title: "Error",
-            description: "Failed to load videos",
+            description: "Failed to load playlist content",
             variant: "destructive",
           });
         } finally {
-          setVideosLoading(false);
+          setContentLoading(false);
         }
       }
     };
@@ -216,84 +247,147 @@ const EditPlaylist = () => {
     }
   };
 
-  const handleRemoveVideo = async (videoId: string) => {
+  const handleRemoveContent = async (itemId: string) => {
     if (!id) return;
     
     try {
-      await removeVideoFromPlaylist(id, videoId);
-      setVideos(videos.filter(v => v.id !== videoId));
+      const item = contentItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      if (item.content_type === 'video') {
+        await removeVideoFromPlaylist(id, itemId);
+      } else {
+        await removeAudioFromPlaylist(id, itemId);
+      }
+      
+      setContentItems(contentItems.filter(i => i.id !== itemId));
       setVideoToRemove(null);
     } catch (error) {
-      console.error('Error removing video:', error);
+      console.error('Error removing content:', error);
     }
   };
 
-  const handleAddVideos = async (videoIds: string[]) => {
+  const handleAddContent = async (contentIds: string[]) => {
     if (!id) return;
 
     try {
-      // Get current playlist data from database to ensure we have latest state
+      // Get current playlist data from database
       const { data: playlistData, error: playlistError } = await supabase
         .from('member_playlists')
-        .select('video_ids')
+        .select('video_ids, audio_ids')
         .eq('id', id)
         .single();
 
       if (playlistError) throw playlistError;
 
-      // Filter out videos that are already in the playlist
       const currentVideoIds = playlistData.video_ids || [];
-      const newVideoIds = videoIds.filter(vid => !currentVideoIds.includes(vid));
+      const currentAudioIds = playlistData.audio_ids || [];
+      const totalCurrentItems = currentVideoIds.length + currentAudioIds.length;
 
-      if (newVideoIds.length === 0) {
+      // Separate video and audio IDs by checking which table they exist in
+      const videoIdsToCheck: string[] = [];
+      const audioIdsToCheck: string[] = [];
+
+      // Check videos table
+      const { data: videosData } = await supabase
+        .from('videos')
+        .select('id')
+        .in('id', contentIds);
+
+      if (videosData) {
+        videoIdsToCheck.push(...videosData.map(v => v.id));
+      }
+
+      // Check audio_tracks table
+      const { data: audioData } = await supabase
+        .from('audio_tracks')
+        .select('id')
+        .in('id', contentIds);
+
+      if (audioData) {
+        audioIdsToCheck.push(...audioData.map(a => a.id));
+      }
+
+      // Filter out items already in playlist
+      const newVideoIds = videoIdsToCheck.filter(id => !currentVideoIds.includes(id));
+      const newAudioIds = audioIdsToCheck.filter(id => !currentAudioIds.includes(id));
+      const totalNewItems = newVideoIds.length + newAudioIds.length;
+
+      if (totalNewItems === 0) {
         toast({
           title: "Already Added",
-          description: "All selected videos are already in the playlist",
+          description: "All selected items are already in the playlist",
           variant: "destructive",
         });
         return;
       }
 
       // Check if adding would exceed limit
-      if (currentVideoIds.length + newVideoIds.length > 100) {
+      if (totalCurrentItems + totalNewItems > 100) {
         toast({
           title: "Playlist Full",
-          description: `Can only add ${100 - currentVideoIds.length} more videos`,
+          description: `Can only add ${100 - totalCurrentItems} more items`,
           variant: "destructive",
         });
         return;
       }
 
-      // Add all new videos at once
-      const updatedVideoIds = [...currentVideoIds, ...newVideoIds];
+      // Update database
+      const updates: any = {};
+      if (newVideoIds.length > 0) {
+        updates.video_ids = [...currentVideoIds, ...newVideoIds];
+      }
+      if (newAudioIds.length > 0) {
+        updates.audio_ids = [...currentAudioIds, ...newAudioIds];
+      }
+
       const { error: updateError } = await supabase
         .from('member_playlists')
-        .update({ video_ids: updatedVideoIds })
+        .update(updates)
         .eq('id', id);
 
       if (updateError) throw updateError;
 
-      // Fetch the new video details
-      const { data, error } = await supabase
-        .from('videos')
-        .select('id, title')
-        .in('id', newVideoIds);
+      // Fetch new content details
+      const newItems: ContentItem[] = [];
 
-      if (error) throw error;
+      if (newVideoIds.length > 0) {
+        const { data: newVideosData, error } = await supabase
+          .from('videos')
+          .select('id, title')
+          .in('id', newVideoIds);
+
+        if (error) throw error;
+        if (newVideosData) {
+          newItems.push(...newVideosData.map(v => ({ ...v, content_type: 'video' as const })));
+        }
+      }
+
+      if (newAudioIds.length > 0) {
+        const { data: newAudioData, error } = await supabase
+          .from('audio_tracks')
+          .select('id, title')
+          .in('id', newAudioIds);
+
+        if (error) throw error;
+        if (newAudioData) {
+          newItems.push(...newAudioData.map(a => ({ ...a, content_type: 'audio' as const })));
+        }
+      }
 
       // Add to local state
-      setVideos(prev => [...prev, ...(data as Video[])]);
+      setContentItems(prev => [...prev, ...newItems]);
       setBrowseSheetOpen(false);
 
       toast({
         title: "Success",
-        description: `Added ${newVideoIds.length} video${newVideoIds.length > 1 ? 's' : ''} to playlist`,
+        description: `Added ${totalNewItems} item${totalNewItems > 1 ? 's' : ''} to playlist`,
       });
     } catch (error) {
-      console.error('Error adding videos:', error);
+      console.error('Error adding content:', error);
       toast({
         title: "Error",
-        description: "Failed to add videos",
+        description: "Failed to add content",
         variant: "destructive",
       });
     }
@@ -306,31 +400,35 @@ const EditPlaylist = () => {
       return;
     }
 
-    const oldIndex = videos.findIndex((v) => v.id === active.id);
-    const newIndex = videos.findIndex((v) => v.id === over.id);
+    const oldIndex = contentItems.findIndex((item) => item.id === active.id);
+    const newIndex = contentItems.findIndex((item) => item.id === over.id);
 
-    const newVideos = arrayMove(videos, oldIndex, newIndex);
-    setVideos(newVideos);
+    const newItems = arrayMove(contentItems, oldIndex, newIndex);
+    setContentItems(newItems);
 
     if (id) {
       try {
-        const newVideoIds = newVideos.map(v => v.id);
+        // Separate by type and update both arrays
+        const newVideoIds = newItems.filter(i => i.content_type === 'video').map(i => i.id);
+        const newAudioIds = newItems.filter(i => i.content_type === 'audio').map(i => i.id);
+        
         await updatePlaylist(id, {
           video_ids: newVideoIds,
+          audio_ids: newAudioIds,
         });
         
         toast({
           title: "Order Updated",
-          description: "Video order saved successfully",
+          description: "Content order saved successfully",
         });
       } catch (error) {
-        console.error('Error updating video order:', error);
+        console.error('Error updating content order:', error);
         toast({
           title: "Error",
-          description: "Failed to save video order",
+          description: "Failed to save content order",
           variant: "destructive",
         });
-        setVideos(videos);
+        setContentItems(contentItems);
       }
     }
   };
@@ -411,22 +509,22 @@ const EditPlaylist = () => {
             <div>
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">
-                  Videos ({videos.length}/100)
+                  Content ({contentItems.length}/100)
                 </h2>
                 <Button
                   onClick={() => setBrowseSheetOpen(true)}
                   variant="outline"
                   size="sm"
-                  disabled={videos.length >= 100}
+                  disabled={contentItems.length >= 100}
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   Browse & Add
                 </Button>
               </div>
-              {videos.length === 0 ? (
+              {contentItems.length === 0 ? (
                 <Card className="p-8 text-center">
                   <p className="text-muted-foreground">
-                    No videos in this playlist yet
+                    No content in this playlist yet
                   </p>
                 </Card>
               ) : (
@@ -436,14 +534,14 @@ const EditPlaylist = () => {
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext
-                    items={videos.map(v => v.id)}
+                    items={contentItems.map(item => item.id)}
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="space-y-2">
-                      {videos.map((video) => (
-                        <SortableVideoItem
-                          key={video.id}
-                          video={video}
+                      {contentItems.map((item) => (
+                        <SortableContentItem
+                          key={item.id}
+                          item={item}
                           onRemove={setVideoToRemove}
                         />
                       ))}
@@ -482,15 +580,15 @@ const EditPlaylist = () => {
         <AlertDialog open={!!videoToRemove} onOpenChange={() => setVideoToRemove(null)}>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Remove Video</AlertDialogTitle>
+              <AlertDialogTitle>Remove Content</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to remove this video from the playlist?
+                Are you sure you want to remove this item from the playlist?
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
-                onClick={() => videoToRemove && handleRemoveVideo(videoToRemove)}
+                onClick={() => videoToRemove && handleRemoveContent(videoToRemove)}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               >
                 Remove
@@ -505,14 +603,14 @@ const EditPlaylist = () => {
             <SheetHeader>
               <SheetTitle>Browse Catalog</SheetTitle>
               <SheetDescription>
-                Select videos to add to your playlist ({videos.length}/100)
+                Select content to add to your playlist ({contentItems.length}/100)
               </SheetDescription>
             </SheetHeader>
             <div className="mt-6">
               <CatalogBrowser
                 mode="selection"
-                onSelect={handleAddVideos}
-                excludeVideoIds={videos.map(v => v.id)}
+                onSelect={handleAddContent}
+                excludeVideoIds={contentItems.map(item => item.id)}
                 multiSelect={true}
               />
             </div>
