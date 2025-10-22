@@ -7,6 +7,7 @@ import { usePlaylist } from "@/hooks/usePlaylist";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { MemberLayout } from "@/components/layout/MemberLayout";
 
 const MemberDashboard = () => {
   const navigate = useNavigate();
@@ -59,18 +60,19 @@ const MemberDashboard = () => {
   }, [user, authLoading]);
 
   return (
-    <div className="min-h-screen p-4 gradient-hero">
-      <div className="max-w-6xl mx-auto py-8">
-        <div className="text-center mb-8">
-          <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
-          <h1 className="text-4xl font-bold mb-2">
-            Welcome to Subamerica{displayName && `, ${displayName}`}!
-          </h1>
-          <p className="text-muted-foreground text-lg mb-2">
-            The Indie Underground Lives Here<br />
-            Stream fearless art, music, and stories 24/7. You're not just watching — you're part of the crew.
-          </p>
-        </div>
+    <MemberLayout>
+      <div className="min-h-screen p-4 gradient-hero">
+        <div className="max-w-6xl mx-auto py-8">
+          <div className="text-center mb-8">
+            <img src={logo} alt="Subamerica Logo" className="h-24 mx-auto mb-4" />
+            <h1 className="text-4xl font-bold mb-2">
+              Welcome to Subamerica{displayName && `, ${displayName}`}!
+            </h1>
+            <p className="text-muted-foreground text-lg mb-2">
+              The Indie Underground Lives Here<br />
+              Stream fearless art, music, and stories 24/7. You're not just watching — you're part of the crew.
+            </p>
+          </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-5xl mx-auto">
           <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/50 transition-all">
@@ -184,6 +186,7 @@ const MemberDashboard = () => {
         </Card>
       </div>
     </div>
+    </MemberLayout>
   );
 };
 

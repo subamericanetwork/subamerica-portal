@@ -28,6 +28,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { CatalogBrowser } from '@/components/CatalogBrowser';
+import { MemberLayout } from '@/components/layout/MemberLayout';
 
 interface Video {
   id: string;
@@ -228,183 +229,187 @@ const EditPlaylist = () => {
   // Show loading while playlists are being fetched
   if (playlistsLoading || !initialized) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <MemberLayout>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </MemberLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container max-w-4xl mx-auto py-8 px-4">
-        <Button
-          variant="ghost"
-          onClick={() => navigate('/member/playlists')}
-          className="mb-6"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Playlists
-        </Button>
+    <MemberLayout>
+      <div className="min-h-screen bg-background">
+        <div className="container max-w-4xl mx-auto py-8 px-4">
+          <Button
+            variant="ghost"
+            onClick={() => navigate('/member/playlists')}
+            className="mb-6"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Playlists
+          </Button>
 
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold">Edit Playlist</h1>
-            <p className="text-muted-foreground mt-2">
-              Update playlist details and manage videos
-            </p>
-          </div>
-
-          <Card className="p-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Playlist Name *</Label>
-                <Input
-                  id="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Enter playlist name"
-                  maxLength={100}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Add a description (optional)"
-                  rows={3}
-                  maxLength={500}
-                />
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor="public">Public Playlist</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Make this playlist visible to others
-                  </p>
-                </div>
-                <Switch
-                  id="public"
-                  checked={isPublic}
-                  onCheckedChange={setIsPublic}
-                />
-              </div>
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold">Edit Playlist</h1>
+              <p className="text-muted-foreground mt-2">
+                Update playlist details and manage videos
+              </p>
             </div>
-          </Card>
 
-          <div>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">
-                Videos ({videos.length}/100)
-              </h2>
+            <Card className="p-6">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Playlist Name *</Label>
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter playlist name"
+                    maxLength={100}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Add a description (optional)"
+                    rows={3}
+                    maxLength={500}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="public">Public Playlist</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Make this playlist visible to others
+                    </p>
+                  </div>
+                  <Switch
+                    id="public"
+                    checked={isPublic}
+                    onCheckedChange={setIsPublic}
+                  />
+                </div>
+              </div>
+            </Card>
+
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold">
+                  Videos ({videos.length}/100)
+                </h2>
+                <Button
+                  onClick={() => setBrowseSheetOpen(true)}
+                  variant="outline"
+                  size="sm"
+                  disabled={videos.length >= 100}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Browse & Add
+                </Button>
+              </div>
+              {videos.length === 0 ? (
+                <Card className="p-8 text-center">
+                  <p className="text-muted-foreground">
+                    No videos in this playlist yet
+                  </p>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  {videos.map((video) => (
+                    <Card key={video.id} className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-medium truncate">{video.title}</h3>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setVideoToRemove(video.id)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-4">
               <Button
-                onClick={() => setBrowseSheetOpen(true)}
-                variant="outline"
-                size="sm"
-                disabled={videos.length >= 100}
+                onClick={handleSave}
+                disabled={saving || !name.trim()}
+                className="flex-1"
               >
-                <Plus className="mr-2 h-4 w-4" />
-                Browse & Add
+                {saving ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Changes'
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/member/playlists')}
+                disabled={saving}
+              >
+                Cancel
               </Button>
             </div>
-            {videos.length === 0 ? (
-              <Card className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  No videos in this playlist yet
-                </p>
-              </Card>
-            ) : (
-              <div className="space-y-2">
-                {videos.map((video) => (
-                  <Card key={video.id} className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-medium truncate">{video.title}</h3>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setVideoToRemove(video.id)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="flex gap-3 pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={saving || !name.trim()}
-              className="flex-1"
-            >
-              {saving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                'Save Changes'
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/member/playlists')}
-              disabled={saving}
-            >
-              Cancel
-            </Button>
           </div>
         </div>
+
+        <AlertDialog open={!!videoToRemove} onOpenChange={() => setVideoToRemove(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Remove Video</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to remove this video from the playlist?
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => videoToRemove && handleRemoveVideo(videoToRemove)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Remove
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Browse Catalog Sheet */}
+        <Sheet open={browseSheetOpen} onOpenChange={setBrowseSheetOpen}>
+          <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
+            <SheetHeader>
+              <SheetTitle>Browse Catalog</SheetTitle>
+              <SheetDescription>
+                Select videos to add to your playlist ({videos.length}/100)
+              </SheetDescription>
+            </SheetHeader>
+            <div className="mt-6">
+              <CatalogBrowser
+                mode="selection"
+                onSelect={handleAddVideos}
+                excludeVideoIds={videos.map(v => v.id)}
+                multiSelect={true}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
       </div>
-
-      <AlertDialog open={!!videoToRemove} onOpenChange={() => setVideoToRemove(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Video</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this video from the playlist?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => videoToRemove && handleRemoveVideo(videoToRemove)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Browse Catalog Sheet */}
-      <Sheet open={browseSheetOpen} onOpenChange={setBrowseSheetOpen}>
-        <SheetContent side="right" className="w-full sm:max-w-4xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Browse Catalog</SheetTitle>
-            <SheetDescription>
-              Select videos to add to your playlist ({videos.length}/100)
-            </SheetDescription>
-          </SheetHeader>
-          <div className="mt-6">
-            <CatalogBrowser
-              mode="selection"
-              onSelect={handleAddVideos}
-              excludeVideoIds={videos.map(v => v.id)}
-              multiSelect={true}
-            />
-          </div>
-        </SheetContent>
-      </Sheet>
-    </div>
+    </MemberLayout>
   );
 };
 

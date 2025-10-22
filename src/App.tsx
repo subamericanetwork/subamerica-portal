@@ -38,6 +38,7 @@ import Posts from "./pages/Posts";
 import BecomeArtist from "./pages/BecomeArtist";
 import ApplicationStatus from "./pages/ApplicationStatus";
 import MemberDashboard from "./pages/MemberDashboard";
+import MemberProfile from "./pages/MemberProfile";
 
 const queryClient = new QueryClient();
 
@@ -58,6 +59,7 @@ const App = () => (
           
           {/* Member Routes */}
           <Route path="/member/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+          <Route path="/member/profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
           <Route path="/become-artist" element={<ProtectedRoute><BecomeArtist /></ProtectedRoute>} />
           <Route path="/application-status" element={<ProtectedRoute><ApplicationStatus /></ProtectedRoute>} />
           

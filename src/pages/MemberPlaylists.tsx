@@ -3,6 +3,7 @@ import { usePlaylist } from '@/hooks/usePlaylist';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { MemberLayout } from '@/components/layout/MemberLayout';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,24 +43,27 @@ export default function MemberPlaylists() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">Loading playlists...</div>
+      <MemberLayout>
+        <div className="container mx-auto py-8">
+          <div className="flex items-center justify-center py-12">
+            <div className="text-muted-foreground">Loading playlists...</div>
+          </div>
         </div>
-      </div>
+      </MemberLayout>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="mb-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">My Playlists</h1>
-            <p className="text-muted-foreground mt-2">
-              Create and manage your personal playlists
-            </p>
-          </div>
+    <MemberLayout>
+      <div className="container mx-auto py-8">
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">My Playlists</h1>
+              <p className="text-muted-foreground mt-2">
+                Create and manage your personal playlists
+              </p>
+            </div>
           <div className="flex gap-2">
             <Button onClick={() => navigate('/browse')} variant="outline">
               <Library className="mr-2 h-4 w-4" />
@@ -163,5 +167,6 @@ export default function MemberPlaylists() {
         onOpenChange={setCreateSheetOpen}
       />
     </div>
+    </MemberLayout>
   );
 }
