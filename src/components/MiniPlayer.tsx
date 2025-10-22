@@ -93,9 +93,6 @@ export const MiniPlayer = () => {
 
           {/* Center: Instructional Hint */}
           <div className="flex items-center gap-2 mx-4">
-            <span className="text-xs text-muted-foreground hidden sm:inline whitespace-nowrap">
-              Click to view full player
-            </span>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
