@@ -94,40 +94,76 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       try {
         const { data: playlist } = await supabase
           .from('member_playlists')
-          .select('video_ids')
+          .select('video_ids, audio_ids')
           .eq('id', playlistId)
           .single();
 
-        if (playlist && playlist.video_ids && playlist.video_ids.length > 0) {
-          const { data: videos } = await supabase
-            .from('videos')
-            .select('id, title, artist_id, thumb_url, video_url, duration')
-            .in('id', playlist.video_ids);
+        if (playlist) {
+          const allTracks: Track[] = [];
+          const allArtistIds: string[] = [];
 
-          if (videos) {
-            // Get artist names and slugs
-            const artistIds = videos.map(v => v.artist_id);
+          // Fetch videos if any
+          if (playlist.video_ids && playlist.video_ids.length > 0) {
+            const { data: videos } = await supabase
+              .from('videos')
+              .select('id, title, artist_id, thumb_url, video_url, duration')
+              .in('id', playlist.video_ids);
+
+            if (videos) {
+              allArtistIds.push(...videos.map(v => v.artist_id));
+              allTracks.push(...videos.map(v => ({
+                id: v.id,
+                title: v.title,
+                artist_name: '',
+                artist_id: v.artist_id,
+                artist_slug: '',
+                thumbnail_url: v.thumb_url,
+                video_url: v.video_url || '',
+                duration: v.duration || 0,
+              })));
+            }
+          }
+
+          // Fetch audio tracks if any
+          if (playlist.audio_ids && playlist.audio_ids.length > 0) {
+            const { data: audioTracks } = await supabase
+              .from('audio_tracks')
+              .select('id, title, artist_id, thumb_url, audio_url, duration')
+              .in('id', playlist.audio_ids);
+
+            if (audioTracks) {
+              allArtistIds.push(...audioTracks.map(a => a.artist_id));
+              allTracks.push(...audioTracks.map(a => ({
+                id: a.id,
+                title: a.title,
+                artist_name: '',
+                artist_id: a.artist_id,
+                artist_slug: '',
+                thumbnail_url: a.thumb_url,
+                video_url: a.audio_url || '',
+                duration: a.duration || 0,
+              })));
+            }
+          }
+
+          // Get artist names and slugs for all tracks
+          if (allArtistIds.length > 0) {
             const { data: artists } = await supabase
               .from('artists')
               .select('id, display_name, slug')
-              .in('id', artistIds);
+              .in('id', allArtistIds);
 
             const artistMap = new Map(artists?.map(a => [a.id, { name: a.display_name, slug: a.slug }]) || []);
 
-            const tracksData: Track[] = videos.map(v => ({
-              id: v.id,
-              title: v.title,
-              artist_name: artistMap.get(v.artist_id)?.name || 'Unknown Artist',
-              artist_id: v.artist_id,
-              artist_slug: artistMap.get(v.artist_id)?.slug || '',
-              thumbnail_url: v.thumb_url,
-              video_url: v.video_url || '',
-              duration: v.duration || 0,
-            }));
-
-            setTracks(tracksData);
-            setCurrentTrackIndex(0);
+            // Update tracks with artist info
+            allTracks.forEach(track => {
+              track.artist_name = artistMap.get(track.artist_id)?.name || 'Unknown Artist';
+              track.artist_slug = artistMap.get(track.artist_id)?.slug || '';
+            });
           }
+
+          setTracks(allTracks);
+          setCurrentTrackIndex(0);
         } else {
           setTracks([]);
         }
