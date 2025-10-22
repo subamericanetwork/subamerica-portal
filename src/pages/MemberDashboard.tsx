@@ -156,15 +156,33 @@ const MemberDashboard = () => {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">Personalized Feed</h3>
+                <h3 className="font-semibold mb-2">Watch Parties</h3>
                 <p className="text-sm text-muted-foreground">
-                  Get recommendations based on your favorite artists and genres
+                  Stream and react together in real time.
                 </p>
               </div>
               <div className="p-4 border rounded-lg">
-                <h3 className="font-semibold mb-2">Social Features</h3>
+                <h3 className="font-semibold mb-2">Live-Streamed Concerts</h3>
                 <p className="text-sm text-muted-foreground">
-                  Comment, like, and interact with artists and other members
+                  Rooftop sets, DIY venues, secret warehouses — broadcast live worldwide.
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Indie Podcasts</h3>
+                <p className="text-sm text-muted-foreground">
+                  Raw conversations and sonic journeys from creators who speak freely.
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Streaming TV/Web Channels</h3>
+                <p className="text-sm text-muted-foreground">
+                  Your 24/7 personal broadcast feed — mix live drops, videos, and fan chat.
+                </p>
+              </div>
+              <div className="p-4 border rounded-lg">
+                <h3 className="font-semibold mb-2">Fan Tip Jars & QR Commerce</h3>
+                <p className="text-sm text-muted-foreground">
+                  Fans scan, tip, or buy merch instantly during performances.
                 </p>
               </div>
             </div>
