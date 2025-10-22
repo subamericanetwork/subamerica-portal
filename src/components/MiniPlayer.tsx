@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X, Info, GripVertical } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X, Info, GripVertical, Maximize, PictureInPicture } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { enablePictureInPicture } from '@/lib/mediaUtils';
+import { enablePictureInPicture, toggleFullscreen } from '@/lib/mediaUtils';
 import { useState, useEffect, useRef } from 'react';
 
 export const MiniPlayer = () => {
@@ -129,6 +129,20 @@ export const MiniPlayer = () => {
     setIsDragging(true);
   };
 
+  const handlePictureInPicture = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef?.current) {
+      await enablePictureInPicture(videoRef.current);
+    }
+  };
+
+  const handleFullscreen = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef?.current?.parentElement) {
+      await toggleFullscreen(videoRef.current.parentElement);
+    }
+  };
+
   return (
     <div 
       ref={playerRef}
@@ -207,6 +221,48 @@ export const MiniPlayer = () => {
                 )}
               </Button>
             )}
+            
+            {/* Video Controls - Only show when in video mode */}
+            {contentType === 'video' && viewMode === 'video' && videoRef?.current && (
+              <>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={handlePictureInPicture}
+                      >
+                        <PictureInPicture className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Picture in Picture</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={handleFullscreen}
+                      >
+                        <Maximize className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Fullscreen</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </>
+            )}
+            
             <Button
               size="sm"
               variant="ghost"
