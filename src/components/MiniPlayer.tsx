@@ -2,7 +2,8 @@ import { usePlayer } from '@/contexts/PlayerContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Play, Pause, SkipBack, SkipForward, Video as VideoIcon, Music, X, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { enablePictureInPicture } from '@/lib/mediaUtils';
 
@@ -90,15 +91,47 @@ export const MiniPlayer = () => {
             </div>
           </div>
 
+          {/* Center: Instructional Hint */}
+          <div className="flex items-center gap-2 mx-4">
+            <span className="text-xs text-muted-foreground hidden sm:inline whitespace-nowrap">
+              Click to view full player
+            </span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0 shrink-0"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Info className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <div className="text-sm space-y-1">
+                    <p className="font-semibold">Mini-Player Guide</p>
+                    <ul className="list-disc list-inside space-y-0.5 text-xs">
+                      <li>Click track info to open full player</li>
+                      <li>Toggle between video (PIP) and audio modes</li>
+                      <li>Use controls to manage playback</li>
+                      <li>Click X to hide mini-player</li>
+                    </ul>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+
           {/* Right: Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             {contentType === 'video' && (
               <Button
                 size="sm"
                 variant={viewMode === 'video' ? 'default' : 'ghost'}
                 className="h-8 w-8"
                 onClick={handleVideoToggle}
-                title={viewMode === 'video' ? 'Switch to audio mode' : 'Watch video (PIP)'}
+                title={viewMode === 'video' ? 'Switch to audio-only mode' : 'Watch video in Picture-in-Picture window'}
               >
                 {viewMode === 'video' ? (
                   <VideoIcon className="h-4 w-4" />
