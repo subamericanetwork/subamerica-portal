@@ -53,7 +53,7 @@ export const MiniPlayer = () => {
           <Button
             size="sm"
             variant="ghost"
-            className="absolute -top-1 right-0 h-8 w-8 opacity-50 hover:opacity-100 z-10"
+            className="absolute -top-4 right-0 h-8 w-8 opacity-50 hover:opacity-100 z-10"
             onClick={handleClose}
             title="Hide mini-player"
           >
