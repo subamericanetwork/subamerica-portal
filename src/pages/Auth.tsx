@@ -21,6 +21,7 @@ const displayNameSchema = z.string().trim().min(1, "Display name required").max(
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
+  const isPasswordReset = searchParams.get("reset") === "true";
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +29,8 @@ const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
@@ -148,6 +151,43 @@ const Auth = () => {
     setIsLoading(false);
   };
 
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    
+    // Validate password
+    try {
+      passwordSchema.parse(newPassword);
+    } catch (err) {
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Check if passwords match
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    const { supabase } = await import("@/integrations/supabase/client");
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Password updated successfully!");
+      navigate("/dashboard");
+    }
+    
+    setIsLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center p-4 gradient-hero">
       <div className="w-full max-w-md space-y-8">
@@ -180,7 +220,48 @@ const Auth = () => {
               </TabsList>
               
               <TabsContent value="signin">
-                {showResetPassword ? (
+                {isPasswordReset ? (
+                  <form onSubmit={handleUpdatePassword} className="space-y-4">
+                    <Alert>
+                      <Info className="h-4 w-4" />
+                      <AlertDescription>
+                        Enter your new password below.
+                      </AlertDescription>
+                    </Alert>
+                    <div className="space-y-2">
+                      <Label htmlFor="new-password">New Password</Label>
+                      <PasswordInput
+                        id="new-password"
+                        placeholder="••••••••"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        required
+                        className="bg-background/50"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Must be at least 8 characters long
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm-password">Confirm Password</Label>
+                      <PasswordInput
+                        id="confirm-password"
+                        placeholder="••••••••"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        required
+                        className="bg-background/50"
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Updating..." : "Update Password"}
+                    </Button>
+                  </form>
+                ) : showResetPassword ? (
                   <form onSubmit={handleResetPassword} className="space-y-4">
                     <Alert>
                       <Info className="h-4 w-4" />
