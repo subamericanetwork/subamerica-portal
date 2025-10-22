@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { MemberHeader } from "@/components/MemberHeader";
 import { 
   LayoutDashboard, 
   Video, 
@@ -307,44 +308,49 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   return (
     <TooltipProvider>
       <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          {isMobile ? (
-            <>
-              {/* Mobile Header with Hamburger */}
-              <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-card border-b border-border flex items-center px-4 z-40">
-                <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-                  <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Menu className="h-6 w-6" />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="left" className="w-64 p-0">
-                    <div className="flex flex-col h-full">
-                      <MobileNavigationContent />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-                <img src={logo} alt="Subamerica" className="h-8 w-auto ml-4" />
-              </header>
+        <div className="min-h-screen flex flex-col w-full">
+          {/* MemberHeader at the top for all screen sizes */}
+          <MemberHeader />
+          
+          <div className="flex flex-1 w-full">
+            {isMobile ? (
+              <>
+                {/* Mobile Header with Hamburger */}
+                <header className="md:hidden fixed top-16 left-0 right-0 h-16 bg-card border-b border-border flex items-center px-4 z-30">
+                  <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                    <SheetTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <Menu className="h-6 w-6" />
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="left" className="w-64 p-0">
+                      <div className="flex flex-col h-full">
+                        <MobileNavigationContent />
+                      </div>
+                    </SheetContent>
+                  </Sheet>
+                  <img src={logo} alt="Subamerica" className="h-8 w-auto ml-4" />
+                </header>
 
-              {/* Main content for mobile */}
-              <main className="flex-1 overflow-auto pt-16">
-                {children}
-              </main>
-            </>
-          ) : (
-            <>
-              {/* Desktop Collapsible Sidebar */}
-              <DesktopSidebar />
-
-              {/* Main content for desktop */}
-              <SidebarInset>
-                <main className="flex-1 overflow-auto">
+                {/* Main content for mobile */}
+                <main className="flex-1 overflow-auto pt-32">
                   {children}
                 </main>
-              </SidebarInset>
-            </>
-          )}
+              </>
+            ) : (
+              <>
+                {/* Desktop Collapsible Sidebar */}
+                <DesktopSidebar />
+
+                {/* Main content for desktop */}
+                <SidebarInset>
+                  <main className="flex-1 overflow-auto pt-16">
+                    {children}
+                  </main>
+                </SidebarInset>
+              </>
+            )}
+          </div>
         </div>
       </SidebarProvider>
     </TooltipProvider>

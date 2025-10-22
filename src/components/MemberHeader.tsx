@@ -1,13 +1,30 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Compass, Play, ListMusic, User, LogOut } from "lucide-react";
+import { Home, Compass, Play, ListMusic, User, LogOut, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
 
 export function MemberHeader() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const [hasPortalAccess, setHasPortalAccess] = useState(false);
+
+  useEffect(() => {
+    const checkPortalAccess = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase.rpc('get_user_primary_role');
+      
+      if (!error && data) {
+        setHasPortalAccess(data === 'artist' || data === 'admin');
+      }
+    };
+
+    checkPortalAccess();
+  }, [user]);
 
   const handleLogout = async () => {
     await signOut();
@@ -51,6 +68,19 @@ export function MemberHeader() {
             </Button>
           ))}
           
+          {/* Portal Dashboard Link (Artists/Admins Only - Desktop) */}
+          {hasPortalAccess && (
+            <Button
+              variant={isActive("/dashboard") ? "secondary" : "ghost"}
+              size="sm"
+              className="hidden md:flex gap-2 text-teal-500 hover:text-teal-600 hover:bg-teal-50/10"
+              onClick={() => navigate("/dashboard")}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              Portal Dashboard
+            </Button>
+          )}
+          
           {/* Mobile: Icons only */}
           {memberNavItems.map((item) => (
             <Button
@@ -63,6 +93,18 @@ export function MemberHeader() {
               <item.icon className="h-4 w-4" />
             </Button>
           ))}
+          
+          {/* Mobile Portal Dashboard Icon */}
+          {hasPortalAccess && (
+            <Button
+              variant={isActive("/dashboard") ? "secondary" : "ghost"}
+              size="sm"
+              className="md:hidden text-teal-500"
+              onClick={() => navigate("/dashboard")}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+            </Button>
+          )}
           
           {/* Logout Button */}
           <Button
