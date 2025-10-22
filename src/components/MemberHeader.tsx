@@ -74,7 +74,7 @@ export function MemberHeader() {
             <Button
               variant={isActive("/dashboard") ? "secondary" : "ghost"}
               size="sm"
-              className="hidden md:flex gap-2 text-teal-500 hover:text-teal-600 hover:bg-teal-50/10"
+              className="hidden md:flex gap-2 !text-teal-500 hover:!text-teal-600 hover:bg-teal-50/10"
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="h-4 w-4" />
@@ -100,7 +100,7 @@ export function MemberHeader() {
             <Button
               variant={isActive("/dashboard") ? "secondary" : "ghost"}
               size="sm"
-              className="md:hidden text-teal-500"
+              className="md:hidden !text-teal-500"
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="h-4 w-4" />
