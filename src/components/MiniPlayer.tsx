@@ -85,9 +85,17 @@ export const MiniPlayer = () => {
                   </Badge>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground truncate">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (currentTrack.artist_id) {
+                    navigate(`/port/${currentTrack.artist_id}`);
+                  }
+                }}
+                className="text-xs text-muted-foreground truncate hover:text-primary hover:underline transition-colors text-left"
+              >
                 {currentTrack.artist_name}
-              </p>
+              </button>
             </div>
           </div>
 

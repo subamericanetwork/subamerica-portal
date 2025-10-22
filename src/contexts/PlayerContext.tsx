@@ -7,6 +7,7 @@ interface Track {
   id: string;
   title: string;
   artist_name: string;
+  artist_id: string;
   thumbnail_url: string;
   video_url: string;
   duration: number;
@@ -114,6 +115,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
               id: v.id,
               title: v.title,
               artist_name: artistMap.get(v.artist_id) || 'Unknown Artist',
+              artist_id: v.artist_id,
               thumbnail_url: v.thumb_url,
               video_url: v.video_url || '',
               duration: v.duration || 0,
