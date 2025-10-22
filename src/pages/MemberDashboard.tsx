@@ -23,7 +23,7 @@ const MemberDashboard = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-5xl mx-auto">
           <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-primary/10 hover:border-primary/50 transition-all">
             <CardHeader>
               <div className="h-12 w-12 rounded-full bg-primary/20 flex items-center justify-center mb-4">
