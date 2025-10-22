@@ -18,14 +18,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Music, Trash2, Edit, Lock, Globe, Library } from 'lucide-react';
+import { Plus, Music, Trash2, Edit, Lock, Globe, Library, Eye, EyeOff } from 'lucide-react';
 import { PlaylistSelectionSheet } from '@/components/PlaylistSelectionSheet';
 import { cn } from '@/lib/utils';
 
 export default function MemberPlaylists() {
   const navigate = useNavigate();
   const { playlists, loading, deletePlaylist } = usePlaylist();
-  const { setPlaylist } = usePlayer();
+  const { setPlaylist, miniPlayerVisible, setMiniPlayerVisible } = usePlayer();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [playlistToDelete, setPlaylistToDelete] = useState<string | null>(null);
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
@@ -86,6 +86,10 @@ export default function MemberPlaylists() {
             <Button onClick={() => navigate('/browse')} variant="outline">
               <Library className="mr-2 h-4 w-4" />
               Browse Catalog
+            </Button>
+            <Button onClick={() => setMiniPlayerVisible(!miniPlayerVisible)} variant="outline">
+              {miniPlayerVisible ? <EyeOff className="mr-2 h-4 w-4" /> : <Eye className="mr-2 h-4 w-4" />}
+              {miniPlayerVisible ? 'Hide Player' : 'Show Player'}
             </Button>
             <Button onClick={() => setCreateSheetOpen(true)} className="bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700">
               <Plus className="mr-2 h-4 w-4" />
