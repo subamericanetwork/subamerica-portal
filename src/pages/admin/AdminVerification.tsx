@@ -87,9 +87,10 @@ const AdminVerification = () => {
     setProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('Starting approval process for artist:', request.artists.display_name);
 
       // Update request to admin_approved (will need Roger's final approval)
-      const { error: requestError } = await supabase
+      const { data: updateData, error: requestError } = await supabase
         .from('artist_verification_requests')
         .update({
           status: 'admin_approved',
@@ -97,12 +98,19 @@ const AdminVerification = () => {
           admin_reviewed_by: user?.id,
           admin_review_notes: adminNotes
         })
-        .eq('id', request.id);
+        .eq('id', request.id)
+        .select();
 
-      if (requestError) throw requestError;
+      if (requestError) {
+        console.error('Database update error:', requestError);
+        throw requestError;
+      }
+
+      console.log('Database updated successfully:', updateData);
 
       // Send notification email to Roger and CC admins
-      const { error: emailError } = await supabase.functions.invoke('send-roger-notification', {
+      console.log('Calling send-roger-notification edge function...');
+      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-roger-notification', {
         body: {
           artist_name: request.artists.display_name,
           artist_email: request.artists.email,
@@ -113,18 +121,21 @@ const AdminVerification = () => {
       });
 
       if (emailError) {
-        console.error('Error sending Roger notification:', emailError);
-        toast.error('Approved, but failed to send email notification');
+        console.error('Edge function error:', emailError);
+        console.error('Error details:', JSON.stringify(emailError, null, 2));
+        toast.error(`Approved, but failed to send email: ${emailError.message || 'Unknown error'}`);
       } else {
-        toast.success('Request sent to Roger for final approval');
+        console.log('Email sent successfully:', emailData);
+        toast.success('Request sent to Roger for final approval! Email notification sent.');
       }
 
       setSelectedRequest(null);
       setAdminNotes("");
       fetchRequests();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error approving verification:', error);
-      toast.error('Failed to approve verification');
+      console.error('Full error details:', JSON.stringify(error, null, 2));
+      toast.error(`Failed to approve verification: ${error.message || 'Unknown error'}`);
     } finally {
       setProcessing(false);
     }
