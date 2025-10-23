@@ -87,54 +87,38 @@ const AdminVerification = () => {
     setProcessing(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('Starting approval process for artist:', request.artists.display_name);
 
-      // Update request to admin_approved (will need Roger's final approval)
-      const { data: updateData, error: requestError } = await supabase
+      // Update verification request to approved
+      const { error: requestError } = await supabase
         .from('artist_verification_requests')
         .update({
-          status: 'admin_approved',
-          admin_reviewed_at: new Date().toISOString(),
-          admin_reviewed_by: user?.id,
+          status: 'approved',
+          reviewed_at: new Date().toISOString(),
+          reviewed_by: user?.id,
           admin_review_notes: adminNotes
         })
-        .eq('id', request.id)
-        .select();
+        .eq('id', request.id);
 
-      if (requestError) {
-        console.error('Database update error:', requestError);
-        throw requestError;
-      }
+      if (requestError) throw requestError;
 
-      console.log('Database updated successfully:', updateData);
+      // Update artist record to set verified status
+      const { error: artistError } = await supabase
+        .from('artists')
+        .update({
+          is_verified: true,
+          verified_at: new Date().toISOString(),
+          verified_by: user?.id
+        })
+        .eq('id', request.artist_id);
 
-      // Send notification email to Roger and CC admins
-      console.log('Calling send-roger-notification edge function...');
-      const { data: emailData, error: emailError } = await supabase.functions.invoke('send-roger-notification', {
-        body: {
-          artist_name: request.artists.display_name,
-          artist_email: request.artists.email,
-          artist_slug: request.artists.slug,
-          admin_notes: adminNotes,
-          verification_evidence: request.verification_evidence
-        }
-      });
+      if (artistError) throw artistError;
 
-      if (emailError) {
-        console.error('Edge function error:', emailError);
-        console.error('Error details:', JSON.stringify(emailError, null, 2));
-        toast.error(`Approved, but failed to send email: ${emailError.message || 'Unknown error'}`);
-      } else {
-        console.log('Email sent successfully:', emailData);
-        toast.success('Request sent to Roger for final approval! Email notification sent.');
-      }
-
+      toast.success('Artist verification approved successfully!');
       setSelectedRequest(null);
       setAdminNotes("");
       fetchRequests();
     } catch (error: any) {
       console.error('Error approving verification:', error);
-      console.error('Full error details:', JSON.stringify(error, null, 2));
       toast.error(`Failed to approve verification: ${error.message || 'Unknown error'}`);
     } finally {
       setProcessing(false);
@@ -447,7 +431,7 @@ const AdminVerification = () => {
                       disabled={processing || !adminNotes.trim()}
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
-                      Send to Roger for Final Approval
+                      Approve Verification
                     </Button>
                     <Button
                       variant="destructive"
@@ -459,14 +443,6 @@ const AdminVerification = () => {
                     </Button>
                   </div>
                 </div>
-              )}
-              
-              {selectedRequest.status === 'admin_approved' && (
-                <Alert>
-                  <AlertDescription>
-                    This request has been approved by an admin and is awaiting final approval from Roger.
-                  </AlertDescription>
-                </Alert>
               )}
             </div>
           )}

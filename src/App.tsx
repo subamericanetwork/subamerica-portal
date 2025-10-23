@@ -35,7 +35,6 @@ import AdminVideos from "./pages/admin/AdminVideos";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVerification from "./pages/admin/AdminVerification";
-import RogerApproval from "./pages/admin/RogerApproval";
 import AdminApplications from "./pages/admin/AdminApplications";
 import Watch from "./pages/Watch";
 import Posts from "./pages/Posts";
@@ -101,7 +100,6 @@ const AppRoutes = () => {
           <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
           <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
-          <Route path="/admin/verification/final-approval" element={<AdminRoute><RogerApproval /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
