@@ -101,7 +101,24 @@ const AdminVerification = () => {
 
       if (requestError) throw requestError;
 
-      toast.success('Request sent to Roger for final approval');
+      // Send notification email to Roger and CC admins
+      const { error: emailError } = await supabase.functions.invoke('send-roger-notification', {
+        body: {
+          artist_name: request.artists.display_name,
+          artist_email: request.artists.email,
+          artist_slug: request.artists.slug,
+          admin_notes: adminNotes,
+          verification_evidence: request.verification_evidence
+        }
+      });
+
+      if (emailError) {
+        console.error('Error sending Roger notification:', emailError);
+        toast.error('Approved, but failed to send email notification');
+      } else {
+        toast.success('Request sent to Roger for final approval');
+      }
+
       setSelectedRequest(null);
       setAdminNotes("");
       fetchRequests();
