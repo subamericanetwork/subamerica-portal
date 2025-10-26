@@ -13,7 +13,7 @@ interface MediaTrackingParams {
   contentType: 'video' | 'audio';
   duration: number;
   playlistId?: string;
-  playerType?: 'feed' | 'jukebox' | 'mini-player';
+  playerType?: 'feed' | 'jukebox' | 'mini-player' | 'featured';
 }
 
 export const useMediaTracking = () => {

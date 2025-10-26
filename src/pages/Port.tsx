@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useMediaTracking } from "@/hooks/useMediaTracking";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -76,6 +77,8 @@ interface FAQ {
 const Port = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const { trackPlay, trackPause, trackEnded } = useMediaTracking();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [artist, setArtist] = useState<Artist | null>(null);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
@@ -98,6 +101,74 @@ const Port = () => {
       setMenuOpen(false);
     }
   };
+
+  // Add event listeners for video tracking
+  useEffect(() => {
+    console.log('[Port] useEffect triggered - checking video tracking setup');
+    console.log('[Port] videoRef.current:', videoRef.current);
+    console.log('[Port] featuredVideo:', featuredVideo);
+    console.log('[Port] artist:', artist);
+    
+    const videoElement = videoRef.current;
+    if (!videoElement) {
+      console.warn('[Port] ❌ Video element ref is NULL');
+      return;
+    }
+    if (!featuredVideo) {
+      console.warn('[Port] ❌ Featured video data is NULL');
+      return;
+    }
+
+    console.log('[Port] ✅ Setting up video tracking for:', featuredVideo.title);
+
+    const handlePlay = () => {
+      console.log('[Port] Video play event triggered');
+      trackPlay({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown Artist',
+        contentType: 'video',
+        duration: videoElement.duration || 0,
+        playerType: 'featured',
+      });
+    };
+
+    const handlePause = () => {
+      console.log('[Port] Video pause event triggered');
+      trackPause({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown Artist',
+        contentType: 'video',
+        duration: videoElement.duration || 0,
+        currentTime: videoElement.currentTime,
+        playerType: 'featured',
+      });
+    };
+
+    const handleEnded = () => {
+      console.log('[Port] Video ended event triggered');
+      trackEnded({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown Artist',
+        contentType: 'video',
+        duration: videoElement.duration || 0,
+        playerType: 'featured',
+      });
+    };
+
+    videoElement.addEventListener('play', handlePlay);
+    videoElement.addEventListener('pause', handlePause);
+    videoElement.addEventListener('ended', handleEnded);
+
+    return () => {
+      console.log('[Port] Cleaning up video tracking event listeners');
+      videoElement.removeEventListener('play', handlePlay);
+      videoElement.removeEventListener('pause', handlePause);
+      videoElement.removeEventListener('ended', handleEnded);
+    };
+  }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
 
   const handlePurchase = async (priceId: string, type: 'event' | 'product', itemId: string) => {
     setPurchasingItem(itemId);
@@ -648,6 +719,7 @@ const Port = () => {
           <div id="videos">
             <Card className="overflow-hidden gradient-card relative">
               <video 
+                ref={videoRef}
                 controls 
                 className="w-full aspect-video"
                 poster={featuredVideo.thumb_url && typeof featuredVideo.thumb_url === 'string' ? String(featuredVideo.thumb_url) : undefined}
