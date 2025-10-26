@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { Users, Shield, CheckCircle, Loader2 } from "lucide-react";
+import { Users, Shield, CheckCircle, Loader2, Download } from "lucide-react";
 import { format } from "date-fns";
 
 type UserRole = 'admin' | 'artist' | 'moderator' | 'production_manager' | 'fan' | 'member';
@@ -294,6 +294,54 @@ const AdminMembership = () => {
   const verifiedArtists = users.filter(u => u.is_verified).length;
   const totalAdmins = users.filter(u => u.roles.includes('admin')).length;
 
+  const escapeCsvValue = (value: string): string => {
+    // Wrap in quotes if contains comma, quote, or newline
+    if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+      // Escape internal quotes by doubling them
+      return `"${value.replace(/"/g, '""')}"`;
+    }
+    return value;
+  };
+
+  const exportToCSV = () => {
+    try {
+      // Define CSV headers
+      const headers = ['Display Name', 'Email', 'Roles', 'Verified', 'Artist Slug', 'Registered'];
+      
+      // Convert filtered users to CSV rows
+      const rows = filteredUsers.map(user => [
+        escapeCsvValue(user.display_name),
+        escapeCsvValue(user.email),
+        escapeCsvValue(user.roles.join(', ')),
+        user.is_verified ? 'Yes' : 'No',
+        escapeCsvValue(user.slug || 'N/A'),
+        format(new Date(user.created_at), 'yyyy-MM-dd')
+      ]);
+      
+      // Create CSV string
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+      
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `membership-export-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`Exported ${filteredUsers.length} users to CSV`);
+    } catch (error) {
+      console.error('Error exporting CSV:', error);
+      toast.error('Failed to export CSV');
+    }
+  };
+
   return (
     <div className="container mx-auto py-8 space-y-6">
       <div>
@@ -372,6 +420,15 @@ const AdminMembership = () => {
                 <SelectItem value="admins">Admins</SelectItem>
               </SelectContent>
             </Select>
+            <Button
+              variant="outline"
+              onClick={exportToCSV}
+              disabled={filteredUsers.length === 0}
+              className="sm:ml-auto"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </Button>
           </div>
 
           {loading ? (
