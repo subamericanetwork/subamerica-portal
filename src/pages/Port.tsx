@@ -14,6 +14,7 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Calendar, ShoppingBag, Heart, Users, MapPin, ChevronLeft, ChevronRight, Instagram, Facebook, Twitter, Youtube, Linkedin, Music2, Globe, ExternalLink, PlayCircle, Share2, Menu, Image as ImageIcon, Tv } from "lucide-react";
 import { sanitizeColor, sanitizeText, sanitizeUrl } from "@/lib/sanitization";
 import { AddToPlaylistButton } from "@/components/AddToPlaylistButton";
+import { AudioGallery } from "@/components/AudioGallery";
 
 interface Artist {
   id: string;
@@ -672,6 +673,14 @@ const Port = () => {
               <Button
                 variant="ghost"
                 className="justify-start h-auto py-4 text-lg"
+                onClick={() => scrollToSection('audio')}
+              >
+                <Music2 className="mr-3 h-5 w-5" />
+                Audio
+              </Button>
+              <Button
+                variant="ghost"
+                className="justify-start h-auto py-4 text-lg"
                 onClick={() => scrollToSection('gallery')}
               >
                 <ImageIcon className="mr-3 h-5 w-5" />
@@ -767,6 +776,15 @@ const Port = () => {
               </CardContent>
             </Card>
           </div>
+        )}
+
+        {/* Audio Gallery */}
+        {artist && (
+          <AudioGallery 
+            artistId={artist.id} 
+            artistName={String(artist.display_name)}
+            viewerDisplayName={viewerDisplayName || undefined}
+          />
         )}
 
         {/* Image Gallery */}

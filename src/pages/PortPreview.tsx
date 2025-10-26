@@ -17,6 +17,7 @@ import { useArtistData } from "@/hooks/useArtistData";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { AudioGallery } from "@/components/AudioGallery";
 
 const PortPreview = () => {
   const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings, faqs } = useArtistData();
@@ -431,6 +432,14 @@ const PortPreview = () => {
                   <Button
                     variant="ghost"
                     className="justify-start h-auto py-4 text-lg"
+                    onClick={() => scrollToSection('audio')}
+                  >
+                    <Music2 className="mr-3 h-5 w-5" />
+                    Audio
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="justify-start h-auto py-4 text-lg"
                     onClick={() => scrollToSection('gallery')}
                   >
                     <ImageIcon className="mr-3 h-5 w-5" />
@@ -524,6 +533,15 @@ const PortPreview = () => {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {/* Audio Gallery */}
+          {artist && (
+            <AudioGallery 
+              artistId={artist.id} 
+              artistName={artist.display_name}
+              viewerDisplayName={viewerDisplayName || undefined}
+            />
           )}
 
           {/* Image Gallery */}
