@@ -106,6 +106,17 @@ const Port = () => {
   useEffect(() => {
     console.log('[Port] useEffect triggered - checking video tracking setup');
     
+    // Early return if data isn't ready yet - don't even set up the timeout
+    if (!featuredVideo) {
+      console.log('[Port] Skipping video tracking setup - no featured video data yet');
+      return;
+    }
+    
+    if (!artist) {
+      console.log('[Port] Skipping video tracking setup - no artist data yet');
+      return;
+    }
+    
     // Defer to next event loop tick to ensure video element is rendered
     const timeoutId = setTimeout(() => {
       console.log('[Port] Timeout fired - checking refs');
