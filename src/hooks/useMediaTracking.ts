@@ -123,6 +123,7 @@ export const useMediaTracking = () => {
         window.gtag('event', params.contentType === 'video' ? 'video_seek' : 'audio_seek', {
           content_id: params.contentId,
           content_title: params.title,
+          artist_name: params.artistName,
           from_time: params.fromTime,
           to_time: params.toTime,
           seek_direction: params.toTime > params.fromTime ? 'forward' : 'backward',
