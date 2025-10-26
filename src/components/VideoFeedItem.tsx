@@ -44,11 +44,17 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
   }, [onVideoRef]);
 
   useEffect(() => {
+    console.log(`[VideoFeedItem] isActive changed:`, isActive, 'for content:', content.title);
     const mediaElement = isAudio ? audioRef.current : videoRef.current;
-    if (!mediaElement) return;
+    if (!mediaElement) {
+      console.warn(`[VideoFeedItem] No media element ref for:`, content.title);
+      return;
+    }
 
     if (isActive) {
+      console.log(`[VideoFeedItem] Attempting to play:`, content.title);
       mediaElement.play().then(() => {
+        console.log(`[VideoFeedItem] Play SUCCESS for:`, content.title);
         setIsPlaying(true);
         
         // Track play event when auto-playing
@@ -60,10 +66,12 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
           duration: duration || 0,
           playerType: 'feed',
         });
-      }).catch(() => {
+      }).catch((error) => {
+        console.error(`[VideoFeedItem] Play FAILED for:`, content.title, error);
         setIsPlaying(false);
       });
     } else {
+      console.log(`[VideoFeedItem] Pausing (isActive=false):`, content.title, 'isPlaying:', isPlaying);
       if (isPlaying) {
         // Track pause event when auto-pausing
         trackPause({
@@ -120,10 +128,15 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
   }, [isAudio, trackEnded, content.id, content.title, content.artists, content.content_type, duration]);
 
   const togglePlayPause = () => {
+    console.log(`[VideoFeedItem] togglePlayPause clicked for:`, content.title, 'current isPlaying:', isPlaying);
     const mediaElement = isAudio ? audioRef.current : videoRef.current;
-    if (!mediaElement) return;
+    if (!mediaElement) {
+      console.warn(`[VideoFeedItem] No media element in togglePlayPause`);
+      return;
+    }
 
     if (isPlaying) {
+      console.log(`[VideoFeedItem] Manual pause for:`, content.title);
       mediaElement.pause();
       setIsPlaying(false);
       
@@ -138,6 +151,7 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
         playerType: 'feed',
       });
     } else {
+      console.log(`[VideoFeedItem] Manual play for:`, content.title);
       mediaElement.play();
       setIsPlaying(true);
       

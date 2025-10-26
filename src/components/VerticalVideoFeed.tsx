@@ -203,7 +203,15 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
       const observer = new IntersectionObserver(
         (entries) => {
           entries.forEach((entry) => {
+            console.log(`[VerticalVideoFeed] Intersection:`, {
+              index,
+              isIntersecting: entry.isIntersecting,
+              intersectionRatio: entry.intersectionRatio,
+              target: contentItems[index]?.title
+            });
+            
             if (entry.isIntersecting && entry.intersectionRatio > 0.5) {
+              console.log(`[VerticalVideoFeed] Setting activeIndex to:`, index, contentItems[index]?.title);
               setActiveIndex(index);
             }
           });

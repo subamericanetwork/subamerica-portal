@@ -4,11 +4,18 @@ import { useLocation } from 'react-router-dom';
 declare global {
   interface Window {
     gtag?: (...args: any[]) => void;
+    dataLayer?: any[];
   }
 }
 
 export const usePageTracking = () => {
   const location = useLocation();
+
+  useEffect(() => {
+    console.log('[usePageTracking] Hook mounted, checking GA status...');
+    console.log('[usePageTracking] window.gtag available:', typeof window.gtag === 'function');
+    console.log('[usePageTracking] window.dataLayer:', window.dataLayer);
+  }, []);
 
   useEffect(() => {
     // Function to send pageview to GA
