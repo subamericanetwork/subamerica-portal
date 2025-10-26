@@ -307,6 +307,36 @@ export default function Audio() {
     }
   };
 
+  const handleTogglePublish = async (trackId: string, currentStatus: string) => {
+    if (!artist) return;
+
+    try {
+      const newStatus = currentStatus === 'published' ? 'ready' : 'published';
+      
+      const { error } = await supabase
+        .from("audio_tracks")
+        .update({ 
+          status: newStatus,
+          published_at: newStatus === 'published' ? new Date().toISOString() : null
+        })
+        .eq("id", trackId);
+
+      if (error) throw error;
+
+      toast.success(`Track ${newStatus === 'published' ? 'published' : 'unpublished'}!`);
+
+      // Refresh data
+      const { data } = await supabase
+        .from("audio_tracks")
+        .select("*")
+        .eq("artist_id", artist.id)
+        .order("created_at", { ascending: false });
+      setAudioTracks(data || []);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
+
   const formatDuration = (seconds: number | null) => {
     if (!seconds) return "0:00";
     const mins = Math.floor(seconds / 60);
@@ -343,8 +373,9 @@ export default function Audio() {
           <AlertDescription>
             <ul className="list-disc list-inside space-y-1 text-sm">
               <li>Upload audio files (MP3, WAV, M4A, FLAC) up to 50MB</li>
+              <li>Publish tracks to make them visible on your port gallery</li>
+              <li>Unpublished tracks remain in draft status and are only visible to you</li>
               <li>Mark one track as featured to highlight it on your port</li>
-              <li>Audio tracks appear in the catalog and can be added to playlists</li>
               <li>Free tier: 20 tracks max</li>
             </ul>
           </AlertDescription>
@@ -391,7 +422,12 @@ export default function Audio() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div>
-                    <CardTitle className="text-lg mb-1">{track.title}</CardTitle>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <CardTitle className="text-lg">{track.title}</CardTitle>
+                      <Badge variant={track.status === 'published' ? 'default' : 'secondary'}>
+                        {track.status === 'published' ? 'Published' : 'Draft'}
+                      </Badge>
+                    </div>
                     {track.description && (
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {track.description}
@@ -429,9 +465,21 @@ export default function Audio() {
                       {track.is_featured ? 'Featured' : 'Set Featured'}
                     </Button>
                     <Button
+                      variant={track.status === 'published' ? 'outline' : 'default'}
+                      size="sm"
+                      onClick={() => handleTogglePublish(track.id, track.status)}
+                      className="flex-1"
+                    >
+                      <Volume2 className="h-4 w-4 mr-1" />
+                      {track.status === 'published' ? 'Unpublish' : 'Publish'}
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(track)}
+                      className="flex-1"
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -439,6 +487,7 @@ export default function Audio() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(track.id)}
+                      className="flex-1"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
