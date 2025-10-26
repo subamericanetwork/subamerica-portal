@@ -112,6 +112,11 @@ const Port = () => {
       return;
     }
     
+    if (!featuredVideo.video_url) {
+      console.log('[Port] Skipping video tracking setup - no video_url in featured video');
+      return;
+    }
+    
     if (!artist) {
       console.log('[Port] Skipping video tracking setup - no artist data yet');
       return;
