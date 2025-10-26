@@ -20,6 +20,7 @@ export const useMediaTracking = () => {
   const trackPlay = useCallback((params: MediaTrackingParams) => {
     console.log(`[useMediaTracking] trackPlay CALLED with:`, {
       title: params.title,
+      artistName: params.artistName,
       contentType: params.contentType,
       playerType: params.playerType,
       duration: params.duration
@@ -50,6 +51,7 @@ export const useMediaTracking = () => {
   const trackPause = useCallback((params: MediaTrackingParams & { currentTime: number }) => {
     console.log(`[useMediaTracking] trackPause CALLED with:`, {
       title: params.title,
+      artistName: params.artistName,
       contentType: params.contentType,
       currentTime: params.currentTime,
       duration: params.duration
@@ -82,6 +84,7 @@ export const useMediaTracking = () => {
   const trackEnded = useCallback((params: MediaTrackingParams) => {
     console.log(`[useMediaTracking] trackEnded CALLED with:`, {
       title: params.title,
+      artistName: params.artistName,
       contentType: params.contentType,
       duration: params.duration
     });
@@ -111,6 +114,7 @@ export const useMediaTracking = () => {
   const trackSeek = useCallback((params: MediaTrackingParams & { fromTime: number; toTime: number }) => {
     console.log(`[useMediaTracking] trackSeek CALLED with:`, {
       title: params.title,
+      artistName: params.artistName,
       fromTime: params.fromTime,
       toTime: params.toTime
     });
