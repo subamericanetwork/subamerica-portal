@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useMediaTracking } from "@/hooks/useMediaTracking";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +20,8 @@ import { VerifiedBadge } from "@/components/VerifiedBadge";
 const PortPreview = () => {
   const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings, faqs } = useArtistData();
   const navigate = useNavigate();
+  const { trackPlay, trackPause, trackEnded } = useMediaTracking();
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [isPublishing, setIsPublishing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -28,6 +31,61 @@ const PortPreview = () => {
   const backgroundType = portSettings?.background_type || "color";
   const backgroundValue = portSettings?.background_value || "#000000";
   const backgroundVideoUrl = portSettings?.background_video_url || null;
+
+  // Add event listeners for video tracking
+  useEffect(() => {
+    const videoElement = videoRef.current;
+    if (!videoElement || !featuredVideo) return;
+
+    console.log('[PortPreview] Setting up video tracking for:', featuredVideo.title);
+
+    const handlePlay = () => {
+      console.log('[PortPreview] Video play event triggered');
+      trackPlay({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown',
+        contentType: 'video',
+        duration: videoElement.duration || 0,
+        playerType: 'feed',
+      });
+    };
+
+    const handlePause = () => {
+      console.log('[PortPreview] Video pause event triggered');
+      trackPause({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown',
+        contentType: 'video',
+        duration: videoElement.duration || 0,
+        currentTime: videoElement.currentTime || 0,
+        playerType: 'feed',
+      });
+    };
+
+    const handleEnded = () => {
+      console.log('[PortPreview] Video ended event triggered');
+      trackEnded({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown',
+        contentType: 'video',
+        duration: videoElement.duration || 0,
+        playerType: 'feed',
+      });
+    };
+
+    videoElement.addEventListener('play', handlePlay);
+    videoElement.addEventListener('pause', handlePause);
+    videoElement.addEventListener('ended', handleEnded);
+
+    return () => {
+      videoElement.removeEventListener('play', handlePlay);
+      videoElement.removeEventListener('pause', handlePause);
+      videoElement.removeEventListener('ended', handleEnded);
+    };
+  }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -407,6 +465,7 @@ const PortPreview = () => {
             <div id="videos">
               <Card className="overflow-hidden gradient-card">
                 <video 
+                  ref={videoRef}
                   controls 
                   className="w-full aspect-video"
                   poster={featuredVideo.thumb_url || undefined}
