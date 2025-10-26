@@ -95,7 +95,7 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
       mediaElement.removeEventListener('loadedmetadata', handleLoadedMetadata);
       mediaElement.removeEventListener('ended', handleEnded);
     };
-  }, [isAudio]);
+  }, [isAudio, trackEnded, content.id, content.title, content.artists, content.content_type, duration]);
 
   const togglePlayPause = () => {
     const mediaElement = isAudio ? audioRef.current : videoRef.current;

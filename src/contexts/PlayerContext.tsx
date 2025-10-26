@@ -226,7 +226,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       activeMedia.removeEventListener('loadedmetadata', updateProgress);
       activeMedia.removeEventListener('ended', handleEnded);
     };
-  }, [currentTrackIndex, tracks.length, repeat, effectiveViewMode]);
+  }, [currentTrackIndex, tracks.length, repeat, effectiveViewMode, trackEnded, currentTrack, contentType, playlistId]);
 
   // Clear player on logout
   useEffect(() => {
