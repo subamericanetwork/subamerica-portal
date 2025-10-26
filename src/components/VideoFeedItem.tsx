@@ -50,14 +50,36 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
     if (isActive) {
       mediaElement.play().then(() => {
         setIsPlaying(true);
+        
+        // Track play event when auto-playing
+        trackPlay({
+          contentId: content.id,
+          title: content.title,
+          artistName: content.artists?.display_name || 'Unknown',
+          contentType: content.content_type,
+          duration: duration || 0,
+          playerType: 'feed',
+        });
       }).catch(() => {
         setIsPlaying(false);
       });
     } else {
+      if (isPlaying) {
+        // Track pause event when auto-pausing
+        trackPause({
+          contentId: content.id,
+          title: content.title,
+          artistName: content.artists?.display_name || 'Unknown',
+          contentType: content.content_type,
+          duration: duration || 0,
+          currentTime: currentTime,
+          playerType: 'feed',
+        });
+      }
       mediaElement.pause();
       setIsPlaying(false);
     }
-  }, [isActive, isAudio]);
+  }, [isActive, isAudio, trackPlay, trackPause, content.id, content.title, content.artists, content.content_type, duration, currentTime, isPlaying]);
 
   useEffect(() => {
     const mediaElement = isAudio ? audioRef.current : videoRef.current;
