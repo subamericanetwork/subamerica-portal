@@ -14,6 +14,7 @@ export interface MediaTrackingParams {
   duration: number;
   playlistId?: string;
   playerType?: 'feed' | 'jukebox' | 'mini-player' | 'featured' | 'standalone';
+  viewerName?: string;
 }
 
 export const useMediaTracking = () => {
@@ -21,6 +22,7 @@ export const useMediaTracking = () => {
     console.log(`[useMediaTracking] trackPlay CALLED with:`, {
       title: params.title,
       artistName: params.artistName,
+      viewerName: params.viewerName || 'anonymous',
       contentType: params.contentType,
       playerType: params.playerType,
       duration: params.duration
@@ -38,6 +40,7 @@ export const useMediaTracking = () => {
           duration: params.duration,
           playlist_id: params.playlistId || 'none',
           player_type: params.playerType || 'unknown',
+          viewer_name: params.viewerName || 'anonymous',
         });
         console.log(`[GA] ${params.contentType}_play:`, params.title, '✅ SUCCESS');
       } else {
@@ -52,6 +55,7 @@ export const useMediaTracking = () => {
     console.log(`[useMediaTracking] trackPause CALLED with:`, {
       title: params.title,
       artistName: params.artistName,
+      viewerName: params.viewerName || 'anonymous',
       contentType: params.contentType,
       currentTime: params.currentTime,
       duration: params.duration
@@ -71,6 +75,7 @@ export const useMediaTracking = () => {
           watch_percentage: Math.round((params.currentTime / params.duration) * 100),
           playlist_id: params.playlistId || 'none',
           player_type: params.playerType || 'unknown',
+          viewer_name: params.viewerName || 'anonymous',
         });
         console.log(`[GA] ${params.contentType}_pause:`, params.title, `at ${params.currentTime}s ✅ SUCCESS`);
       } else {
@@ -85,6 +90,7 @@ export const useMediaTracking = () => {
     console.log(`[useMediaTracking] trackEnded CALLED with:`, {
       title: params.title,
       artistName: params.artistName,
+      viewerName: params.viewerName || 'anonymous',
       contentType: params.contentType,
       duration: params.duration
     });
@@ -101,6 +107,7 @@ export const useMediaTracking = () => {
           duration: params.duration,
           playlist_id: params.playlistId || 'none',
           player_type: params.playerType || 'unknown',
+          viewer_name: params.viewerName || 'anonymous',
         });
         console.log(`[GA] ${params.contentType}_ended:`, params.title, '✅ SUCCESS');
       } else {
@@ -115,6 +122,7 @@ export const useMediaTracking = () => {
     console.log(`[useMediaTracking] trackSeek CALLED with:`, {
       title: params.title,
       artistName: params.artistName,
+      viewerName: params.viewerName || 'anonymous',
       fromTime: params.fromTime,
       toTime: params.toTime
     });
@@ -131,6 +139,7 @@ export const useMediaTracking = () => {
           from_time: params.fromTime,
           to_time: params.toTime,
           seek_direction: params.toTime > params.fromTime ? 'forward' : 'backward',
+          viewer_name: params.viewerName || 'anonymous',
         });
         console.log(`[GA] ${params.contentType}_seek:`, `${params.fromTime}s → ${params.toTime}s ✅ SUCCESS`);
       } else {

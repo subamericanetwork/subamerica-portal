@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMediaTracking } from "@/hooks/useMediaTracking";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -78,6 +79,7 @@ const Port = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { trackPlay, trackPause, trackEnded } = useMediaTracking();
+  const { user } = useAuth();
   const [artist, setArtist] = useState<Artist | null>(null);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
@@ -92,6 +94,7 @@ const Port = () => {
   const [portSettings, setPortSettings] = useState<any>(null);
   const [purchasingItem, setPurchasingItem] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [viewerDisplayName, setViewerDisplayName] = useState<string>('');
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -123,6 +126,7 @@ const Port = () => {
         contentType: 'video' as const,
         duration: element.duration || 0,
         playerType: 'featured' as const,
+        viewerName: viewerDisplayName || undefined,
       });
     };
 
@@ -136,6 +140,7 @@ const Port = () => {
         duration: element.duration || 0,
         currentTime: element.currentTime,
         playerType: 'featured' as const,
+        viewerName: viewerDisplayName || undefined,
       });
     };
 
@@ -148,6 +153,7 @@ const Port = () => {
         contentType: 'video' as const,
         duration: element.duration || 0,
         playerType: 'featured' as const,
+        viewerName: viewerDisplayName || undefined,
       });
     };
 
@@ -164,7 +170,7 @@ const Port = () => {
       element.removeEventListener('pause', handlePause);
       element.removeEventListener('ended', handleEnded);
     };
-  }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
+  }, [featuredVideo, artist, trackPlay, trackPause, trackEnded, viewerDisplayName]);
 
   const handlePurchase = async (priceId: string, type: 'event' | 'product', itemId: string) => {
     setPurchasingItem(itemId);
@@ -348,6 +354,38 @@ const Port = () => {
 
     fetchPortData();
   }, [slug]);
+
+  // Fetch logged-in user's display name for tracking
+  useEffect(() => {
+    const fetchViewerProfile = async () => {
+      if (!user?.id) {
+        setViewerDisplayName('');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching viewer profile:', error);
+          return;
+        }
+
+        if (data?.display_name) {
+          setViewerDisplayName(data.display_name);
+          console.log('[Port] Viewer display name loaded:', data.display_name);
+        }
+      } catch (error) {
+        console.error('Error in fetchViewerProfile:', error);
+      }
+    };
+
+    fetchViewerProfile();
+  }, [user?.id]);
 
   // Computed values that depend on artist - must be after all useEffect hooks
   const artistImages = useMemo(() => 
