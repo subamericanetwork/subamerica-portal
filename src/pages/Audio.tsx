@@ -367,7 +367,12 @@ export default function Audio() {
                   </div>
 
                   {track.audio_url && (
-                    <AudioPlayer audioUrl={track.audio_url} />
+                    <AudioPlayer 
+                      audioUrl={track.audio_url}
+                      title={track.title}
+                      contentId={track.id}
+                      artistName={artist?.display_name || 'Unknown'}
+                    />
                   )}
 
                   <div className="flex flex-wrap gap-2">

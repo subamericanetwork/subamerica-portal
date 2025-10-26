@@ -2,20 +2,25 @@ import { useRef, useState, useEffect } from 'react';
 import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { useMediaTracking } from '@/hooks/useMediaTracking';
 
 interface AudioPlayerProps {
   audioUrl: string;
   title?: string;
   className?: string;
+  contentId?: string;
+  artistName?: string;
+  playlistId?: string;
 }
 
-export const AudioPlayer = ({ audioUrl, title, className = '' }: AudioPlayerProps) => {
+export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artistName, playlistId }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const { trackPlay, trackPause, trackEnded, trackSeek } = useMediaTracking();
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -23,7 +28,23 @@ export const AudioPlayer = ({ audioUrl, title, className = '' }: AudioPlayerProp
 
     const updateTime = () => setCurrentTime(audio.currentTime);
     const updateDuration = () => setDuration(audio.duration);
-    const handleEnded = () => setIsPlaying(false);
+    
+    const handleEnded = () => {
+      console.log('[AudioPlayer] Audio ended event triggered');
+      setIsPlaying(false);
+      
+      if (contentId && title && artistName) {
+        trackEnded({
+          contentId,
+          title,
+          artistName,
+          contentType: 'audio',
+          duration: audio.duration || 0,
+          playlistId,
+          playerType: 'standalone' as any,
+        });
+      }
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
@@ -34,16 +55,43 @@ export const AudioPlayer = ({ audioUrl, title, className = '' }: AudioPlayerProp
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [contentId, title, artistName, playlistId, trackEnded]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
     if (isPlaying) {
+      console.log('[AudioPlayer] Audio pause triggered');
       audio.pause();
+      
+      if (contentId && title && artistName) {
+        trackPause({
+          contentId,
+          title,
+          artistName,
+          contentType: 'audio',
+          duration: audio.duration || 0,
+          currentTime: audio.currentTime || 0,
+          playlistId,
+          playerType: 'standalone' as any,
+        });
+      }
     } else {
+      console.log('[AudioPlayer] Audio play triggered');
       audio.play();
+      
+      if (contentId && title && artistName) {
+        trackPlay({
+          contentId,
+          title,
+          artistName,
+          contentType: 'audio',
+          duration: audio.duration || 0,
+          playlistId,
+          playerType: 'standalone' as any,
+        });
+      }
     }
     setIsPlaying(!isPlaying);
   };
@@ -51,8 +99,28 @@ export const AudioPlayer = ({ audioUrl, title, className = '' }: AudioPlayerProp
   const handleSeek = (value: number[]) => {
     const audio = audioRef.current;
     if (!audio) return;
-    audio.currentTime = value[0];
-    setCurrentTime(value[0]);
+    
+    const oldTime = audio.currentTime;
+    const newTime = value[0];
+    
+    console.log('[AudioPlayer] Audio seek:', oldTime, '→', newTime);
+    
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+    
+    if (contentId && title && artistName) {
+      trackSeek({
+        contentId,
+        title,
+        artistName,
+        contentType: 'audio',
+        duration: audio.duration || 0,
+        fromTime: oldTime,
+        toTime: newTime,
+        playlistId,
+        playerType: 'standalone' as any,
+      });
+    }
   };
 
   const handleVolumeChange = (value: number[]) => {
