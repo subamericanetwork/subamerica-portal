@@ -43,11 +43,15 @@ import ApplicationStatus from "./pages/ApplicationStatus";
 import MemberDashboard from "./pages/MemberDashboard";
 import MemberProfile from "./pages/MemberProfile";
 import { useEffect } from "react";
+import { usePageTracking } from "@/hooks/usePageTracking";
 
 const queryClient = new QueryClient();
 
 const AppRoutes = () => {
   const { currentTrack, miniPlayerVisible } = usePlayer();
+
+  // Track page views for all route changes
+  usePageTracking();
 
   // Add class to body when mini-player is active for proper spacing
   useEffect(() => {
