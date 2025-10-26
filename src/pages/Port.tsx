@@ -127,9 +127,9 @@ const Port = () => {
         contentId: featuredVideo.id,
         title: featuredVideo.title,
         artistName: artist?.display_name || 'Unknown Artist',
-        contentType: 'video',
+        contentType: 'video' as const,
         duration: videoElement.duration || 0,
-        playerType: 'featured',
+        playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
       });
     };
 
@@ -139,10 +139,10 @@ const Port = () => {
         contentId: featuredVideo.id,
         title: featuredVideo.title,
         artistName: artist?.display_name || 'Unknown Artist',
-        contentType: 'video',
+        contentType: 'video' as const,
         duration: videoElement.duration || 0,
         currentTime: videoElement.currentTime,
-        playerType: 'featured',
+        playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
       });
     };
 
@@ -152,9 +152,9 @@ const Port = () => {
         contentId: featuredVideo.id,
         title: featuredVideo.title,
         artistName: artist?.display_name || 'Unknown Artist',
-        contentType: 'video',
+        contentType: 'video' as const,
         duration: videoElement.duration || 0,
-        playerType: 'featured',
+        playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
       });
     };
 

@@ -6,7 +6,7 @@ declare global {
   }
 }
 
-interface MediaTrackingParams {
+export interface MediaTrackingParams {
   contentId: string;
   title: string;
   artistName: string;
