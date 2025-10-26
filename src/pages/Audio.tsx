@@ -35,6 +35,7 @@ export default function Audio() {
   const { artist, audioTracks: initialAudioTracks, loading: artistLoading } = useArtistData();
   
   const [audioTracks, setAudioTracks] = useState<AudioTrack[]>([]);
+  const [viewerDisplayName, setViewerDisplayName] = useState<string>('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingTrack, setEditingTrack] = useState<AudioTrack | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -52,6 +53,38 @@ export default function Audio() {
       setAudioTracks(initialAudioTracks);
     }
   }, [initialAudioTracks]);
+
+  // Fetch viewer profile for tracking
+  useEffect(() => {
+    const fetchViewerProfile = async () => {
+      if (!user?.id) {
+        setViewerDisplayName('');
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching viewer profile:', error);
+          return;
+        }
+
+        if (data?.display_name) {
+          setViewerDisplayName(data.display_name);
+          console.log('[Audio] Viewer display name loaded:', data.display_name);
+        }
+      } catch (error) {
+        console.error('Error in fetchViewerProfile:', error);
+      }
+    };
+
+    fetchViewerProfile();
+  }, [user?.id]);
 
   const resetForm = () => {
     setAudioFile(null);
@@ -372,6 +405,7 @@ export default function Audio() {
                       title={track.title}
                       contentId={track.id}
                       artistName={artist?.display_name || 'Unknown'}
+                      viewerName={viewerDisplayName || undefined}
                     />
                   )}
 

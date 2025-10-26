@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { useMediaTracking } from "@/hooks/useMediaTracking";
+import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -21,97 +22,116 @@ const PortPreview = () => {
   const { artist, videos, events, surfaceProducts, featuredVideo, loading, portSettings, faqs } = useArtistData();
   const navigate = useNavigate();
   const { trackPlay, trackPause, trackEnded } = useMediaTracking();
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const { user } = useAuth();
   const [isPublishing, setIsPublishing] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [menuOpen, setMenuOpen] = useState(false);
   const [purchasingItem, setPurchasingItem] = useState<string | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [viewerDisplayName, setViewerDisplayName] = useState<string>('');
   
   const backgroundType = portSettings?.background_type || "color";
   const backgroundValue = portSettings?.background_value || "#000000";
   const backgroundVideoUrl = portSettings?.background_video_url || null;
 
-  // Add event listeners for video tracking
+  // Fetch viewer profile for tracking
   useEffect(() => {
-    console.log('[PortPreview] useEffect triggered - checking video tracking setup');
-    
-    // Defer to next event loop tick to ensure video element is rendered
-    const timeoutId = setTimeout(() => {
-      console.log('[PortPreview] Timeout fired - checking refs');
-      console.log('[PortPreview] videoRef.current:', videoRef.current);
-      console.log('[PortPreview] featuredVideo:', featuredVideo);
-      console.log('[PortPreview] artist:', artist);
-      
-      const videoElement = videoRef.current;
-      if (!videoElement) {
-        console.warn('[PortPreview] ❌ Video element ref is NULL');
-        return;
-      }
-      if (!featuredVideo) {
-        console.warn('[PortPreview] ❌ Featured video data is NULL');
+    const fetchViewerProfile = async () => {
+      if (!user?.id) {
+        setViewerDisplayName('');
         return;
       }
 
-      console.log('[PortPreview] ✅ Setting up video tracking for:', featuredVideo.title);
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('display_name')
+          .eq('user_id', user.id)
+          .single();
 
-      const handlePlay = () => {
-        console.log('[PortPreview] Video play event triggered');
-        trackPlay({
-          contentId: featuredVideo.id,
-          title: featuredVideo.title,
-          artistName: artist?.display_name || 'Unknown',
-          contentType: 'video',
-          duration: videoElement.duration || 0,
-          playerType: 'feed',
-        });
-      };
+        if (error) {
+          console.error('Error fetching viewer profile:', error);
+          return;
+        }
 
-      const handlePause = () => {
-        console.log('[PortPreview] Video pause event triggered');
-        trackPause({
-          contentId: featuredVideo.id,
-          title: featuredVideo.title,
-          artistName: artist?.display_name || 'Unknown',
-          contentType: 'video',
-          duration: videoElement.duration || 0,
-          currentTime: videoElement.currentTime || 0,
-          playerType: 'feed',
-        });
-      };
-
-      const handleEnded = () => {
-        console.log('[PortPreview] Video ended event triggered');
-        trackEnded({
-          contentId: featuredVideo.id,
-          title: featuredVideo.title,
-          artistName: artist?.display_name || 'Unknown',
-          contentType: 'video',
-          duration: videoElement.duration || 0,
-          playerType: 'feed',
-        });
-      };
-
-      videoElement.addEventListener('play', handlePlay);
-      videoElement.addEventListener('pause', handlePause);
-      videoElement.addEventListener('ended', handleEnded);
-
-      console.log('[PortPreview] ✅ Event listeners attached successfully');
-      
-      // Cleanup function for the timeout
-      return () => {
-        console.log('[PortPreview] Cleaning up event listeners');
-        videoElement.removeEventListener('play', handlePlay);
-        videoElement.removeEventListener('pause', handlePause);
-        videoElement.removeEventListener('ended', handleEnded);
-      };
-    }, 0);
-
-    // Cleanup the timeout if component unmounts or deps change before timeout fires
-    return () => {
-      clearTimeout(timeoutId);
+        if (data?.display_name) {
+          setViewerDisplayName(data.display_name);
+          console.log('[PortPreview] Viewer display name loaded:', data.display_name);
+        }
+      } catch (error) {
+        console.error('Error in fetchViewerProfile:', error);
+      }
     };
-  }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
+
+    fetchViewerProfile();
+  }, [user?.id]);
+
+  // Video ref callback for tracking
+  const videoRefCallback = useCallback((element: HTMLVideoElement | null) => {
+    if (!element || !featuredVideo || !artist) {
+      console.log('[PortPreview] videoRefCallback - skipping setup', {
+        hasElement: !!element,
+        hasFeaturedVideo: !!featuredVideo,
+        hasArtist: !!artist
+      });
+      return;
+    }
+
+    console.log('[PortPreview] ✅ Video element mounted, setting up tracking for:', featuredVideo.title);
+
+    const handlePlay = () => {
+      console.log('[PortPreview] Video play event triggered');
+      trackPlay({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown',
+        contentType: 'video' as const,
+        duration: element.duration || 0,
+        playerType: 'feed' as const,
+        viewerName: viewerDisplayName || undefined,
+      });
+    };
+
+    const handlePause = () => {
+      console.log('[PortPreview] Video pause event triggered');
+      trackPause({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown',
+        contentType: 'video' as const,
+        duration: element.duration || 0,
+        currentTime: element.currentTime,
+        playerType: 'feed' as const,
+        viewerName: viewerDisplayName || undefined,
+      });
+    };
+
+    const handleEnded = () => {
+      console.log('[PortPreview] Video ended event triggered');
+      trackEnded({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown',
+        contentType: 'video' as const,
+        duration: element.duration || 0,
+        playerType: 'feed' as const,
+        viewerName: viewerDisplayName || undefined,
+      });
+    };
+
+    element.addEventListener('play', handlePlay);
+    element.addEventListener('pause', handlePause);
+    element.addEventListener('ended', handleEnded);
+
+    console.log('[PortPreview] ✅ Event listeners attached successfully');
+
+    return () => {
+      console.log('[PortPreview] Cleaning up video event listeners');
+      element.removeEventListener('play', handlePlay);
+      element.removeEventListener('pause', handlePause);
+      element.removeEventListener('ended', handleEnded);
+    };
+  }, [featuredVideo, artist, trackPlay, trackPause, trackEnded, viewerDisplayName]);
   
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
@@ -491,7 +511,7 @@ const PortPreview = () => {
             <div id="videos">
               <Card className="overflow-hidden gradient-card">
                 <video 
-                  ref={videoRef}
+                  ref={videoRefCallback}
                   controls 
                   className="w-full aspect-video"
                   poster={featuredVideo.thumb_url || undefined}

@@ -11,9 +11,10 @@ interface AudioPlayerProps {
   contentId?: string;
   artistName?: string;
   playlistId?: string;
+  viewerName?: string;
 }
 
-export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artistName, playlistId }: AudioPlayerProps) => {
+export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artistName, playlistId, viewerName }: AudioPlayerProps) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -42,6 +43,7 @@ export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artist
           duration: audio.duration || 0,
           playlistId,
           playerType: 'standalone' as any,
+          viewerName,
         });
       }
     };
@@ -75,6 +77,7 @@ export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artist
           currentTime: audio.currentTime || 0,
           playlistId,
           playerType: 'standalone' as any,
+          viewerName,
         });
       }
     } else {
@@ -90,6 +93,7 @@ export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artist
           duration: audio.duration || 0,
           playlistId,
           playerType: 'standalone' as any,
+          viewerName,
         });
       }
     }
@@ -119,6 +123,7 @@ export const AudioPlayer = ({ audioUrl, title, className = '', contentId, artist
         toTime: newTime,
         playlistId,
         playerType: 'standalone' as any,
+        viewerName,
       });
     }
   };
