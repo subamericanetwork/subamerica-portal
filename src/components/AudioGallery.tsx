@@ -35,7 +35,7 @@ export function AudioGallery({ artistId, artistName, viewerDisplayName, classNam
           .from('audio_tracks')
           .select('id, title, audio_url, thumb_url, duration, is_featured')
           .eq('artist_id', artistId)
-          .eq('status', 'published')
+          .not('published_at', 'is', null)
           .not('audio_url', 'is', null)
           .order('is_featured', { ascending: false })
           .order('created_at', { ascending: false })

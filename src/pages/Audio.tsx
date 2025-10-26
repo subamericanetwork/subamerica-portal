@@ -28,6 +28,7 @@ interface AudioTrack {
   is_featured: boolean;
   explicit: boolean;
   status: string;
+  published_at?: string | null;
 }
 
 export default function Audio() {
@@ -307,23 +308,23 @@ export default function Audio() {
     }
   };
 
-  const handleTogglePublish = async (trackId: string, currentStatus: string) => {
+  const handleTogglePublish = async (trackId: string, currentPublishedAt: string | null) => {
     if (!artist) return;
 
     try {
-      const newStatus = currentStatus === 'published' ? 'ready' : 'published';
+      const isPublished = currentPublishedAt !== null;
+      const newPublishedAt = isPublished ? null : new Date().toISOString();
       
       const { error } = await supabase
         .from("audio_tracks")
         .update({ 
-          status: newStatus,
-          published_at: newStatus === 'published' ? new Date().toISOString() : null
+          published_at: newPublishedAt
         })
         .eq("id", trackId);
 
       if (error) throw error;
 
-      toast.success(`Track ${newStatus === 'published' ? 'published' : 'unpublished'}!`);
+      toast.success(`Track ${newPublishedAt ? 'published' : 'unpublished'}!`);
 
       // Refresh data
       const { data } = await supabase
@@ -424,8 +425,8 @@ export default function Audio() {
                   <div>
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <CardTitle className="text-lg">{track.title}</CardTitle>
-                      <Badge variant={track.status === 'published' ? 'default' : 'secondary'}>
-                        {track.status === 'published' ? 'Published' : 'Draft'}
+                      <Badge variant={track.published_at ? 'default' : 'secondary'}>
+                        {track.published_at ? 'Published' : 'Draft'}
                       </Badge>
                     </div>
                     {track.description && (
@@ -465,13 +466,13 @@ export default function Audio() {
                       {track.is_featured ? 'Featured' : 'Set Featured'}
                     </Button>
                     <Button
-                      variant={track.status === 'published' ? 'outline' : 'default'}
+                      variant={track.published_at ? 'outline' : 'default'}
                       size="sm"
-                      onClick={() => handleTogglePublish(track.id, track.status)}
+                      onClick={() => handleTogglePublish(track.id, track.published_at)}
                       className="flex-1"
                     >
                       <Volume2 className="h-4 w-4 mr-1" />
-                      {track.status === 'published' ? 'Unpublish' : 'Publish'}
+                      {track.published_at ? 'Unpublish' : 'Publish'}
                     </Button>
                   </div>
                   <div className="flex gap-2">
