@@ -35,67 +35,81 @@ const PortPreview = () => {
   // Add event listeners for video tracking
   useEffect(() => {
     console.log('[PortPreview] useEffect triggered - checking video tracking setup');
-    console.log('[PortPreview] videoRef.current:', videoRef.current);
-    console.log('[PortPreview] featuredVideo:', featuredVideo);
-    console.log('[PortPreview] artist:', artist);
     
-    const videoElement = videoRef.current;
-    if (!videoElement) {
-      console.warn('[PortPreview] ❌ Video element ref is NULL');
-      return;
-    }
-    if (!featuredVideo) {
-      console.warn('[PortPreview] ❌ Featured video data is NULL');
-      return;
-    }
+    // Defer to next event loop tick to ensure video element is rendered
+    const timeoutId = setTimeout(() => {
+      console.log('[PortPreview] Timeout fired - checking refs');
+      console.log('[PortPreview] videoRef.current:', videoRef.current);
+      console.log('[PortPreview] featuredVideo:', featuredVideo);
+      console.log('[PortPreview] artist:', artist);
+      
+      const videoElement = videoRef.current;
+      if (!videoElement) {
+        console.warn('[PortPreview] ❌ Video element ref is NULL');
+        return;
+      }
+      if (!featuredVideo) {
+        console.warn('[PortPreview] ❌ Featured video data is NULL');
+        return;
+      }
 
-    console.log('[PortPreview] ✅ Setting up video tracking for:', featuredVideo.title);
+      console.log('[PortPreview] ✅ Setting up video tracking for:', featuredVideo.title);
 
-    const handlePlay = () => {
-      console.log('[PortPreview] Video play event triggered');
-      trackPlay({
-        contentId: featuredVideo.id,
-        title: featuredVideo.title,
-        artistName: artist?.display_name || 'Unknown',
-        contentType: 'video',
-        duration: videoElement.duration || 0,
-        playerType: 'feed',
-      });
-    };
+      const handlePlay = () => {
+        console.log('[PortPreview] Video play event triggered');
+        trackPlay({
+          contentId: featuredVideo.id,
+          title: featuredVideo.title,
+          artistName: artist?.display_name || 'Unknown',
+          contentType: 'video',
+          duration: videoElement.duration || 0,
+          playerType: 'feed',
+        });
+      };
 
-    const handlePause = () => {
-      console.log('[PortPreview] Video pause event triggered');
-      trackPause({
-        contentId: featuredVideo.id,
-        title: featuredVideo.title,
-        artistName: artist?.display_name || 'Unknown',
-        contentType: 'video',
-        duration: videoElement.duration || 0,
-        currentTime: videoElement.currentTime || 0,
-        playerType: 'feed',
-      });
-    };
+      const handlePause = () => {
+        console.log('[PortPreview] Video pause event triggered');
+        trackPause({
+          contentId: featuredVideo.id,
+          title: featuredVideo.title,
+          artistName: artist?.display_name || 'Unknown',
+          contentType: 'video',
+          duration: videoElement.duration || 0,
+          currentTime: videoElement.currentTime || 0,
+          playerType: 'feed',
+        });
+      };
 
-    const handleEnded = () => {
-      console.log('[PortPreview] Video ended event triggered');
-      trackEnded({
-        contentId: featuredVideo.id,
-        title: featuredVideo.title,
-        artistName: artist?.display_name || 'Unknown',
-        contentType: 'video',
-        duration: videoElement.duration || 0,
-        playerType: 'feed',
-      });
-    };
+      const handleEnded = () => {
+        console.log('[PortPreview] Video ended event triggered');
+        trackEnded({
+          contentId: featuredVideo.id,
+          title: featuredVideo.title,
+          artistName: artist?.display_name || 'Unknown',
+          contentType: 'video',
+          duration: videoElement.duration || 0,
+          playerType: 'feed',
+        });
+      };
 
-    videoElement.addEventListener('play', handlePlay);
-    videoElement.addEventListener('pause', handlePause);
-    videoElement.addEventListener('ended', handleEnded);
+      videoElement.addEventListener('play', handlePlay);
+      videoElement.addEventListener('pause', handlePause);
+      videoElement.addEventListener('ended', handleEnded);
 
+      console.log('[PortPreview] ✅ Event listeners attached successfully');
+      
+      // Cleanup function for the timeout
+      return () => {
+        console.log('[PortPreview] Cleaning up event listeners');
+        videoElement.removeEventListener('play', handlePlay);
+        videoElement.removeEventListener('pause', handlePause);
+        videoElement.removeEventListener('ended', handleEnded);
+      };
+    }, 0);
+
+    // Cleanup the timeout if component unmounts or deps change before timeout fires
     return () => {
-      videoElement.removeEventListener('play', handlePlay);
-      videoElement.removeEventListener('pause', handlePause);
-      videoElement.removeEventListener('ended', handleEnded);
+      clearTimeout(timeoutId);
     };
   }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
   
