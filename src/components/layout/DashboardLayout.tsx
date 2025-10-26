@@ -17,7 +17,8 @@ import {
   QrCode,
   Image,
   FileText,
-  Music2
+  Music2,
+  Users
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -93,6 +94,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Admin: Payments", href: "/admin/payments", icon: DollarSign },
     { name: "Admin: Registrations", href: "/admin/registrations", icon: User },
     { name: "Admin: Verification", href: "/admin/verification", icon: Shield },
+    { name: "Admin: Membership", href: "/admin/membership", icon: Users },
   ];
 
   const isActive = (path: string) => location.pathname === path;

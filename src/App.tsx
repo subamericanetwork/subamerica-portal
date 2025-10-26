@@ -36,6 +36,7 @@ import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVerification from "./pages/admin/AdminVerification";
 import AdminApplications from "./pages/admin/AdminApplications";
+import AdminMembership from "./pages/admin/AdminMembership";
 import Watch from "./pages/Watch";
 import Posts from "./pages/Posts";
 import BecomeArtist from "./pages/BecomeArtist";
@@ -104,6 +105,7 @@ const AppRoutes = () => {
           <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
           <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
+          <Route path="/admin/membership" element={<AdminRoute><AdminMembership /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
