@@ -105,68 +105,73 @@ const Port = () => {
   // Add event listeners for video tracking
   useEffect(() => {
     console.log('[Port] useEffect triggered - checking video tracking setup');
-    console.log('[Port] videoRef.current:', videoRef.current);
-    console.log('[Port] featuredVideo:', featuredVideo);
-    console.log('[Port] artist:', artist);
     
-    const videoElement = videoRef.current;
-    if (!videoElement) {
-      console.warn('[Port] ❌ Video element ref is NULL');
-      return;
-    }
-    if (!featuredVideo) {
-      console.warn('[Port] ❌ Featured video data is NULL');
-      return;
-    }
+    // Defer to next event loop tick to ensure video element is rendered
+    const timeoutId = setTimeout(() => {
+      console.log('[Port] Timeout fired - checking refs');
+      console.log('[Port] videoRef.current:', videoRef.current);
+      console.log('[Port] featuredVideo:', featuredVideo);
+      console.log('[Port] artist:', artist);
+      
+      const videoElement = videoRef.current;
+      if (!videoElement) {
+        console.warn('[Port] ❌ Video element ref is NULL');
+        return;
+      }
+      if (!featuredVideo) {
+        console.warn('[Port] ❌ Featured video data is NULL');
+        return;
+      }
 
-    console.log('[Port] ✅ Setting up video tracking for:', featuredVideo.title);
+      console.log('[Port] ✅ Setting up video tracking for:', featuredVideo.title);
 
-    const handlePlay = () => {
-      console.log('[Port] Video play event triggered');
-      trackPlay({
-        contentId: featuredVideo.id,
-        title: featuredVideo.title,
-        artistName: artist?.display_name || 'Unknown Artist',
-        contentType: 'video' as const,
-        duration: videoElement.duration || 0,
-        playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
-      });
-    };
+      const handlePlay = () => {
+        console.log('[Port] Video play event triggered');
+        trackPlay({
+          contentId: featuredVideo.id,
+          title: featuredVideo.title,
+          artistName: artist?.display_name || 'Unknown Artist',
+          contentType: 'video' as const,
+          duration: videoElement.duration || 0,
+          playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
+        });
+      };
 
-    const handlePause = () => {
-      console.log('[Port] Video pause event triggered');
-      trackPause({
-        contentId: featuredVideo.id,
-        title: featuredVideo.title,
-        artistName: artist?.display_name || 'Unknown Artist',
-        contentType: 'video' as const,
-        duration: videoElement.duration || 0,
-        currentTime: videoElement.currentTime,
-        playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
-      });
-    };
+      const handlePause = () => {
+        console.log('[Port] Video pause event triggered');
+        trackPause({
+          contentId: featuredVideo.id,
+          title: featuredVideo.title,
+          artistName: artist?.display_name || 'Unknown Artist',
+          contentType: 'video' as const,
+          duration: videoElement.duration || 0,
+          currentTime: videoElement.currentTime,
+          playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
+        });
+      };
 
-    const handleEnded = () => {
-      console.log('[Port] Video ended event triggered');
-      trackEnded({
-        contentId: featuredVideo.id,
-        title: featuredVideo.title,
-        artistName: artist?.display_name || 'Unknown Artist',
-        contentType: 'video' as const,
-        duration: videoElement.duration || 0,
-        playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
-      });
-    };
+      const handleEnded = () => {
+        console.log('[Port] Video ended event triggered');
+        trackEnded({
+          contentId: featuredVideo.id,
+          title: featuredVideo.title,
+          artistName: artist?.display_name || 'Unknown Artist',
+          contentType: 'video' as const,
+          duration: videoElement.duration || 0,
+          playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
+        });
+      };
 
-    videoElement.addEventListener('play', handlePlay);
-    videoElement.addEventListener('pause', handlePause);
-    videoElement.addEventListener('ended', handleEnded);
+      videoElement.addEventListener('play', handlePlay);
+      videoElement.addEventListener('pause', handlePause);
+      videoElement.addEventListener('ended', handleEnded);
 
+      console.log('[Port] ✅ Event listeners attached successfully');
+    }, 0);
+
+    // Cleanup the timeout if component unmounts or deps change before timeout fires
     return () => {
-      console.log('[Port] Cleaning up video tracking event listeners');
-      videoElement.removeEventListener('play', handlePlay);
-      videoElement.removeEventListener('pause', handlePause);
-      videoElement.removeEventListener('ended', handleEnded);
+      clearTimeout(timeoutId);
     };
   }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
 
