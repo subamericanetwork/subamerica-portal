@@ -34,10 +34,22 @@ const PortPreview = () => {
 
   // Add event listeners for video tracking
   useEffect(() => {
+    console.log('[PortPreview] useEffect triggered - checking video tracking setup');
+    console.log('[PortPreview] videoRef.current:', videoRef.current);
+    console.log('[PortPreview] featuredVideo:', featuredVideo);
+    console.log('[PortPreview] artist:', artist);
+    
     const videoElement = videoRef.current;
-    if (!videoElement || !featuredVideo) return;
+    if (!videoElement) {
+      console.warn('[PortPreview] ❌ Video element ref is NULL');
+      return;
+    }
+    if (!featuredVideo) {
+      console.warn('[PortPreview] ❌ Featured video data is NULL');
+      return;
+    }
 
-    console.log('[PortPreview] Setting up video tracking for:', featuredVideo.title);
+    console.log('[PortPreview] ✅ Setting up video tracking for:', featuredVideo.title);
 
     const handlePlay = () => {
       console.log('[PortPreview] Video play event triggered');
