@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMediaTracking } from "@/hooks/useMediaTracking";
 import { Card, CardContent } from "@/components/ui/card";
@@ -78,7 +78,6 @@ const Port = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { trackPlay, trackPause, trackEnded } = useMediaTracking();
-  const videoRef = useRef<HTMLVideoElement>(null);
   const [artist, setArtist] = useState<Artist | null>(null);
   const [featuredVideo, setFeaturedVideo] = useState<Video | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
@@ -102,92 +101,68 @@ const Port = () => {
     }
   };
 
-  // Add event listeners for video tracking
-  useEffect(() => {
-    console.log('[Port] useEffect triggered - checking video tracking setup');
-    
-    // Early return if data isn't ready yet - don't even set up the timeout
-    if (!featuredVideo) {
-      console.log('[Port] Skipping video tracking setup - no featured video data yet');
+  // Ref callback for video tracking - guarantees element exists when setting up listeners
+  const videoRefCallback = useCallback((element: HTMLVideoElement | null) => {
+    if (!element || !featuredVideo || !artist) {
+      console.log('[Port] videoRefCallback - skipping setup', {
+        hasElement: !!element,
+        hasFeaturedVideo: !!featuredVideo,
+        hasArtist: !!artist
+      });
       return;
     }
-    
-    if (!featuredVideo.video_url) {
-      console.log('[Port] Skipping video tracking setup - no video_url in featured video');
-      return;
-    }
-    
-    if (!artist) {
-      console.log('[Port] Skipping video tracking setup - no artist data yet');
-      return;
-    }
-    
-    // Defer to next event loop tick to ensure video element is rendered
-    const timeoutId = setTimeout(() => {
-      console.log('[Port] Timeout fired - checking refs');
-      console.log('[Port] videoRef.current:', videoRef.current);
-      console.log('[Port] featuredVideo:', featuredVideo);
-      console.log('[Port] artist:', artist);
-      
-      const videoElement = videoRef.current;
-      if (!videoElement) {
-        console.warn('[Port] ❌ Video element ref is NULL');
-        return;
-      }
-      if (!featuredVideo) {
-        console.warn('[Port] ❌ Featured video data is NULL');
-        return;
-      }
 
-      console.log('[Port] ✅ Setting up video tracking for:', featuredVideo.title);
+    console.log('[Port] ✅ Video element mounted, setting up tracking for:', featuredVideo.title);
 
-      const handlePlay = () => {
-        console.log('[Port] Video play event triggered');
-        trackPlay({
-          contentId: featuredVideo.id,
-          title: featuredVideo.title,
-          artistName: artist?.display_name || 'Unknown Artist',
-          contentType: 'video' as const,
-          duration: videoElement.duration || 0,
-          playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
-        });
-      };
+    const handlePlay = () => {
+      console.log('[Port] Video play event triggered');
+      trackPlay({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown Artist',
+        contentType: 'video' as const,
+        duration: element.duration || 0,
+        playerType: 'featured' as const,
+      });
+    };
 
-      const handlePause = () => {
-        console.log('[Port] Video pause event triggered');
-        trackPause({
-          contentId: featuredVideo.id,
-          title: featuredVideo.title,
-          artistName: artist?.display_name || 'Unknown Artist',
-          contentType: 'video' as const,
-          duration: videoElement.duration || 0,
-          currentTime: videoElement.currentTime,
-          playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
-        });
-      };
+    const handlePause = () => {
+      console.log('[Port] Video pause event triggered');
+      trackPause({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown Artist',
+        contentType: 'video' as const,
+        duration: element.duration || 0,
+        currentTime: element.currentTime,
+        playerType: 'featured' as const,
+      });
+    };
 
-      const handleEnded = () => {
-        console.log('[Port] Video ended event triggered');
-        trackEnded({
-          contentId: featuredVideo.id,
-          title: featuredVideo.title,
-          artistName: artist?.display_name || 'Unknown Artist',
-          contentType: 'video' as const,
-          duration: videoElement.duration || 0,
-          playerType: 'featured' as 'feed' | 'jukebox' | 'mini-player' | 'featured',
-        });
-      };
+    const handleEnded = () => {
+      console.log('[Port] Video ended event triggered');
+      trackEnded({
+        contentId: featuredVideo.id,
+        title: featuredVideo.title,
+        artistName: artist?.display_name || 'Unknown Artist',
+        contentType: 'video' as const,
+        duration: element.duration || 0,
+        playerType: 'featured' as const,
+      });
+    };
 
-      videoElement.addEventListener('play', handlePlay);
-      videoElement.addEventListener('pause', handlePause);
-      videoElement.addEventListener('ended', handleEnded);
+    element.addEventListener('play', handlePlay);
+    element.addEventListener('pause', handlePause);
+    element.addEventListener('ended', handleEnded);
 
-      console.log('[Port] ✅ Event listeners attached successfully');
-    }, 0);
+    console.log('[Port] ✅ Event listeners attached successfully');
 
-    // Cleanup the timeout if component unmounts or deps change before timeout fires
+    // Cleanup function
     return () => {
-      clearTimeout(timeoutId);
+      console.log('[Port] Cleaning up video event listeners');
+      element.removeEventListener('play', handlePlay);
+      element.removeEventListener('pause', handlePause);
+      element.removeEventListener('ended', handleEnded);
     };
   }, [featuredVideo, artist, trackPlay, trackPause, trackEnded]);
 
@@ -740,7 +715,7 @@ const Port = () => {
           <div id="videos">
             <Card className="overflow-hidden gradient-card relative">
               <video 
-                ref={videoRef}
+                ref={videoRefCallback}
                 controls 
                 className="w-full aspect-video"
                 poster={featuredVideo.thumb_url && typeof featuredVideo.thumb_url === 'string' ? String(featuredVideo.thumb_url) : undefined}
