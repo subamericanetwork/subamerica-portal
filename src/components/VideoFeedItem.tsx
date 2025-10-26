@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { VideoFeedControls } from './VideoFeedControls';
+import { useMediaTracking } from '@/hooks/useMediaTracking';
 
 interface VideoFeedItemProps {
   content: {
@@ -32,6 +33,7 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const { trackPlay, trackPause, trackEnded } = useMediaTracking();
 
   const isAudio = content.content_type === 'audio';
 
@@ -72,6 +74,16 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
 
     const handleEnded = () => {
       setIsPlaying(false);
+      
+      // Track ended event
+      trackEnded({
+        contentId: content.id,
+        title: content.title,
+        artistName: content.artists?.display_name || 'Unknown',
+        contentType: content.content_type,
+        duration: duration,
+        playerType: 'feed',
+      });
     };
 
     mediaElement.addEventListener('timeupdate', handleTimeUpdate);
@@ -92,9 +104,30 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
     if (isPlaying) {
       mediaElement.pause();
       setIsPlaying(false);
+      
+      // Track pause event
+      trackPause({
+        contentId: content.id,
+        title: content.title,
+        artistName: content.artists?.display_name || 'Unknown',
+        contentType: content.content_type,
+        duration: duration,
+        currentTime: currentTime,
+        playerType: 'feed',
+      });
     } else {
       mediaElement.play();
       setIsPlaying(true);
+      
+      // Track play event
+      trackPlay({
+        contentId: content.id,
+        title: content.title,
+        artistName: content.artists?.display_name || 'Unknown',
+        contentType: content.content_type,
+        duration: duration,
+        playerType: 'feed',
+      });
     }
   };
 

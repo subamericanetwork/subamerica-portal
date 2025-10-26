@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useRef, useEffect, ReactNode } fro
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { detectMediaType } from '@/lib/mediaUtils';
+import { useMediaTracking } from '@/hooks/useMediaTracking';
 
 interface Track {
   id: string;
@@ -58,6 +59,7 @@ export const usePlayer = () => {
 
 export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
+  const { trackPlay, trackPause, trackEnded, trackSeek } = useMediaTracking();
   const audioRef = useRef<HTMLAudioElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const visibleVideoRef = useRef<HTMLVideoElement>(null);
@@ -192,6 +194,19 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const handleEnded = () => {
+      // Track ended event
+      if (currentTrack) {
+        trackEnded({
+          contentId: currentTrack.id,
+          title: currentTrack.title,
+          artistName: currentTrack.artist_name,
+          contentType: contentType,
+          duration: currentTrack.duration,
+          playlistId: playlistId || undefined,
+          playerType: 'jukebox',
+        });
+      }
+      
       if (repeat === 'one') {
         activeMedia.currentTime = 0;
         activeMedia.play();
@@ -235,10 +250,25 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         audioRef.current.play();
       }
       setIsPlaying(true);
+      
+      // Track play event
+      trackPlay({
+        contentId: currentTrack.id,
+        title: currentTrack.title,
+        artistName: currentTrack.artist_name,
+        contentType: contentType,
+        duration: currentTrack.duration,
+        playlistId: playlistId || undefined,
+        playerType: 'jukebox',
+      });
     }
   };
 
   const pause = () => {
+    const currentTime = effectiveViewMode === 'video' 
+      ? videoRef.current?.currentTime || 0 
+      : audioRef.current?.currentTime || 0;
+      
     if (videoRef.current) {
       videoRef.current.pause();
     }
@@ -246,6 +276,20 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       audioRef.current.pause();
     }
     setIsPlaying(false);
+    
+    // Track pause event
+    if (currentTrack) {
+      trackPause({
+        contentId: currentTrack.id,
+        title: currentTrack.title,
+        artistName: currentTrack.artist_name,
+        contentType: contentType,
+        duration: currentTrack.duration,
+        currentTime: currentTime,
+        playlistId: playlistId || undefined,
+        playerType: 'jukebox',
+      });
+    }
   };
   
   const setViewMode = (mode: ViewMode) => {
@@ -291,9 +335,21 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const seek = (time: number) => {
     const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
-    if (activeMedia) {
+    if (activeMedia && currentTrack) {
+      const fromTime = activeMedia.currentTime;
       activeMedia.currentTime = time;
       setProgress(time);
+      
+      // Track seek event
+      trackSeek({
+        contentId: currentTrack.id,
+        title: currentTrack.title,
+        artistName: currentTrack.artist_name,
+        contentType: contentType,
+        duration: currentTrack.duration,
+        fromTime: fromTime,
+        toTime: time,
+      });
     }
   };
 
