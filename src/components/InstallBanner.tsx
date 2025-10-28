@@ -5,9 +5,10 @@ import { useInstallPrompt } from '@/hooks/useInstallPrompt';
 import { toast } from 'sonner';
 
 export const InstallBanner = () => {
-  const { promptInstall, isInstalled, isIOS, canInstall } = useInstallPrompt();
+  const { promptInstall, isInstalled, isIOS, canInstall, debugInfo } = useInstallPrompt();
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     // Check if user previously dismissed the banner
@@ -18,14 +19,14 @@ export const InstallBanner = () => {
   }, []);
 
   useEffect(() => {
-    // Show banner after a short delay if conditions are met
-    if (canInstall && !dismissed && !isInstalled) {
+    // Show banner immediately for testing (reduced from 3 seconds to 1 second)
+    if (!isInstalled && !dismissed) {
       const timer = setTimeout(() => {
         setVisible(true);
-      }, 3000); // Show after 3 seconds
+      }, 1000);
       return () => clearTimeout(timer);
     }
-  }, [canInstall, dismissed, isInstalled]);
+  }, [dismissed, isInstalled]);
 
   const handleDismiss = () => {
     setVisible(false);
@@ -48,7 +49,7 @@ export const InstallBanner = () => {
     }
   };
 
-  if (!visible || isInstalled || dismissed) {
+  if (!visible || isInstalled) {
     return null;
   }
 
@@ -72,20 +73,37 @@ export const InstallBanner = () => {
           
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-sm mb-1">Install Subamerica App</h3>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mb-2">
               {isIOS 
                 ? "Add to your home screen for quick access and offline features"
-                : "Install our app for a better experience with offline access"
+                : canInstall 
+                  ? "Install our app for a better experience with offline access"
+                  : "Get the app for better experience"
               }
             </p>
+            
+            {/* Debug status indicator */}
+            <div className="text-xs space-y-1 mb-2">
+              <div className="flex items-center gap-2">
+                <span className={canInstall ? "text-green-500" : "text-yellow-500"}>
+                  {canInstall ? "✓" : "⚠"} Can Install: {canInstall ? "Yes" : "No"}
+                </span>
+              </div>
+              {!canInstall && !isIOS && (
+                <p className="text-yellow-500 text-xs">
+                  Tap the Chrome menu (⋮) → "Install app" or "Add to Home screen"
+                </p>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-2">
           <Button
             onClick={handleInstall}
             size="sm"
             className="flex-1"
+            disabled={!canInstall && !isIOS}
           >
             {isIOS ? (
               <>
@@ -95,7 +113,7 @@ export const InstallBanner = () => {
             ) : (
               <>
                 <Download className="h-4 w-4 mr-2" />
-                Install
+                {canInstall ? "Install" : "See Instructions"}
               </>
             )}
           </Button>
@@ -107,6 +125,22 @@ export const InstallBanner = () => {
             Not now
           </Button>
         </div>
+        
+        {/* Debug toggle */}
+        <button
+          onClick={() => setShowDebug(!showDebug)}
+          className="text-xs text-muted-foreground hover:text-foreground underline w-full text-center"
+        >
+          {showDebug ? "Hide" : "Show"} Debug Info
+        </button>
+        
+        {showDebug && (
+          <div className="mt-2 p-2 bg-background/50 rounded text-xs max-h-32 overflow-auto">
+            {debugInfo.map((log, i) => (
+              <div key={i} className="font-mono">{log}</div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ import JukeboxPlayerPage from "./pages/JukeboxPlayerPage";
 import Browse from "./pages/Browse";
 import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
+import PWAStatus from "./pages/PWAStatus";
 import AdminVideos from "./pages/admin/AdminVideos";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
@@ -109,6 +110,7 @@ const AppRoutes = () => {
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
           <Route path="/admin/membership" element={<AdminRoute><AdminMembership /></AdminRoute>} />
           <Route path="/watch" element={<Watch />} />
+          <Route path="/pwa-status" element={<PWAStatus />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
       </Routes>
