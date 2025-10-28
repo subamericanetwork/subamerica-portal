@@ -290,12 +290,12 @@ const Videos = () => {
               <DialogHeader>
                 <DialogTitle>{editingVideo ? "Edit Video" : "Add Video"}</DialogTitle>
                 <DialogDescription>
-                  {editingVideo ? "Update video details" : "Upload a video (max 50MB). Supported formats: MP4, MOV, AVI, WebM"}
+                  {editingVideo ? "Update video details" : "Upload a video (max 100MB). Supported formats: MP4, MOV, AVI, WebM"}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmitVideo} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="video">Video File (Max 50MB) {editingVideo && "(optional - leave blank to keep current)"}</Label>
+                  <Label htmlFor="video">Video File (Max 100MB) {editingVideo && "(optional - leave blank to keep current)"}</Label>
                   <Input
                     id="video"
                     type="file"
@@ -303,8 +303,8 @@ const Videos = () => {
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) {
-                        if (file.size > 52428800) {
-                          toast.error("File size must be less than 50MB");
+                        if (file.size > 104857600) {
+                          toast.error("File size must be less than 100MB");
                           e.target.value = '';
                           return;
                         }
@@ -372,7 +372,7 @@ const Videos = () => {
             <div className="space-y-1">
               <p><strong>Featured Video:</strong> Your featured video appears prominently at the top of your Port. Only 1 video can be featured, and it must have captions for accessibility.</p>
               <p><strong>Video Limit:</strong> Store up to 10 videos ({videos.length}/10 used). Choose quality content that best represents your work.</p>
-              <p><strong>File Guidelines:</strong> Max 50MB per video. Recommended formats: MP4, MOV.</p>
+              <p><strong>File Guidelines:</strong> Max 100MB per video. Recommended formats: MP4, MOV.</p>
             </div>
           </AlertDescription>
         </Alert>

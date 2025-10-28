@@ -101,8 +101,8 @@ const Posts = () => {
       return;
     }
 
-    if (isVideoFile(file) && file.size > 50 * 1024 * 1024) {
-      toast.error("Video must be under 50MB");
+    if (isVideoFile(file) && file.size > 100 * 1024 * 1024) {
+      toast.error("Video must be under 100MB");
       return;
     }
 
@@ -283,7 +283,7 @@ const Posts = () => {
                     required={!editingPost}
                   />
                   <p className="text-xs text-muted-foreground mt-1">
-                    Images: JPG, PNG, WebP (max 5MB) | Videos: MP4, WebM (max 50MB)
+                    Images: JPG, PNG, WebP (max 5MB) | Videos: MP4, WebM (max 100MB)
                   </p>
                   {editingPost && !mediaFile && (
                     <p className="text-xs text-muted-foreground mt-1">
