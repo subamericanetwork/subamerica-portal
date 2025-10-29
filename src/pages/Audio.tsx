@@ -171,8 +171,8 @@ export default function Audio() {
       return;
     }
 
-    if (audioFile.size > 50 * 1024 * 1024) {
-      toast.error("Audio file must be less than 50MB");
+    if (audioFile.size > 100 * 1024 * 1024) {
+      toast.error("Audio file must be less than 100MB");
       return;
     }
 
@@ -373,7 +373,7 @@ export default function Audio() {
           <Info className="h-4 w-4" />
           <AlertDescription>
             <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Upload audio files (MP3, WAV, M4A, FLAC) up to 50MB</li>
+              <li>Upload audio files (MP3, WAV, M4A, FLAC) up to 100MB</li>
               <li>Publish tracks to make them visible on your port gallery</li>
               <li>Unpublished tracks remain in draft status and are only visible to you</li>
               <li>Mark one track as featured to highlight it on your port</li>
