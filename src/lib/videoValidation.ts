@@ -15,7 +15,7 @@ export const validateVideoDuration = (file: File): Promise<boolean> => {
 };
 
 export const validateVideoSize = (file: File): boolean => {
-  const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+  const maxSizeInBytes = 100 * 1024 * 1024; // 100MB
   return file.size <= maxSizeInBytes;
 };
 
