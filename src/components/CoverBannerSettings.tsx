@@ -8,25 +8,25 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, Upload, X } from "lucide-react";
 import { validateVideoDuration, validateVideoSize, isVideoFile, isImageFile, validateImageSize } from "@/lib/videoValidation";
 
-interface HeroBannerSettingsProps {
+interface CoverBannerSettingsProps {
   artistId: string;
   userId: string;
-  initialHeroBanner?: string;
+  initialCoverBanner?: string;
   onSave: () => void;
 }
 
-export const HeroBannerSettings = ({ 
+export const CoverBannerSettings = ({ 
   artistId, 
   userId, 
-  initialHeroBanner,
+  initialCoverBanner,
   onSave 
-}: HeroBannerSettingsProps) => {
+}: CoverBannerSettingsProps) => {
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
-  const [heroBanner, setHeroBanner] = useState<string | undefined>(initialHeroBanner);
-  const [preview, setPreview] = useState<string | undefined>(initialHeroBanner);
+  const [coverBanner, setCoverBanner] = useState<string | undefined>(initialCoverBanner);
+  const [preview, setPreview] = useState<string | undefined>(initialCoverBanner);
   const [isVideo, setIsVideo] = useState<boolean>(
-    initialHeroBanner ? initialHeroBanner.includes('.mp4') || initialHeroBanner.includes('.webm') : false
+    initialCoverBanner ? initialCoverBanner.includes('.mp4') || initialCoverBanner.includes('.webm') : false
   );
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +56,7 @@ export const HeroBannerSettings = ({
 
       // Upload to storage
       const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/hero-banner-${Date.now()}.${fileExt}`;
+      const fileName = `${userId}/cover-banner-${Date.now()}.${fileExt}`;
       
       const { error: uploadError } = await supabase.storage
         .from('port-backgrounds')
@@ -68,12 +68,12 @@ export const HeroBannerSettings = ({
         .from('port-backgrounds')
         .getPublicUrl(fileName);
 
-      setHeroBanner(publicUrl);
+      setCoverBanner(publicUrl);
       setPreview(publicUrl);
 
       toast({
         title: "Success",
-        description: "Hero banner uploaded. Click Save to apply changes.",
+        description: "Cover banner uploaded. Click Save to apply changes.",
       });
     } catch (error: any) {
       toast({
@@ -87,7 +87,7 @@ export const HeroBannerSettings = ({
   };
 
   const handleRemove = () => {
-    setHeroBanner(undefined);
+    setCoverBanner(undefined);
     setPreview(undefined);
     setIsVideo(false);
   };
@@ -104,11 +104,11 @@ export const HeroBannerSettings = ({
 
       if (fetchError) throw fetchError;
 
-      // Update brand with hero_banner
+      // Update brand with cover banner
       const currentBrand = currentArtist.brand as Record<string, any> || {};
       const updatedBrand = {
         ...currentBrand,
-        hero_banner: heroBanner || null
+        hero_banner: coverBanner || null
       };
 
       const { error: updateError } = await supabase
@@ -120,7 +120,7 @@ export const HeroBannerSettings = ({
 
       toast({
         title: "Success",
-        description: "Hero banner saved successfully",
+        description: "Cover banner saved successfully",
       });
       
       onSave();
@@ -138,7 +138,7 @@ export const HeroBannerSettings = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Hero Banner</CardTitle>
+        <CardTitle>Cover Banner</CardTitle>
         <CardDescription>
           Upload a banner image or video to display prominently at the top of your port. This will also be used as your background on the{" "}
           <a href="https://artist-portal.subamerica.net/portals" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
@@ -149,7 +149,7 @@ export const HeroBannerSettings = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label htmlFor="hero-banner">Upload Hero Banner</Label>
+          <Label htmlFor="cover-banner">Upload Cover Banner</Label>
           <div className="mt-2 space-y-4">
             {preview ? (
               <div className="relative rounded-lg overflow-hidden border border-border">
@@ -165,7 +165,7 @@ export const HeroBannerSettings = ({
                 ) : (
                   <img
                     src={preview}
-                    alt="Hero banner preview"
+                    alt="Cover banner preview"
                     className="w-full aspect-[21/9] object-cover"
                   />
                 )}
@@ -180,7 +180,7 @@ export const HeroBannerSettings = ({
               </div>
             ) : (
               <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
-                <Label htmlFor="hero-banner-upload" className="cursor-pointer">
+                <Label htmlFor="cover-banner-upload" className="cursor-pointer">
                   <div className="flex flex-col items-center gap-2">
                     <Upload className="h-8 w-8 text-muted-foreground" />
                     <span className="text-sm text-muted-foreground">
@@ -189,7 +189,7 @@ export const HeroBannerSettings = ({
                   </div>
                 </Label>
                 <Input
-                  id="hero-banner-upload"
+                  id="cover-banner-upload"
                   type="file"
                   accept="image/jpeg,image/jpg,image/png,image/webp,video/mp4,video/webm"
                   className="hidden"
@@ -212,7 +212,7 @@ export const HeroBannerSettings = ({
               Saving...
             </>
           ) : (
-            "Save Hero Banner"
+            "Save Cover Banner"
           )}
         </Button>
       </CardContent>

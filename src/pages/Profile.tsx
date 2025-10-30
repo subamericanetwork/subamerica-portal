@@ -12,7 +12,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Upload, X, User, Check, Eye } from "lucide-react";
 import { BackgroundSettings } from "@/components/BackgroundSettings";
-import { HeroBannerSettings } from "@/components/HeroBannerSettings";
+import { CoverBannerSettings } from "@/components/CoverBannerSettings";
 import { FAQManagement } from "@/components/FAQManagement";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { CustomDomainSettings } from "@/components/CustomDomainSettings";
@@ -435,13 +435,13 @@ const Profile = () => {
           </div>
         </div>
 
-        {/* Hero Banner */}
+        {/* Cover Banner */}
         {artist && user && (
-          <HeroBannerSettings
+          <CoverBannerSettings
             key={refreshKey}
             artistId={artist.id}
             userId={user.id}
-            initialHeroBanner={artist.brand?.hero_banner}
+            initialCoverBanner={artist.brand?.hero_banner}
             onSave={() => setRefreshKey(prev => prev + 1)}
           />
         )}

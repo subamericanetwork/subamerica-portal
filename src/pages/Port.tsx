@@ -565,8 +565,8 @@ const Port = () => {
     );
   }
 
-  const heroBanner = artist?.brand?.hero_banner;
-  const isHeroBannerVideo = heroBanner && (heroBanner.includes('.mp4') || heroBanner.includes('.webm'));
+  const coverBanner = artist?.brand?.hero_banner;
+  const isCoverBannerVideo = coverBanner && (coverBanner.includes('.mp4') || coverBanner.includes('.webm'));
 
   return (
     <div className="min-h-screen relative bg-black" style={getBackgroundStyles()}>
@@ -593,10 +593,10 @@ const Port = () => {
         )}
         
         <div className="relative z-0">
-          {/* Hero Banner */}
-          {heroBanner && (
+          {/* Cover Banner */}
+          {coverBanner && (
             <div className="relative w-full h-[300px] md:h-[400px] overflow-hidden">
-              {isHeroBannerVideo ? (
+              {isCoverBannerVideo ? (
                 <video
                   autoPlay
                   loop
@@ -604,13 +604,13 @@ const Port = () => {
                   playsInline
                   className="w-full h-full object-cover"
                 >
-                  <source src={heroBanner} type="video/mp4" />
-                  <source src={heroBanner} type="video/webm" />
+                  <source src={coverBanner} type="video/mp4" />
+                  <source src={coverBanner} type="video/webm" />
                 </video>
               ) : (
                 <img
-                  src={heroBanner}
-                  alt="Hero banner"
+                  src={coverBanner}
+                  alt="Cover banner"
                   className="w-full h-full object-cover"
                 />
               )}

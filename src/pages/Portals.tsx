@@ -430,10 +430,10 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
     return () => window.removeEventListener('keydown', onKey);
   }, [active, navigatePost, artist.posts, mode]);
 
-  // Prioritize hero_banner, then hero_image, then first image
-  const heroBanner = artist.brand?.hero_banner;
+  // Prioritize cover_banner (hero_banner), then hero_image, then first image
+  const coverBanner = artist.brand?.hero_banner;
   const heroImage = artist.brand?.hero_image || artist.brand?.images?.[0];
-  const backgroundSource = heroBanner || heroImage;
+  const backgroundSource = coverBanner || heroImage;
   const isVideo = backgroundSource && (backgroundSource.includes('.mp4') || backgroundSource.includes('.webm'));
   const profilePhoto = artist.brand?.profile_photo;
 

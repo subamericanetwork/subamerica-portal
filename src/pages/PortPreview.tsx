@@ -352,7 +352,7 @@ const PortPreview = () => {
           )}
           
           <div className="relative z-0">
-          {/* Hero Banner */}
+          {/* Cover Banner */}
           {artist?.brand?.hero_banner && (
             <div className="relative w-full h-[250px] md:h-[300px] lg:h-[400px] overflow-hidden -mx-8 -mt-8 mb-8">
               {artist.brand.hero_banner.includes('.mp4') || artist.brand.hero_banner.includes('.webm') ? (
@@ -369,7 +369,7 @@ const PortPreview = () => {
               ) : (
                 <img
                   src={artist.brand.hero_banner}
-                  alt="Hero banner"
+                  alt="Cover banner"
                   className="w-full h-full object-cover"
                 />
               )}
