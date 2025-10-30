@@ -47,6 +47,8 @@ import MemberDashboard from "./pages/MemberDashboard";
 import MemberProfile from "./pages/MemberProfile";
 import { useEffect } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
+import { useAppLifecycle } from "@/hooks/useAppLifecycle";
+import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +57,22 @@ const AppRoutes = () => {
 
   // Track page views for all route changes
   usePageTracking();
+
+  // App lifecycle management for session persistence
+  useAppLifecycle({
+    onAppActive: async () => {
+      console.log("[App] App became active, verifying session...");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        console.log("[App] Session active");
+      } else {
+        console.log("[App] No active session");
+      }
+    },
+    onAppBackground: () => {
+      console.log("[App] App going to background");
+    }
+  });
 
   // Add class to body when mini-player is active for proper spacing
   useEffect(() => {
