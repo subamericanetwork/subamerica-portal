@@ -430,7 +430,7 @@ function ArtistSlide({ artist, active }: { artist: ArtistWithDetails; active: bo
     return () => window.removeEventListener('keydown', onKey);
   }, [active, navigatePost, artist.posts, mode]);
 
-  // Prioritize cover_banner (hero_banner), then hero_image, then first image
+  // Prioritize cover banner, then hero image, then first image
   const coverBanner = artist.brand?.hero_banner;
   const heroImage = artist.brand?.hero_image || artist.brand?.images?.[0];
   const backgroundSource = coverBanner || heroImage;
