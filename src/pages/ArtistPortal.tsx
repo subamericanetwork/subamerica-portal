@@ -51,7 +51,7 @@ const ArtistPortal = () => {
       </header>
 
       {/* Hero Section with Video Background */}
-      <section className="relative container mx-auto px-4 py-16 min-h-[600px] flex items-center">
+      <section className="relative w-full py-16 min-h-[600px] flex items-center">
         {/* Background Video */}
         <video
           autoPlay
@@ -67,7 +67,8 @@ const ArtistPortal = () => {
         <div className="absolute inset-0 bg-black/50 -z-10" />
         
         {/* Hero Content */}
-        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
           <div className="space-y-4">
             <img 
               src={logo} 
@@ -112,6 +113,7 @@ const ArtistPortal = () => {
               Explore Features
             </Button>
           </div>
+        </div>
         </div>
       </section>
 
