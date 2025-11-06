@@ -70,11 +70,6 @@ const ArtistPortal = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
           <div className="space-y-4">
-            <img 
-              src={logo} 
-              alt="Subamerica logo" 
-              className="h-48 mx-auto"
-            />
             <h1 className="text-2xl md:text-3xl text-primary font-bold flex items-center justify-center gap-3">
               Artist Portal
               <span className="text-sm font-semibold px-3 py-1 rounded-full bg-coral/10 border border-coral/30" style={{ color: 'hsl(var(--coral))' }}>
