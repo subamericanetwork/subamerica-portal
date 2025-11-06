@@ -78,7 +78,7 @@ const ArtistPortal = () => {
             </h1>
             <p className="eyebrow">Indie Underground — Stream fearless art, sound, and stories 24/7</p>
             <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed font-bold" style={{ color: 'hsl(var(--teal))' }}>
-              Build your artist portal on Subamerica.net — the creator-first platform to upload, stream, and monetize your music, art, and performance media worldwide.
+              Build your artist portal on Subamerica — create your website, sell tickets and merch, and stream your music, films, and performances on web and TV worldwide.
             </p>
           </div>
 
