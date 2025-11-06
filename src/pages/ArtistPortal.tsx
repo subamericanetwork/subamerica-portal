@@ -58,7 +58,7 @@ const ArtistPortal = () => {
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover -z-10"
+          className="absolute inset-0 w-full h-full object-cover -z-20"
         >
           <source src="/videos/hero-background.mp4" type="video/mp4" />
         </video>
