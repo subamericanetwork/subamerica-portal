@@ -50,9 +50,24 @@ const ArtistPortal = () => {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
+      {/* Hero Section with Video Background */}
+      <section className="relative container mx-auto px-4 py-16 min-h-[600px] flex items-center">
+        {/* Background Video */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover -z-10"
+        >
+          <source src="/videos/hero-background.mp4" type="video/mp4" />
+        </video>
+        
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-black/50 -z-10" />
+        
+        {/* Hero Content */}
+        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
           <div className="space-y-4">
             <img 
               src={logo} 
