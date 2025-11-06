@@ -69,7 +69,7 @@ const ArtistPortal = () => {
         {/* Hero Content */}
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
-          <div className="space-y-4">
+          <div className="space-y-4 bg-black/40 backdrop-blur-sm p-6 rounded-lg max-w-4xl mx-auto">
             <h1 className="text-2xl md:text-3xl text-primary font-bold flex items-center justify-center gap-3">
               Artist Portal
               <span className="text-sm font-semibold px-3 py-1 rounded-full bg-coral/10 border border-coral/30" style={{ color: 'hsl(var(--coral))' }}>
@@ -77,7 +77,7 @@ const ArtistPortal = () => {
               </span>
             </h1>
             <p className="eyebrow">Indie Underground — Stream fearless art, sound, and stories 24/7</p>
-            <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed font-bold bg-black/40 backdrop-blur-sm p-4 rounded-lg" style={{ color: 'hsl(var(--teal))' }}>
+            <p className="text-lg md:text-xl max-w-3xl mx-auto leading-relaxed font-bold" style={{ color: 'hsl(var(--teal))' }}>
               Build your artist portal on Subamerica.net — the creator-first platform to upload, stream, and monetize your music, art, and performance media worldwide.
             </p>
           </div>
