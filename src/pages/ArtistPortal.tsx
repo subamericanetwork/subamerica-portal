@@ -61,13 +61,13 @@ const ArtistPortal = () => {
           <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
               <span className="bg-gradient-to-r from-[hsl(var(--coral))] to-[hsl(var(--teal))] bg-clip-text text-transparent">
-                The Artist‑First Broadcast Economy
+                Welcome to the Artist-First Broadcast Economy
               </span>
             </h1>
             
             <div className="bg-background/40 backdrop-blur-sm p-6 rounded-lg max-w-3xl mx-auto">
               <p className="text-lg md:text-xl leading-relaxed" style={{ color: 'hsl(var(--teal))' }}>
-                Build your channel. Connect with fans. Sell merch and tickets, collect tips, and collaborate across the underground — keep your masters, skip the middlemen, and amplify your reach.
+                Subamerica is an underground arts & music community where creators keep 80% of revenue, own their work, and broadcast fearlessly across Roku, Fire TV, Google TV & Apple TV. No middlemen extracting value. No gatekeepers blocking access. Just a network powered by independent artists.
               </p>
             </div>
 
@@ -77,10 +77,10 @@ const ArtistPortal = () => {
                 className="text-lg px-8 py-6 glow-primary hover-scale"
                 onClick={() => navigate("/auth")}
               >
-                Join Free
+                Join the Community
               </Button>
               <p className="text-sm text-muted-foreground">
-                Free for fans and artists — Artists can apply for featured placement after joining
+                Free to join • Approved artists keep 80% • Instant Stripe payouts
               </p>
             </div>
 
