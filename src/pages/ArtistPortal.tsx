@@ -67,7 +67,7 @@ const ArtistPortal = () => {
             
             <div className="bg-background/40 backdrop-blur-sm p-6 rounded-lg max-w-3xl mx-auto">
               <p className="text-lg md:text-xl leading-relaxed" style={{ color: 'hsl(var(--teal))' }}>
-                Share your music, art, films, and podcasts. Build playlists. Sell merch, tickets, and art directly to fans on TV and web. Track performance and get instant Stripe payouts—all from your customizable portal in our underground community.
+                Share your music, art, films, and podcasts. Build playlists. Sell merch, tickets, and art directly to fans on TV and web. Track performance and get weekly payouts—all from your customizable portal in our underground community.
               </p>
             </div>
 
