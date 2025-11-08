@@ -45,6 +45,9 @@ import BecomeArtist from "./pages/BecomeArtist";
 import ApplicationStatus from "./pages/ApplicationStatus";
 import MemberDashboard from "./pages/MemberDashboard";
 import MemberProfile from "./pages/MemberProfile";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
+import AdminBlog from "./pages/admin/AdminBlog";
 import { useEffect } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAppLifecycle } from "@/hooks/useAppLifecycle";
@@ -127,6 +130,12 @@ const AppRoutes = () => {
           <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
           <Route path="/admin/membership" element={<AdminRoute><AdminMembership /></AdminRoute>} />
+          <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
+          
+          {/* Blog Routes */}
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/blog/:slug" element={<BlogPost />} />
+          
           <Route path="/watch" element={<Watch />} />
           <Route path="/pwa-status" element={<PWAStatus />} />
           <Route path="/:slug" element={<Port />} />
