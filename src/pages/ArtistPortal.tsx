@@ -80,7 +80,7 @@ const ArtistPortal = () => {
                 Join the Community
               </Button>
               <p className="text-sm text-muted-foreground">
-                Free to join • Approved artists keep 80% • Instant Stripe payouts
+                Free to join • Approved artists keep 80% • Build your own website portal
               </p>
             </div>
 
