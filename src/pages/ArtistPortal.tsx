@@ -67,7 +67,7 @@ const ArtistPortal = () => {
             
             <div className="bg-background/40 backdrop-blur-sm p-6 rounded-lg max-w-3xl mx-auto">
               <p className="text-lg md:text-xl leading-relaxed" style={{ color: 'hsl(var(--teal))' }}>
-                Subamerica is an underground arts & music community where creators keep 80% of revenue, own their work, and broadcast fearlessly across Roku, Fire TV, Google TV, Apple TV, web and mobile. No middlemen extracting value. No gatekeepers blocking access. Just a network powered by independent artists.
+                Subamerica is an underground arts & music community where creators keep 80% of revenue, own their work, and broadcast fearlessly across Roku, Fire TV, Google TV, Apple TV, web and mobile platforms. No middlemen extracting value. No gatekeepers blocking access. Just a network powered by independent artists.
               </p>
             </div>
 
