@@ -96,9 +96,9 @@ const Watch = () => {
   }, []);
 
   const platformLinks = {
-    roku: "https://channelstore.roku.com/details/aa54e5a3da516ba56230e19c8888733c/subamerica",
-    googleTv: "https://play.google.com/store/apps/details?id=com.subamerica.tv",
-    fireTv: "https://www.amazon.com/dp/B0XXXXX",
+    roku: "https://channelstore.roku.com/details/aa54e5a3da516ba56230e19c8888733c:1ffc7011d8f6548b09dc3da0d76df7e2/subamerica",
+    googleTv: "https://play.google.com/store/apps/details?id=com.subamericatv.app",
+    fireTv: "https://www.amazon.com/Muse-Platforms-Inc-SUBAMERICA/dp/B0DHYLQ3WS/ref=sr_1_2",
     appleTv: "https://apps.apple.com/us/app/subamerica/idXXXXXX"
   };
 
