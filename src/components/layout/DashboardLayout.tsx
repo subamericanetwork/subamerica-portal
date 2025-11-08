@@ -18,7 +18,8 @@ import {
   Image,
   FileText,
   Music2,
-  Users
+  Users,
+  BookOpen
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -95,6 +96,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Admin: Registrations", href: "/admin/registrations", icon: User },
     { name: "Admin: Verification", href: "/admin/verification", icon: Shield },
     { name: "Admin: Membership", href: "/admin/membership", icon: Users },
+    { name: "Admin: Blog", href: "/admin/blog", icon: BookOpen },
   ];
 
   const isActive = (path: string) => location.pathname === path;
