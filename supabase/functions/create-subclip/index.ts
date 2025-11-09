@@ -82,15 +82,14 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as PNG
-    const qrCodeDataUrl = await QRCode.toDataURL(qrUrl, {
+    // Generate QR code as PNG buffer (works in Deno/server environment)
+    const qrBuffer = await QRCode.toBuffer(qrUrl, {
       width: 200,
       margin: 2,
-      color: { dark: '#000000', light: '#FFFFFF' }
+      type: 'png',
+      color: { dark: '#000000FF', light: '#FFFFFFFF' }
     });
 
-    // Convert data URL to buffer
-    const qrBuffer = Uint8Array.from(atob(qrCodeDataUrl.split(',')[1]), c => c.charCodeAt(0));
     const qrPath = `/tmp/qr_${Date.now()}.png`;
     await Deno.writeFile(qrPath, qrBuffer);
     console.log('[create-subclip] QR code saved to:', qrPath);
