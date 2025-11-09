@@ -1340,6 +1340,54 @@ export type Database = {
           },
         ]
       }
+      producer_queue: {
+        Row: {
+          created_at: string | null
+          curated: boolean | null
+          id: string
+          notes: string | null
+          post_id: string
+          producer_id: string | null
+          scheduled_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          curated?: boolean | null
+          id?: string
+          notes?: string | null
+          post_id: string
+          producer_id?: string | null
+          scheduled_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          curated?: boolean | null
+          id?: string
+          notes?: string | null
+          post_id?: string
+          producer_id?: string | null
+          scheduled_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producer_queue_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_scheduled_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producer_queue_producer_id_fkey"
+            columns: ["producer_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       production_managers: {
         Row: {
           created_at: string | null
@@ -1453,6 +1501,60 @@ export type Database = {
           },
         ]
       }
+      qr_analytics: {
+        Row: {
+          conversion_value: number | null
+          converted: boolean | null
+          id: string
+          ip_address: string | null
+          platform: string | null
+          post_id: string | null
+          qr_type: string
+          scanned_at: string | null
+          subclip_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          conversion_value?: number | null
+          converted?: boolean | null
+          id?: string
+          ip_address?: string | null
+          platform?: string | null
+          post_id?: string | null
+          qr_type: string
+          scanned_at?: string | null
+          subclip_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          conversion_value?: number | null
+          converted?: boolean | null
+          id?: string
+          ip_address?: string | null
+          platform?: string | null
+          post_id?: string | null
+          qr_type?: string
+          scanned_at?: string | null
+          subclip_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qr_analytics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_scheduled_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qr_analytics_subclip_id_fkey"
+            columns: ["subclip_id"]
+            isOneToOne: false
+            referencedRelation: "subclip_library"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       qr_settings: {
         Row: {
           artist_id: string
@@ -1554,6 +1656,59 @@ export type Database = {
           },
         ]
       }
+      social_auth: {
+        Row: {
+          access_token: string
+          artist_id: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          is_active: boolean | null
+          last_refreshed_at: string | null
+          platform: string
+          platform_user_id: string | null
+          platform_username: string | null
+          refresh_token: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          artist_id: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          is_active?: boolean | null
+          last_refreshed_at?: string | null
+          platform: string
+          platform_user_id?: string | null
+          platform_username?: string | null
+          refresh_token?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          artist_id?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_refreshed_at?: string | null
+          platform?: string
+          platform_user_id?: string | null
+          platform_username?: string | null
+          refresh_token?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_auth_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_connections: {
         Row: {
           access_token: string
@@ -1612,6 +1767,7 @@ export type Database = {
           artist_id: string
           caption: string | null
           created_at: string | null
+          hashtags: string[] | null
           id: string
           media_url: string | null
           permalink: string | null
@@ -1619,11 +1775,13 @@ export type Database = {
           platform_post_id: string
           post_type: string | null
           posted_at: string | null
+          shared_with_network: boolean | null
         }
         Insert: {
           artist_id: string
           caption?: string | null
           created_at?: string | null
+          hashtags?: string[] | null
           id?: string
           media_url?: string | null
           permalink?: string | null
@@ -1631,11 +1789,13 @@ export type Database = {
           platform_post_id: string
           post_type?: string | null
           posted_at?: string | null
+          shared_with_network?: boolean | null
         }
         Update: {
           artist_id?: string
           caption?: string | null
           created_at?: string | null
+          hashtags?: string[] | null
           id?: string
           media_url?: string | null
           permalink?: string | null
@@ -1643,6 +1803,7 @@ export type Database = {
           platform_post_id?: string
           post_type?: string | null
           posted_at?: string | null
+          shared_with_network?: boolean | null
         }
         Relationships: [
           {
@@ -1650,6 +1811,78 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_scheduled_posts: {
+        Row: {
+          artist_id: string
+          caption: string | null
+          created_at: string | null
+          error_messages: Json | null
+          external_ids: Json | null
+          hashtags: string[] | null
+          id: string
+          media_type: string | null
+          platforms: string[]
+          posted_at: string | null
+          qr_type: string | null
+          scheduled_at: string
+          shared_with_network: boolean | null
+          status: string | null
+          subclip_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          caption?: string | null
+          created_at?: string | null
+          error_messages?: Json | null
+          external_ids?: Json | null
+          hashtags?: string[] | null
+          id?: string
+          media_type?: string | null
+          platforms: string[]
+          posted_at?: string | null
+          qr_type?: string | null
+          scheduled_at: string
+          shared_with_network?: boolean | null
+          status?: string | null
+          subclip_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          caption?: string | null
+          created_at?: string | null
+          error_messages?: Json | null
+          external_ids?: Json | null
+          hashtags?: string[] | null
+          id?: string
+          media_type?: string | null
+          platforms?: string[]
+          posted_at?: string | null
+          qr_type?: string | null
+          scheduled_at?: string
+          shared_with_network?: boolean | null
+          status?: string | null
+          subclip_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_scheduled_posts_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_scheduled_posts_subclip_id_fkey"
+            columns: ["subclip_id"]
+            isOneToOne: false
+            referencedRelation: "subclip_library"
             referencedColumns: ["id"]
           },
         ]
@@ -1914,6 +2147,72 @@ export type Database = {
             columns: ["stream_id"]
             isOneToOne: false
             referencedRelation: "stream_playlists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subclip_library: {
+        Row: {
+          artist_id: string
+          caption: string | null
+          clip_url: string
+          created_at: string | null
+          duration: number | null
+          end_time: number | null
+          id: string
+          qr_type: string | null
+          qr_url: string | null
+          source_video_id: string
+          start_time: number | null
+          status: string | null
+          thumbnail_url: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          caption?: string | null
+          clip_url: string
+          created_at?: string | null
+          duration?: number | null
+          end_time?: number | null
+          id?: string
+          qr_type?: string | null
+          qr_url?: string | null
+          source_video_id: string
+          start_time?: number | null
+          status?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          caption?: string | null
+          clip_url?: string
+          created_at?: string | null
+          duration?: number | null
+          end_time?: number | null
+          id?: string
+          qr_type?: string | null
+          qr_url?: string | null
+          source_video_id?: string
+          start_time?: number | null
+          status?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subclip_library_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subclip_library_source_video_id_fkey"
+            columns: ["source_video_id"]
+            isOneToOne: false
+            referencedRelation: "videos"
             referencedColumns: ["id"]
           },
         ]
