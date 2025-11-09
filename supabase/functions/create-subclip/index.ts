@@ -170,7 +170,7 @@ serve(async (req) => {
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
     // QR size and positioning - make it more visible
-    const qrSize = orientation === 'vertical' ? '0.35' : '0.28'; // Larger size for better visibility
+    const qrSize = orientation === 'vertical' ? '0.60' : '0.50'; // Much larger for maximum scannability
     const qrPadding = '0.03'; // 3% padding from edges
     
     // Add white background for better QR visibility with larger border
