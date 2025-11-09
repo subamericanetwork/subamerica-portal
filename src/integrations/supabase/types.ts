@@ -2162,6 +2162,7 @@ export type Database = {
           created_at: string | null
           duration: number | null
           end_time: number | null
+          hashtags: string[] | null
           id: string
           qr_type: string | null
           qr_url: string | null
@@ -2178,6 +2179,7 @@ export type Database = {
           created_at?: string | null
           duration?: number | null
           end_time?: number | null
+          hashtags?: string[] | null
           id?: string
           qr_type?: string | null
           qr_url?: string | null
@@ -2194,6 +2196,7 @@ export type Database = {
           created_at?: string | null
           duration?: number | null
           end_time?: number | null
+          hashtags?: string[] | null
           id?: string
           qr_type?: string | null
           qr_url?: string | null
