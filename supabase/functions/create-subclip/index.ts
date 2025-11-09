@@ -206,8 +206,9 @@ serve(async (req) => {
     const videoUploadData = await videoUploadResponse.json();
     console.log('[create-subclip] Video uploaded to Cloudinary:', videoUploadData.public_id);
     
-    // Get the processed video URL (eager transformation result)
-    const processedVideoUrl = videoUploadData.eager?.[0]?.secure_url || videoUploadData.secure_url;
+    // Build the transformation URL directly (don't rely on eager transformations)
+    const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
+    const processedVideoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply/${videoUploadData.public_id}.mp4`;
     console.log('[create-subclip] Processed video URL:', processedVideoUrl);
 
     // Download processed video
