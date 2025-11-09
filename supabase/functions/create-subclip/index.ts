@@ -211,15 +211,31 @@ serve(async (req) => {
     const processedVideoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply/${videoUploadData.public_id}.mp4`;
     console.log('[create-subclip] Processed video URL:', processedVideoUrl);
 
-    // Download processed video
-    const processedVideoResponse = await fetch(processedVideoUrl);
-    if (!processedVideoResponse.ok) {
-      console.error('[create-subclip] Failed to download processed video');
-      return new Response(JSON.stringify({ error: 'Failed to download processed video' }), {
+    // Download processed video with retry logic (Cloudinary needs time to process)
+    let processedVideoResponse;
+    let retries = 0;
+    const maxRetries = 5;
+    
+    while (retries < maxRetries) {
+      processedVideoResponse = await fetch(processedVideoUrl);
+      if (processedVideoResponse.ok) break;
+      
+      retries++;
+      if (retries < maxRetries) {
+        console.log(`[create-subclip] Video not ready, waiting... (attempt ${retries}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, 2000 * retries)); // Exponential backoff
+      }
+    }
+    
+    if (!processedVideoResponse || !processedVideoResponse.ok) {
+      console.error('[create-subclip] Failed to download processed video after retries');
+      return new Response(JSON.stringify({ error: 'Video processing timed out. Please try again.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log('[create-subclip] Processed video downloaded after', retries, 'retries');
     
     const processedVideoBlob = await processedVideoResponse.blob();
     const processedVideoBuffer = await processedVideoBlob.arrayBuffer();
