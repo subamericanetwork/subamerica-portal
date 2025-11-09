@@ -41,6 +41,7 @@ export const SubClipGenerator = ({
   const [progress, setProgress] = useState(0);
   const [generatedClip, setGeneratedClip] = useState<any>(null);
   const [qrPreview, setQrPreview] = useState('');
+  const [orientation, setOrientation] = useState<'vertical' | 'landscape'>('vertical');
 
   useEffect(() => {
     if (videoRef.current) {
@@ -85,7 +86,8 @@ export const SubClipGenerator = ({
           end_time: endTime,
           qr_type: qrType,
           caption: autoCaption ? undefined : manualCaption,
-          auto_caption: autoCaption
+          auto_caption: autoCaption,
+          orientation: orientation
         }
       });
 
@@ -116,7 +118,7 @@ export const SubClipGenerator = ({
         <DialogHeader>
           <DialogTitle>Create SubClip from "{videoTitle}"</DialogTitle>
           <DialogDescription>
-            Generate a vertical 9:16 clip for TikTok, Instagram Reels, and YouTube Shorts
+            Generate a {orientation === 'vertical' ? 'vertical 9:16' : 'landscape 16:9'} clip for social media platforms
           </DialogDescription>
         </DialogHeader>
 
@@ -202,6 +204,24 @@ export const SubClipGenerator = ({
                 </RadioGroup>
               </div>
 
+              <div>
+                <Label>Video Orientation</Label>
+                <RadioGroup value={orientation} onValueChange={(val) => setOrientation(val as any)} className="mt-2">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="vertical" id="vertical" />
+                    <Label htmlFor="vertical" className="cursor-pointer">
+                      Vertical (9:16) 📱 - TikTok, Instagram Reels, YouTube Shorts
+                    </Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="landscape" id="landscape" />
+                    <Label htmlFor="landscape" className="cursor-pointer">
+                      Landscape (16:9) 🖥️ - YouTube, Facebook, Twitter
+                    </Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
               {qrPreview && (
                 <div className="flex justify-center">
                   <img src={qrPreview} alt="QR Preview" className="w-32 h-32 border rounded" />
@@ -232,14 +252,14 @@ export const SubClipGenerator = ({
 
           {/* Right: Preview */}
           <div className="space-y-4">
-            <Card className="aspect-[9/16] bg-black flex items-center justify-center overflow-hidden">
+            <Card className={`${orientation === 'vertical' ? 'aspect-[9/16]' : 'aspect-[16/9]'} bg-black flex items-center justify-center overflow-hidden`}>
               {generatedClip ? (
                 <video src={generatedClip.clip_url} controls className="h-full w-full object-contain" />
               ) : (
                 <div className="text-center p-6">
                   <p className="text-muted-foreground">Preview will appear here after generation</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Your 9:16 vertical clip will have a QR code in the bottom-right corner
+                    Your {orientation === 'vertical' ? '9:16 vertical' : '16:9 landscape'} clip will have a QR code in the bottom-right corner
                   </p>
                 </div>
               )}

@@ -48,7 +48,7 @@ serve(async (req) => {
       });
     }
 
-    const { video_id, start_time, end_time, qr_type, caption, auto_caption } = await req.json();
+    const { video_id, start_time, end_time, qr_type, caption, auto_caption, orientation = 'vertical' } = await req.json();
 
     console.log('[create-subclip] Processing request:', { video_id, start_time, end_time, qr_type, auto_caption });
 
@@ -161,9 +161,21 @@ serve(async (req) => {
     const videoTimestamp = Math.floor(Date.now() / 1000);
     const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
     
-    // Build eager transformation with QR overlay
+    // Build transformation with QR overlay based on orientation
     const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
-    const eagerTransformation = `so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply`;
+    
+    // Set dimensions based on orientation
+    const dimensions = orientation === 'vertical' 
+      ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
+      : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
+    
+    // QR size relative to video (smaller for landscape)
+    const qrSize = orientation === 'vertical' ? '0.15' : '0.10';
+    
+    // Correct transformation syntax: trim/resize/overlay
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId}/fl_region_relative,g_south_east,x_0.05,y_0.05,w_${qrSize}/fl_layer_apply`;
+    
+    console.log('[create-subclip] Transformation:', { orientation, transformation: eagerTransformation });
     
     console.log('[create-subclip] Uploading raw video to Cloudinary');
     
