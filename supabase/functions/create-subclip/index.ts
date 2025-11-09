@@ -170,7 +170,7 @@ serve(async (req) => {
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
     // QR size and positioning - exact 20px with 10px padding
-    const qrSize = '20'; // Exact 20px as requested
+    const qrSize = '50'; // 50px as requested
     const qrPadding = '10'; // 10px from edges
     
     // Small QR with minimal border
