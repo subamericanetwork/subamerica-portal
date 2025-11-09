@@ -1608,6 +1608,7 @@ export type Database = {
           shares: number | null
           social_post_id: string
           synced_at: string | null
+          views: number | null
         }
         Insert: {
           artist_id: string
@@ -1623,6 +1624,7 @@ export type Database = {
           shares?: number | null
           social_post_id: string
           synced_at?: string | null
+          views?: number | null
         }
         Update: {
           artist_id?: string
@@ -1638,6 +1640,7 @@ export type Database = {
           shares?: number | null
           social_post_id?: string
           synced_at?: string | null
+          views?: number | null
         }
         Relationships: [
           {
