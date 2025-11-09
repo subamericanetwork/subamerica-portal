@@ -242,62 +242,48 @@ serve(async (req) => {
     const explicitData = await explicitResponse.json();
     console.log('[create-subclip] Transformation requested:', explicitData);
     
-    // Step 3: Poll Cloudinary Admin API for eager transformation status
+    // Capture the transformation URL from the Explicit API response
     let processedVideoUrl = null;
-    let retries = 0;
-    const maxRetries = 20;
+    if (explicitData.eager && explicitData.eager.length > 0) {
+      processedVideoUrl = explicitData.eager[0].secure_url;
+      console.log('[create-subclip] Transformation URL:', processedVideoUrl);
+    } else {
+      console.error('[create-subclip] No eager transformation URL in response');
+      throw new Error('Failed to get transformation URL from Cloudinary');
+    }
     
-    while (retries < maxRetries && !processedVideoUrl) {
-      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds between checks
+    // Step 3: Poll the transformation URL directly until it's ready
+    console.log('[create-subclip] Polling transformation URL for completion');
+    let retries = 0;
+    const maxRetries = 30; // 30 retries × 2 seconds = 60 seconds total
+    let videoReady = false;
+    
+    while (retries < maxRetries && !videoReady) {
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 seconds between checks
       
-      const adminUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video/upload/${encodeURIComponent(videoPublicId)}`;
+      console.log(`[create-subclip] Checking if video is ready (attempt ${retries + 1}/${maxRetries})`);
       
-      // Proper Base64 encoding for Deno
-      const credentials = `${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`;
-      const encoder = new TextEncoder();
-      const data = encoder.encode(credentials);
-      const base64Credentials = btoa(String.fromCharCode(...new Uint8Array(data)));
-      
-      console.log(`[create-subclip] Polling Admin API (attempt ${retries + 1}/${maxRetries}):`, adminUrl);
-      
-      const adminResponse = await fetch(adminUrl, {
-        headers: {
-          'Authorization': `Basic ${base64Credentials}`
-        }
-      });
-      
-      if (adminResponse.ok) {
-        const resourceData = await adminResponse.json();
-        console.log(`[create-subclip] Checking transformation status (attempt ${retries + 1}/${maxRetries})`);
+      try {
+        // Try HEAD request first (faster)
+        const headResponse = await fetch(processedVideoUrl, { method: 'HEAD' });
         
-        if (resourceData.eager && resourceData.eager.length > 0) {
-          const eagerTransform = resourceData.eager[0];
-          
-          if (eagerTransform.status === 'complete' && eagerTransform.secure_url) {
-            processedVideoUrl = eagerTransform.secure_url;
-            console.log('[create-subclip] Eager transformation complete:', processedVideoUrl);
-            break;
-          } else if (eagerTransform.status === 'error') {
-            console.error('[create-subclip] Eager transformation failed:', eagerTransform);
-            return new Response(JSON.stringify({ error: 'Video transformation failed' }), {
-              status: 500,
-              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            });
-          } else {
-            console.log(`[create-subclip] Transformation status: ${eagerTransform.status}`);
-          }
+        if (headResponse.ok) {
+          // Video is ready!
+          console.log('[create-subclip] Transformation complete, video is ready');
+          videoReady = true;
+          break;
         } else {
-          console.log('[create-subclip] No eager transformations found yet');
+          console.log(`[create-subclip] Video not ready yet (status: ${headResponse.status})`);
         }
-      } else {
-        const errorBody = await adminResponse.text();
-        console.error(`[create-subclip] Admin API error: ${adminResponse.status} - ${errorBody}`);
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'unknown error';
+        console.log(`[create-subclip] Video not ready yet (fetch error: ${errorMsg})`);
       }
       
       retries++;
     }
     
-    if (!processedVideoUrl) {
+    if (!videoReady) {
       console.error('[create-subclip] Transformation timed out after all retries');
       return new Response(JSON.stringify({ 
         error: 'Video processing timed out. Please try again.'
