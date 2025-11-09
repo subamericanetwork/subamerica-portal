@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.send-roger-notification]
 verify_jwt = false
+
+[functions.create-subclip]
+verify_jwt = true

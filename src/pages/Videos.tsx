@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Star, Clock, CheckCircle, PlayCircle, Trash2, Pencil, Info } from "lucide-react";
+import { Upload, Star, Clock, CheckCircle, PlayCircle, Trash2, Pencil, Info, Scissors } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { LivepushVideoSync } from "@/components/LivepushVideoSync";
 import { extractThumbnailFromVideo } from "@/lib/thumbnailExtractor";
 import { VideoThumbnailGenerator } from "@/components/VideoThumbnailGenerator";
+import { SubClipGenerator } from "@/components/SubClipGenerator";
 
 const Videos = () => {
   const { artist, videos, loading } = useArtistData();
@@ -29,6 +30,7 @@ const Videos = () => {
   });
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedVideoForSubClip, setSelectedVideoForSubClip] = useState<any>(null);
 
   const resetForm = () => {
     setFormData({ title: "", kind: "music_video", tags: "" });
@@ -456,7 +458,16 @@ const Videos = () => {
                           }}
                         />
                         
+                        
                         <div className="flex items-center gap-3">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedVideoForSubClip(video)}
+                          >
+                            <Scissors className="h-4 w-4 mr-2" />
+                            Create SubClip
+                          </Button>
                           {!video.is_featured && (
                             <Button
                               variant="outline"
@@ -503,6 +514,22 @@ const Videos = () => {
         )}
       </div>
       </TooltipProvider>
+
+      {/* SubClip Generator Dialog */}
+      {selectedVideoForSubClip && artist && (
+        <SubClipGenerator
+          videoId={selectedVideoForSubClip.id}
+          videoUrl={selectedVideoForSubClip.video_url}
+          videoTitle={selectedVideoForSubClip.title}
+          artistId={artist.id}
+          artistSlug={artist.slug}
+          onClipGenerated={(clip) => {
+            toast.success('SubClip added to library!');
+            setSelectedVideoForSubClip(null);
+          }}
+          onClose={() => setSelectedVideoForSubClip(null)}
+        />
+      )}
     </DashboardLayout>
   );
 };
