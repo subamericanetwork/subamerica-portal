@@ -174,7 +174,7 @@ serve(async (req) => {
     const qrPadding = '0.05'; // 5% padding from edges
     
     // Add white background for better QR visibility with larger border
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId}/fl_region_relative,g_south_east,x_${qrPadding},y_${qrPadding},w_${qrSize},c_scale,b_white,bo_8px_solid_white/fl_layer_apply`;
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},fl_region_relative,g_south_east,x_${qrPadding},y_${qrPadding},b_white,bo_8px_solid_white/fl_layer_apply`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
