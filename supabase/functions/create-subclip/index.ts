@@ -169,12 +169,12 @@ serve(async (req) => {
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size and positioning - make it more visible
-    const qrSize = orientation === 'vertical' ? '0.75' : '0.65'; // Maximum practical size for scannability
-    const qrPadding = '0.02'; // Reduced padding for better visibility
+    // QR size and positioning - exact 20px with 10px padding
+    const qrSize = '20'; // Exact 20px as requested
+    const qrPadding = '10'; // 10px from edges
     
-    // Add white background for better QR visibility with larger border
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},fl_region_relative,b_white,bo_5px_solid_white,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
+    // Small QR with minimal border
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_white,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
