@@ -50,58 +50,68 @@ export const SubClipGenerator = ({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+    
+    console.log('[SubClipGenerator] Setting up video metadata detection');
+
+    let cleanedUp = false;
+    let pollInterval: number | undefined;
 
     const handleLoadedMetadata = () => {
+      if (cleanedUp) return;
       const duration = Math.floor(video.duration);
       console.log('[SubClipGenerator] Video duration loaded:', duration);
       setVideoDuration(duration);
       setEndTime(Math.min(30, duration));
       setVideoLoading(false);
+      cleanup();
     };
 
     const handleError = () => {
+      if (cleanedUp) return;
       console.error('[SubClipGenerator] Video failed to load');
       setVideoError(true);
       setVideoLoading(false);
+      cleanup();
+    };
+
+    const cleanup = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('error', handleError);
     };
 
     // Strategy 1: Check if metadata is already loaded
     if (video.readyState >= 1) {
+      console.log('[SubClipGenerator] Metadata already loaded (readyState: ' + video.readyState + ')');
       handleLoadedMetadata();
-    } else {
-      // Strategy 2: Wait for event
-      video.addEventListener('loadedmetadata', handleLoadedMetadata);
-      
-      // Strategy 3: Polling fallback - check every 200ms for up to 5 seconds
-      let pollCount = 0;
-      const pollInterval = setInterval(() => {
-        pollCount++;
-        
-        if (video.readyState >= 1) {
-          console.log('[SubClipGenerator] Metadata detected via polling');
-          handleLoadedMetadata();
-          clearInterval(pollInterval);
-        } else if (pollCount > 25) { // 25 * 200ms = 5 seconds
-          console.error('[SubClipGenerator] Metadata loading timed out');
-          clearInterval(pollInterval);
-          handleError();
-        }
-      }, 200);
-      
-      // Cleanup polling on unmount or success
-      return () => {
-        clearInterval(pollInterval);
-        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        video.removeEventListener('error', handleError);
-      };
     }
 
+    // Strategy 2: Event listeners (always set up)
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
     video.addEventListener('error', handleError);
+    
+    // Strategy 3: Polling fallback - check every 300ms for up to 5 seconds
+    let pollCount = 0;
+    pollInterval = window.setInterval(() => {
+      if (cleanedUp) return;
+      
+      pollCount++;
+      
+      if (video.readyState >= 1) {
+        console.log('[SubClipGenerator] Metadata detected via polling (readyState: ' + video.readyState + ')');
+        handleLoadedMetadata();
+      } else if (pollCount > 16) { // 16 * 300ms = ~5 seconds
+        console.error('[SubClipGenerator] Metadata loading timed out after 5s');
+        handleError();
+      }
+    }, 300);
 
-    return () => {
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('error', handleError);
-    };
+    // Cleanup on unmount
+    return cleanup;
   }, [videoUrl]);
 
   useEffect(() => {

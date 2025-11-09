@@ -169,13 +169,18 @@ serve(async (req) => {
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size relative to video (smaller for landscape)
-    const qrSize = orientation === 'vertical' ? '0.15' : '0.10';
+    // QR size and positioning - make it more visible
+    const qrSize = orientation === 'vertical' ? '0.20' : '0.15'; // Increased from 0.15/0.10
+    const qrPadding = '0.03'; // 3% padding from edges
     
-    // Correct transformation syntax: trim/resize/overlay
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId}/fl_region_relative,g_south_east,x_0.05,y_0.05,w_${qrSize}/fl_layer_apply`;
+    // Add white background for better QR visibility
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId}/fl_region_relative,g_south_east,x_${qrPadding},y_${qrPadding},w_${qrSize},b_white,bo_5px_solid_white/fl_layer_apply`;
     
-    console.log('[create-subclip] Transformation:', { orientation, transformation: eagerTransformation });
+    console.log('[create-subclip] Transformation:', { 
+      orientation, 
+      qrSize, 
+      transformation: eagerTransformation 
+    });
     
     console.log('[create-subclip] Uploading raw video to Cloudinary');
     
@@ -350,8 +355,32 @@ serve(async (req) => {
           })
         });
 
+        // Check for rate limit or payment errors
+        if (aiResponse.status === 429) {
+          console.error('[create-subclip] AI rate limit exceeded');
+          throw new Error('Rate limit exceeded');
+        }
+        
+        if (aiResponse.status === 402) {
+          console.error('[create-subclip] AI payment required');
+          throw new Error('Payment required for AI service');
+        }
+
+        if (!aiResponse.ok) {
+          const errorText = await aiResponse.text();
+          console.error('[create-subclip] AI API error:', aiResponse.status, errorText);
+          throw new Error(`AI API error: ${aiResponse.status}`);
+        }
+
         const aiData = await aiResponse.json();
-        const aiMessage = aiData.choices?.[0]?.message?.content || '';
+        console.log('[create-subclip] AI response:', JSON.stringify(aiData));
+        
+        const aiMessage = aiData.choices?.[0]?.message?.content;
+        
+        if (!aiMessage || aiMessage.trim() === '') {
+          console.error('[create-subclip] AI returned empty content');
+          throw new Error('AI returned empty caption');
+        }
         
         // Parse caption and hashtags
         const parts = aiMessage.split('Hashtags:');
@@ -362,10 +391,13 @@ serve(async (req) => {
         }
         
         console.log('[create-subclip] AI caption generated:', generatedCaption);
+        console.log('[create-subclip] AI hashtags:', hashtags);
       } catch (aiError) {
         console.error('[create-subclip] AI caption generation failed:', aiError);
-        generatedCaption = `Check out my latest: ${video.title} 🎵`;
-        hashtags = ['#music', '#artist', '#newrelease'];
+        // Provide a better fallback caption
+        generatedCaption = `🎵 ${video.title}\n\nWatch the full video on SubAmerica! 🔥`;
+        hashtags = ['#music', '#artist', '#viral', '#fyp', '#newrelease'];
+        console.log('[create-subclip] Using fallback caption');
       }
     }
 
