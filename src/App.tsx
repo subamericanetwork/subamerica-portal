@@ -48,6 +48,11 @@ import MemberProfile from "./pages/MemberProfile";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import AdminBlog from "./pages/admin/AdminBlog";
+import SocialConsole from "./pages/SocialConsole";
+import SocialAnalytics from "./pages/SocialAnalytics";
+import SubClipLibrary from "./pages/SubClipLibrary";
+import ProducerQueue from "./pages/ProducerQueue";
+import OAuthCallback from "./pages/OAuthCallback";
 import { useEffect } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAppLifecycle } from "@/hooks/useAppLifecycle";
@@ -116,6 +121,9 @@ const AppRoutes = () => {
           <Route path="/monetization" element={<ArtistRoute><Monetization /></ArtistRoute>} />
           <Route path="/payments" element={<ArtistRoute><Payments /></ArtistRoute>} />
           <Route path="/preview" element={<ArtistRoute><PortPreview /></ArtistRoute>} />
+          <Route path="/artist-portal/social-console" element={<ArtistRoute><SocialConsole /></ArtistRoute>} />
+          <Route path="/artist-portal/social-analytics" element={<ArtistRoute><SocialAnalytics /></ArtistRoute>} />
+          <Route path="/artist-portal/subclip-library" element={<ArtistRoute><SubClipLibrary /></ArtistRoute>} />
           
           {/* Member Playlist Routes */}
           <Route path="/member/playlists" element={<ProtectedRoute><MemberPlaylists /></ProtectedRoute>} />
@@ -131,10 +139,14 @@ const AppRoutes = () => {
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
           <Route path="/admin/membership" element={<AdminRoute><AdminMembership /></AdminRoute>} />
           <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
+          <Route path="/admin/producer-queue" element={<AdminRoute><ProducerQueue /></AdminRoute>} />
           
           {/* Blog Routes */}
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
+          
+          {/* OAuth Callback */}
+          <Route path="/oauth-callback" element={<OAuthCallback />} />
           
           <Route path="/watch" element={<Watch />} />
           <Route path="/pwa-status" element={<PWAStatus />} />
