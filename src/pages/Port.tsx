@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useMediaTracking } from "@/hooks/useMediaTracking";
@@ -79,6 +79,7 @@ interface FAQ {
 const Port = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { trackPlay, trackPause, trackEnded } = useMediaTracking();
   const { user } = useAuth();
   const [artist, setArtist] = useState<Artist | null>(null);
@@ -387,6 +388,34 @@ const Port = () => {
 
     fetchViewerProfile();
   }, [user?.id]);
+
+  // Handle action query parameter from QR codes
+  useEffect(() => {
+    if (!artist || loading) return;
+    
+    const action = searchParams.get('action');
+    if (!action) return;
+
+    // Small delay to ensure sections are rendered
+    const timer = setTimeout(() => {
+      switch (action) {
+        case 'tip':
+          scrollToSection('hero');
+          break;
+        case 'tickets':
+          scrollToSection('events');
+          break;
+        case 'subscribe':
+          scrollToSection('hero');
+          break;
+        case 'merch':
+          scrollToSection('merch');
+          break;
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [artist, loading, searchParams]);
 
   // Computed values that depend on artist - must be after all useEffect hooks
   const artistImages = useMemo(() => 
