@@ -171,7 +171,6 @@ serve(async (req) => {
       public_id: videoPublicId,
       timestamp: videoTimestamp,
       eager: eagerTransformation,
-      resource_type: 'video',
     };
     
     const videoSignature = await generateSignature(videoUploadParams);
