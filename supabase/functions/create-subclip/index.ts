@@ -204,17 +204,48 @@ serve(async (req) => {
     }
     
     const videoUploadData = await videoUploadResponse.json();
-    console.log('[create-subclip] Full Cloudinary upload response:', JSON.stringify(videoUploadData, null, 2));
     console.log('[create-subclip] Video uploaded to Cloudinary:', videoUploadData.public_id);
     
-    // Check if eager was accepted
-    if (videoUploadData.eager) {
-      console.log('[create-subclip] Eager transformations registered:', videoUploadData.eager);
-    } else {
-      console.warn('[create-subclip] No eager transformations in upload response - may have been rejected');
+    // Step 2: Request eager transformation via Explicit API
+    console.log('[create-subclip] Requesting transformation via Explicit API');
+    const explicitTimestamp = Math.round(Date.now() / 1000);
+    const explicitParams = {
+      public_id: videoPublicId,
+      timestamp: explicitTimestamp,
+      type: 'upload',
+      eager: eagerTransformation,
+      eager_async: 'true'
+    };
+    
+    const explicitSignature = await generateSignature(explicitParams);
+    
+    const explicitFormData = new FormData();
+    explicitFormData.append('public_id', videoPublicId);
+    explicitFormData.append('type', 'upload');
+    explicitFormData.append('api_key', CLOUDINARY_API_KEY!);
+    explicitFormData.append('timestamp', String(explicitTimestamp));
+    explicitFormData.append('signature', explicitSignature);
+    explicitFormData.append('eager', eagerTransformation);
+    explicitFormData.append('eager_async', 'true');
+    
+    const explicitResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/explicit`,
+      {
+        method: 'POST',
+        body: explicitFormData,
+      }
+    );
+    
+    if (!explicitResponse.ok) {
+      const explicitError = await explicitResponse.json();
+      console.error('[create-subclip] Explicit API error:', explicitError);
+      throw new Error(`Cloudinary explicit transformation failed: ${JSON.stringify(explicitError)}`);
     }
     
-    // Poll Cloudinary Admin API for eager transformation status
+    const explicitData = await explicitResponse.json();
+    console.log('[create-subclip] Transformation requested:', explicitData);
+    
+    // Step 3: Poll Cloudinary Admin API for eager transformation status
     let processedVideoUrl = null;
     let retries = 0;
     const maxRetries = 20;
