@@ -165,13 +165,12 @@ serve(async (req) => {
     const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
     const eagerTransformation = `so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply`;
     
-    console.log('[create-subclip] Uploading video with eager transformation:', eagerTransformation);
+    console.log('[create-subclip] Uploading raw video to Cloudinary');
     
     const videoUploadParams = {
       public_id: videoPublicId,
-      timestamp: videoTimestamp,
-      eager: eagerTransformation
-      // eager_async should NOT be in signature params
+      timestamp: videoTimestamp
+      // Plain upload only - no eager transformations
     };
     
     const videoSignature = await generateSignature(videoUploadParams);
@@ -182,9 +181,7 @@ serve(async (req) => {
     videoFormData.append('timestamp', videoTimestamp.toString());
     videoFormData.append('api_key', CLOUDINARY_API_KEY!);
     videoFormData.append('signature', videoSignature);
-    videoFormData.append('eager', eagerTransformation);
-    videoFormData.append('eager_async', 'true');
-    // resource_type is in the URL, not needed in FormData
+    // Plain upload - transformations will be requested via Explicit API
     
     const videoUploadResponse = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`,
