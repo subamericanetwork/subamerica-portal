@@ -170,11 +170,11 @@ serve(async (req) => {
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
     // QR size and positioning - make it more visible
-    const qrSize = orientation === 'vertical' ? '0.60' : '0.50'; // Much larger for maximum scannability
-    const qrPadding = '0.03'; // 3% padding from edges
+    const qrSize = orientation === 'vertical' ? '0.75' : '0.65'; // Maximum practical size for scannability
+    const qrPadding = '0.02'; // Reduced padding for better visibility
     
     // Add white background for better QR visibility with larger border
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},fl_region_relative,b_white,bo_10px_solid_white,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},fl_region_relative,b_white,bo_5px_solid_white,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
