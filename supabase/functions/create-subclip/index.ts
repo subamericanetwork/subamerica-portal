@@ -170,11 +170,11 @@ serve(async (req) => {
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
     // QR size and positioning - make it more visible
-    const qrSize = orientation === 'vertical' ? '0.20' : '0.15'; // Increased from 0.15/0.10
-    const qrPadding = '0.03'; // 3% padding from edges
+    const qrSize = orientation === 'vertical' ? '0.25' : '0.20'; // Increased size for better visibility
+    const qrPadding = '0.05'; // 5% padding from edges
     
-    // Add white background for better QR visibility
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId}/fl_region_relative,g_south_east,x_${qrPadding},y_${qrPadding},w_${qrSize},b_white,bo_5px_solid_white/fl_layer_apply`;
+    // Add white background for better QR visibility with larger border
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId}/fl_region_relative,g_south_east,x_${qrPadding},y_${qrPadding},w_${qrSize},c_scale,b_white,bo_8px_solid_white/fl_layer_apply`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
@@ -322,6 +322,8 @@ serve(async (req) => {
     }
     
     console.log('[create-subclip] Processed video downloaded after', retries, 'retries');
+    console.log('[create-subclip] Processed video should have QR overlay at bottom-right');
+    console.log('[create-subclip] QR size:', orientation === 'vertical' ? '0.25' : '0.20', 'Padding: 0.05');
     
     const processedVideoBlob = await processedVideoResponse.blob();
     const processedVideoBuffer = await processedVideoBlob.arrayBuffer();
@@ -387,7 +389,13 @@ serve(async (req) => {
         generatedCaption = parts[0].trim();
         
         if (parts[1]) {
-          hashtags = parts[1].trim().split(/\s+/).filter((tag: string) => tag.startsWith('#'));
+          hashtags = parts[1].trim().split(/\s+/)
+            .filter((tag: string) => tag.includes('#'))
+            .map((tag: string) => {
+              // Remove all # symbols and add exactly one back
+              const cleanTag = tag.replace(/#/g, '');
+              return `#${cleanTag}`;
+            });
         }
         
         console.log('[create-subclip] AI caption generated:', generatedCaption);
