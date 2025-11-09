@@ -216,9 +216,17 @@ serve(async (req) => {
       
       const adminUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video/upload/${encodeURIComponent(videoPublicId)}`;
       
+      // Proper Base64 encoding for Deno
+      const credentials = `${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`;
+      const encoder = new TextEncoder();
+      const data = encoder.encode(credentials);
+      const base64Credentials = btoa(String.fromCharCode(...new Uint8Array(data)));
+      
+      console.log(`[create-subclip] Polling Admin API (attempt ${retries + 1}/${maxRetries}):`, adminUrl);
+      
       const adminResponse = await fetch(adminUrl, {
         headers: {
-          'Authorization': `Basic ${btoa(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`)}`
+          'Authorization': `Basic ${base64Credentials}`
         }
       });
       
@@ -246,7 +254,8 @@ serve(async (req) => {
           console.log('[create-subclip] No eager transformations found yet');
         }
       } else {
-        console.error('[create-subclip] Admin API error:', adminResponse.status);
+        const errorBody = await adminResponse.text();
+        console.error(`[create-subclip] Admin API error: ${adminResponse.status} - ${errorBody}`);
       }
       
       retries++;
