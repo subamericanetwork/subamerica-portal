@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Calendar, User, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { BlogCommentList } from "@/components/BlogCommentList";
 
 interface BlogPost {
   id: string;
@@ -171,6 +172,9 @@ export default function BlogPost() {
               {post.content}
             </div>
           </article>
+
+          {/* Comments Section */}
+          <BlogCommentList postId={post.id} />
 
           {/* Related Posts */}
           {relatedPosts.length > 0 && (

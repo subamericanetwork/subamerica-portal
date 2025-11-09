@@ -20,10 +20,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2, Eye, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { BlogCommentModeration } from "@/components/BlogCommentModeration";
 
 interface BlogPost {
   id: string;
@@ -256,59 +259,79 @@ export default function AdminBlog() {
           </Button>
         </div>
 
-        <div className="bg-card border border-border rounded-lg">
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : posts.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">
-              No blog posts yet. Create your first post!
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {posts.map(post => (
-                <div key={post.id} className="p-4 hover:bg-accent/50 transition-colors">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold truncate">{post.title}</h3>
-                        <Badge variant={post.publish_status === "published" ? "default" : "secondary"}>
-                          {post.publish_status}
-                        </Badge>
-                        <Badge variant="outline">{post.category}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground line-clamp-2">
-                        {post.excerpt || post.content.substring(0, 150)}...
-                      </p>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>{new Date(post.created_at).toLocaleDateString()}</span>
-                        <span className="flex items-center gap-1">
-                          <Eye className="h-3 w-3" />
-                          {post.view_count} views
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(post)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(post.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+        <Tabs defaultValue="posts" className="space-y-6">
+          <TabsList>
+            <TabsTrigger value="posts">Blog Posts</TabsTrigger>
+            <TabsTrigger value="comments">Comments</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="posts">
+            <div className="bg-card border border-border rounded-lg">
+              {loading ? (
+                <div className="p-8 text-center text-muted-foreground">Loading...</div>
+              ) : posts.length === 0 ? (
+                <div className="p-8 text-center text-muted-foreground">
+                  No blog posts yet. Create your first post!
                 </div>
-              ))}
+              ) : (
+                <div className="divide-y divide-border">
+                  {posts.map(post => (
+                    <div key={post.id} className="p-4 hover:bg-accent/50 transition-colors">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold truncate">{post.title}</h3>
+                            <Badge variant={post.publish_status === "published" ? "default" : "secondary"}>
+                              {post.publish_status}
+                            </Badge>
+                            <Badge variant="outline">{post.category}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {post.excerpt || post.content.substring(0, 150)}...
+                          </p>
+                          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                            <span>{new Date(post.created_at).toLocaleDateString()}</span>
+                            <span className="flex items-center gap-1">
+                              <Eye className="h-3 w-3" />
+                              {post.view_count} views
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEdit(post)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(post.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </TabsContent>
+
+          <TabsContent value="comments">
+            <Card>
+              <CardHeader>
+                <CardTitle>Comment Moderation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BlogCommentModeration />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
