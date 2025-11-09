@@ -1,11 +1,32 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { qrcode } from "https://esm.sh/jsr/@libs/qrcode@3";
+import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Cloudinary configuration
+const CLOUDINARY_CLOUD_NAME = Deno.env.get('CLOUDINARY_CLOUD_NAME');
+const CLOUDINARY_API_KEY = Deno.env.get('CLOUDINARY_API_KEY');
+const CLOUDINARY_API_SECRET = Deno.env.get('CLOUDINARY_API_SECRET');
+
+// Generate Cloudinary signature
+async function generateSignature(params: Record<string, string | number>): Promise<string> {
+  const sortedParams = Object.keys(params)
+    .sort()
+    .map(key => `${key}=${params[key]}`)
+    .join('&');
+  
+  const message = sortedParams + CLOUDINARY_API_SECRET;
+  const encoder = new TextEncoder();
+  const data = encoder.encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -82,73 +103,139 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as SVG (Deno-native approach)
+    // Generate QR code as SVG
     const qrSvg = qrcode(qrUrl, {
       output: "svg",
       border: 2
     });
 
-    const qrPath = `/tmp/qr_${Date.now()}.svg`;
-    await Deno.writeTextFile(qrPath, qrSvg);
-    console.log('[create-subclip] QR code saved to:', qrPath);
+    console.log('[create-subclip] QR code generated as SVG');
 
-    // Download source video from storage
-    const videoFileName = video.video_url.split('/').pop()!;
+    // Upload QR code to Cloudinary
+    const qrTimestamp = Math.floor(Date.now() / 1000);
+    const qrPublicId = `qr_codes/qr_${user.id}_${qrTimestamp}`;
+    
+    const qrUploadParams = {
+      public_id: qrPublicId,
+      timestamp: qrTimestamp,
+    };
+    
+    const qrSignature = await generateSignature(qrUploadParams);
+    
+    const qrFormData = new FormData();
+    qrFormData.append('file', new Blob([qrSvg], { type: 'image/svg+xml' }));
+    qrFormData.append('public_id', qrPublicId);
+    qrFormData.append('timestamp', qrTimestamp.toString());
+    qrFormData.append('api_key', CLOUDINARY_API_KEY!);
+    qrFormData.append('signature', qrSignature);
+    
+    const qrUploadResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+      {
+        method: 'POST',
+        body: qrFormData,
+      }
+    );
+    
+    if (!qrUploadResponse.ok) {
+      const errorText = await qrUploadResponse.text();
+      console.error('[create-subclip] QR upload error:', errorText);
+      return new Response(JSON.stringify({ error: 'Failed to upload QR code' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
+    const qrUploadData = await qrUploadResponse.json();
+    console.log('[create-subclip] QR code uploaded to Cloudinary:', qrUploadData.public_id);
+
+    // Get source video URL from Supabase Storage
     const videoPathParts = video.video_url.split('/videos/')[1];
-    
-    const { data: videoData, error: downloadError } = await supabaseClient.storage
+    const { data: { publicUrl: sourceVideoUrl } } = supabaseClient.storage
       .from('videos')
-      .download(videoPathParts);
+      .getPublicUrl(videoPathParts);
+    
+    console.log('[create-subclip] Source video URL:', sourceVideoUrl);
 
-    if (downloadError || !videoData) {
-      console.error('[create-subclip] Video download error:', downloadError);
-      return new Response(JSON.stringify({ error: 'Failed to download source video' }), {
+    // Upload video to Cloudinary with transformations
+    const videoTimestamp = Math.floor(Date.now() / 1000);
+    const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
+    
+    // Build eager transformation for video processing
+    const eagerTransformation = [
+      {
+        start_offset: start_time,
+        end_offset: end_time,
+        width: 1080,
+        height: 1920,
+        crop: 'fill',
+        gravity: 'auto',
+        overlay: qrUploadData.public_id.replace(/\//g, ':'),
+        gravity_overlay: 'south_east',
+        x: 30,
+        y: 30,
+        width_overlay: 180,
+        flags: 'layer_apply',
+      }
+    ];
+    
+    const videoUploadParams = {
+      public_id: videoPublicId,
+      timestamp: videoTimestamp,
+      eager: JSON.stringify(eagerTransformation),
+      resource_type: 'video',
+    };
+    
+    const videoSignature = await generateSignature(videoUploadParams);
+    
+    const videoFormData = new FormData();
+    videoFormData.append('file', sourceVideoUrl);
+    videoFormData.append('public_id', videoPublicId);
+    videoFormData.append('timestamp', videoTimestamp.toString());
+    videoFormData.append('api_key', CLOUDINARY_API_KEY!);
+    videoFormData.append('signature', videoSignature);
+    videoFormData.append('eager', JSON.stringify(eagerTransformation));
+    videoFormData.append('resource_type', 'video');
+    
+    console.log('[create-subclip] Uploading video to Cloudinary with transformations...');
+    
+    const videoUploadResponse = await fetch(
+      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`,
+      {
+        method: 'POST',
+        body: videoFormData,
+      }
+    );
+    
+    if (!videoUploadResponse.ok) {
+      const errorText = await videoUploadResponse.text();
+      console.error('[create-subclip] Video upload error:', errorText);
+      return new Response(JSON.stringify({ error: 'Failed to process video with Cloudinary' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    const inputPath = `/tmp/input_${Date.now()}.mp4`;
-    const outputPath = `/tmp/output_${Date.now()}.mp4`;
     
-    const videoBuffer = await videoData.arrayBuffer();
-    await Deno.writeFile(inputPath, new Uint8Array(videoBuffer));
-    console.log('[create-subclip] Source video saved to:', inputPath);
-
-    // FFmpeg command to extract segment, convert to 9:16, and add QR overlay
-    console.log('[create-subclip] Running FFmpeg...');
-    const ffmpegProcess = new Deno.Command("ffmpeg", {
-      args: [
-        "-i", inputPath,
-        "-ss", start_time.toString(),
-        "-t", duration.toString(),
-        "-i", qrPath,
-        "-filter_complex",
-        "[0:v]scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black[v];[v][1:v]overlay=W-w-30:H-h-30",
-        "-c:v", "libx264",
-        "-preset", "fast",
-        "-crf", "23",
-        "-c:a", "aac",
-        "-b:a", "128k",
-        "-y",
-        outputPath
-      ],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    const { code, stderr } = await ffmpegProcess.output();
+    const videoUploadData = await videoUploadResponse.json();
+    console.log('[create-subclip] Video uploaded to Cloudinary:', videoUploadData.public_id);
     
-    if (code !== 0) {
-      const errorText = new TextDecoder().decode(stderr);
-      console.error('[create-subclip] FFmpeg error:', errorText);
-      return new Response(JSON.stringify({ error: 'Video processing failed', details: errorText }), {
+    // Get the processed video URL (eager transformation result)
+    const processedVideoUrl = videoUploadData.eager?.[0]?.secure_url || videoUploadData.secure_url;
+    console.log('[create-subclip] Processed video URL:', processedVideoUrl);
+
+    // Download processed video
+    const processedVideoResponse = await fetch(processedVideoUrl);
+    if (!processedVideoResponse.ok) {
+      console.error('[create-subclip] Failed to download processed video');
+      return new Response(JSON.stringify({ error: 'Failed to download processed video' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    console.log('[create-subclip] FFmpeg processing complete');
+    
+    const processedVideoBlob = await processedVideoResponse.blob();
+    const processedVideoBuffer = await processedVideoBlob.arrayBuffer();
+    console.log('[create-subclip] Processed video downloaded');
 
     // Generate caption with Lovable AI if requested
     let generatedCaption = caption || '';
@@ -192,19 +279,17 @@ serve(async (req) => {
         console.log('[create-subclip] AI caption generated:', generatedCaption);
       } catch (aiError) {
         console.error('[create-subclip] AI caption generation failed:', aiError);
-        // Fallback to video title
         generatedCaption = `Check out my latest: ${video.title} 🎵`;
         hashtags = ['#music', '#artist', '#newrelease'];
       }
     }
 
-    // Upload processed clip to storage
+    // Upload processed clip to Supabase Storage
     const clipFileName = `${user.id}/${Date.now()}_clip.mp4`;
-    const processedVideo = await Deno.readFile(outputPath);
     
     const { error: uploadError } = await supabaseClient.storage
       .from('social_clips')
-      .upload(clipFileName, processedVideo, {
+      .upload(clipFileName, new Uint8Array(processedVideoBuffer), {
         contentType: 'video/mp4',
         cacheControl: '3600'
       });
@@ -221,89 +306,118 @@ serve(async (req) => {
       .from('social_clips')
       .getPublicUrl(clipFileName);
 
-    console.log('[create-subclip] Clip uploaded:', clipUrl);
+    console.log('[create-subclip] Clip uploaded to storage:', clipUrl);
 
-    // Generate thumbnail from clip (frame at 1s)
-    const thumbnailPath = `/tmp/thumb_${Date.now()}.jpg`;
-    const thumbProcess = new Deno.Command("ffmpeg", {
-      args: [
-        "-i", outputPath,
-        "-ss", "1",
-        "-vframes", "1",
-        "-y",
-        thumbnailPath
-      ],
-      stdout: "piped",
-      stderr: "piped",
-    });
-
-    await thumbProcess.output();
+    // Generate thumbnail using Cloudinary transformation
+    const thumbnailUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/so_1.0,w_360,h_640,c_fill,g_auto/${videoPublicId}.jpg`;
     
-    const thumbnailData = await Deno.readFile(thumbnailPath);
-    const thumbnailFileName = `${user.id}/${Date.now()}_thumb.jpg`;
+    console.log('[create-subclip] Thumbnail URL:', thumbnailUrl);
     
-    await supabaseClient.storage
-      .from('social_clips')
-      .upload(thumbnailFileName, thumbnailData, {
-        contentType: 'image/jpeg',
-        cacheControl: '3600'
-      });
+    // Download and upload thumbnail to Supabase Storage
+    const thumbnailResponse = await fetch(thumbnailUrl);
+    if (thumbnailResponse.ok) {
+      const thumbnailBlob = await thumbnailResponse.blob();
+      const thumbnailBuffer = await thumbnailBlob.arrayBuffer();
+      const thumbnailFileName = `${user.id}/${Date.now()}_thumb.jpg`;
+      
+      await supabaseClient.storage
+        .from('social_clips')
+        .upload(thumbnailFileName, new Uint8Array(thumbnailBuffer), {
+          contentType: 'image/jpeg',
+          cacheControl: '3600'
+        });
 
-    const { data: { publicUrl: thumbnailUrl } } = supabaseClient.storage
-      .from('social_clips')
-      .getPublicUrl(thumbnailFileName);
+      const { data: { publicUrl: storedThumbnailUrl } } = supabaseClient.storage
+        .from('social_clips')
+        .getPublicUrl(thumbnailFileName);
 
-    // Insert into subclip_library
-    const { data: subclip, error: dbError } = await supabaseClient
-      .from('subclip_library')
-      .insert({
-        artist_id: video.artists.id,
-        source_video_id: video_id,
+      console.log('[create-subclip] Thumbnail uploaded:', storedThumbnailUrl);
+
+      // Insert into subclip_library
+      const { data: subclip, error: dbError } = await supabaseClient
+        .from('subclip_library')
+        .insert({
+          artist_id: video.artists.id,
+          source_video_id: video_id,
+          clip_url: clipUrl,
+          duration,
+          start_time,
+          end_time,
+          caption: generatedCaption,
+          hashtags,
+          qr_type,
+          qr_url: qrUrl,
+          thumbnail_url: storedThumbnailUrl,
+          status: 'ready'
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        console.error('[create-subclip] Database error:', dbError);
+        return new Response(JSON.stringify({ error: 'Failed to save clip record' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      // Optional: Cleanup Cloudinary assets to save storage
+      try {
+        // Delete QR code from Cloudinary
+        await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              public_id: qrUploadData.public_id,
+              api_key: CLOUDINARY_API_KEY,
+              timestamp: Math.floor(Date.now() / 1000),
+              signature: await generateSignature({ public_id: qrUploadData.public_id, timestamp: Math.floor(Date.now() / 1000) })
+            })
+          }
+        );
+        
+        // Delete video from Cloudinary
+        await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/destroy`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              public_id: videoUploadData.public_id,
+              api_key: CLOUDINARY_API_KEY,
+              timestamp: Math.floor(Date.now() / 1000),
+              signature: await generateSignature({ public_id: videoUploadData.public_id, timestamp: Math.floor(Date.now() / 1000), resource_type: 'video' })
+            })
+          }
+        );
+        
+        console.log('[create-subclip] Cloudinary assets cleaned up');
+      } catch (cleanupError) {
+        console.warn('[create-subclip] Cloudinary cleanup error:', cleanupError);
+      }
+
+      console.log('[create-subclip] SubClip created successfully:', subclip.id);
+
+      return new Response(JSON.stringify({
+        success: true,
+        subclip_id: subclip.id,
         clip_url: clipUrl,
-        duration,
-        start_time,
-        end_time,
+        thumbnail_url: storedThumbnailUrl,
         caption: generatedCaption,
         hashtags,
-        qr_type,
-        qr_url: qrUrl,
-        thumbnail_url: thumbnailUrl,
-        status: 'ready'
-      })
-      .select()
-      .single();
-
-    if (dbError) {
-      console.error('[create-subclip] Database error:', dbError);
-      return new Response(JSON.stringify({ error: 'Failed to save clip record' }), {
+        duration
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } else {
+      console.error('[create-subclip] Failed to download thumbnail');
+      return new Response(JSON.stringify({ error: 'Failed to generate thumbnail' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-
-    // Cleanup temp files
-    try {
-      await Deno.remove(inputPath);
-      await Deno.remove(outputPath);
-      await Deno.remove(qrPath);
-      await Deno.remove(thumbnailPath);
-    } catch (cleanupError) {
-      console.warn('[create-subclip] Cleanup error:', cleanupError);
-    }
-
-    console.log('[create-subclip] SubClip created successfully:', subclip.id);
-
-    return new Response(JSON.stringify({
-      success: true,
-      subclip_id: subclip.id,
-      clip_url: clipUrl,
-      thumbnail_url: thumbnailUrl,
-      caption: generatedCaption,
-      hashtags,
-      duration
-    }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
 
   } catch (error) {
     console.error('[create-subclip] Unexpected error:', error);
