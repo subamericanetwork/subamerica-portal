@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import QRCode from "https://esm.sh/qrcode@1.5.3";
+import { qrcode } from "https://esm.sh/jsr/@libs/qrcode@3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -82,16 +82,14 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as PNG buffer (works in Deno/server environment)
-    const qrBuffer = await QRCode.toBuffer(qrUrl, {
-      width: 200,
-      margin: 2,
-      type: 'png',
-      color: { dark: '#000000FF', light: '#FFFFFFFF' }
+    // Generate QR code as SVG (Deno-native approach)
+    const qrSvg = qrcode(qrUrl, {
+      output: "svg",
+      border: 2
     });
 
-    const qrPath = `/tmp/qr_${Date.now()}.png`;
-    await Deno.writeFile(qrPath, qrBuffer);
+    const qrPath = `/tmp/qr_${Date.now()}.svg`;
+    await Deno.writeTextFile(qrPath, qrSvg);
     console.log('[create-subclip] QR code saved to:', qrPath);
 
     // Download source video from storage
