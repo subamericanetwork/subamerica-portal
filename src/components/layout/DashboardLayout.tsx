@@ -20,7 +20,10 @@ import {
   Music2,
   Users,
   BookOpen,
-  Share2
+  Share2,
+  BarChart3,
+  Film,
+  CheckSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -83,6 +86,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Audio", href: "/audio", icon: Music2 },
     { name: "Social Console", href: "/artist-portal/social-console", icon: Share2 },
+    { name: "Analytics", href: "/artist-portal/social-analytics", icon: BarChart3 },
+    { name: "SubClip Library", href: "/artist-portal/subclip-library", icon: Film },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Posts", href: "/posts", icon: Image },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
@@ -99,6 +104,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Admin: Verification", href: "/admin/verification", icon: Shield },
     { name: "Admin: Membership", href: "/admin/membership", icon: Users },
     { name: "Admin: Blog", href: "/admin/blog", icon: BookOpen },
+    { name: "Producer Queue", href: "/admin/producer-queue", icon: CheckSquare },
   ];
 
   const isActive = (path: string) => location.pathname === path;
