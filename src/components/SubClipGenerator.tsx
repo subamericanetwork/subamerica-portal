@@ -44,6 +44,8 @@ export const SubClipGenerator = ({
   const [orientation, setOrientation] = useState<'vertical' | 'landscape'>('vertical');
   const [videoLoading, setVideoLoading] = useState(true);
   const [videoError, setVideoError] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -63,18 +65,39 @@ export const SubClipGenerator = ({
       setVideoLoading(false);
     };
 
-    // Check if metadata is already loaded
+    // Strategy 1: Check if metadata is already loaded
     if (video.readyState >= 1) {
-      // Metadata already available
       handleLoadedMetadata();
     } else {
-      // Wait for metadata to load
+      // Strategy 2: Wait for event
       video.addEventListener('loadedmetadata', handleLoadedMetadata);
+      
+      // Strategy 3: Polling fallback - check every 200ms for up to 5 seconds
+      let pollCount = 0;
+      const pollInterval = setInterval(() => {
+        pollCount++;
+        
+        if (video.readyState >= 1) {
+          console.log('[SubClipGenerator] Metadata detected via polling');
+          handleLoadedMetadata();
+          clearInterval(pollInterval);
+        } else if (pollCount > 25) { // 25 * 200ms = 5 seconds
+          console.error('[SubClipGenerator] Metadata loading timed out');
+          clearInterval(pollInterval);
+          handleError();
+        }
+      }, 200);
+      
+      // Cleanup polling on unmount or success
+      return () => {
+        clearInterval(pollInterval);
+        video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        video.removeEventListener('error', handleError);
+      };
     }
 
     video.addEventListener('error', handleError);
 
-    // Cleanup
     return () => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('error', handleError);
@@ -128,8 +151,10 @@ export const SubClipGenerator = ({
       } else if (data.error) {
         toast.error(`Failed to generate SubClip: ${data.error}`);
       } else {
+        console.log('[SubClipGenerator] SubClip generated:', data);
         setGeneratedClip(data);
-        toast.success('SubClip generated! Added to your library.');
+        setPreviewLoading(true);
+        toast.success('SubClip generated! Loading preview...');
         onClipGenerated?.(data);
       }
     } catch (err) {
@@ -295,9 +320,44 @@ export const SubClipGenerator = ({
 
           {/* Right: Preview */}
           <div className="space-y-4">
-            <Card className={`${orientation === 'vertical' ? 'aspect-[9/16]' : 'aspect-[16/9]'} bg-black flex items-center justify-center overflow-hidden`}>
+            <Card className={`${orientation === 'vertical' ? 'aspect-[9/16]' : 'aspect-[16/9]'} bg-black flex items-center justify-center overflow-hidden relative`}>
               {generatedClip ? (
-                <video src={generatedClip.clip_url} controls className="h-full w-full object-contain" />
+                <>
+                  {previewLoading && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10">
+                      <Loader2 className="h-8 w-8 animate-spin text-white" />
+                    </div>
+                  )}
+                  {previewError ? (
+                    <div className="text-center p-6">
+                      <p className="text-destructive mb-2">Failed to load preview</p>
+                      <a 
+                        href={generatedClip.clip_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary underline text-sm"
+                      >
+                        Open video in new tab
+                      </a>
+                    </div>
+                  ) : (
+                    <video 
+                      src={generatedClip.clip_url} 
+                      controls 
+                      className="h-full w-full object-contain"
+                      onLoadedMetadata={() => {
+                        console.log('[SubClipGenerator] Preview video loaded');
+                        setPreviewLoading(false);
+                      }}
+                      onError={(e) => {
+                        console.error('[SubClipGenerator] Preview video error:', e);
+                        setPreviewError(true);
+                        setPreviewLoading(false);
+                        toast.error('Preview failed to load. Video saved to library.');
+                      }}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="text-center p-6">
                   <p className="text-muted-foreground">Preview will appear here after generation</p>
