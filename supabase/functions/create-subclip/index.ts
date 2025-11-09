@@ -170,8 +170,8 @@ serve(async (req) => {
     const videoUploadParams = {
       public_id: videoPublicId,
       timestamp: videoTimestamp,
-      eager: eagerTransformation,
-      eager_async: 'true'
+      eager: eagerTransformation
+      // eager_async should NOT be in signature params
     };
     
     const videoSignature = await generateSignature(videoUploadParams);
@@ -184,7 +184,7 @@ serve(async (req) => {
     videoFormData.append('signature', videoSignature);
     videoFormData.append('eager', eagerTransformation);
     videoFormData.append('eager_async', 'true');
-    videoFormData.append('resource_type', 'video');
+    // resource_type is in the URL, not needed in FormData
     
     const videoUploadResponse = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`,
@@ -204,7 +204,15 @@ serve(async (req) => {
     }
     
     const videoUploadData = await videoUploadResponse.json();
+    console.log('[create-subclip] Full Cloudinary upload response:', JSON.stringify(videoUploadData, null, 2));
     console.log('[create-subclip] Video uploaded to Cloudinary:', videoUploadData.public_id);
+    
+    // Check if eager was accepted
+    if (videoUploadData.eager) {
+      console.log('[create-subclip] Eager transformations registered:', videoUploadData.eager);
+    } else {
+      console.warn('[create-subclip] No eager transformations in upload response - may have been rejected');
+    }
     
     // Poll Cloudinary Admin API for eager transformation status
     let processedVideoUrl = null;
