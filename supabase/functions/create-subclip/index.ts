@@ -208,6 +208,17 @@ serve(async (req) => {
     
     // Build the transformation URL directly (don't rely on eager transformations)
     const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
+    
+    // Log transformation components for debugging
+    console.log('[create-subclip] Transformation details:', {
+      qrPublicId: qrUploadData.public_id,
+      qrLayerId: qrLayerId,
+      videoPublicId: videoUploadData.public_id,
+      startTime: start_time,
+      endTime: end_time,
+      duration: end_time - start_time
+    });
+    
     const processedVideoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply/${videoUploadData.public_id}.mp4`;
     console.log('[create-subclip] Processed video URL:', processedVideoUrl);
 
@@ -218,18 +229,45 @@ serve(async (req) => {
     
     while (retries < maxRetries) {
       processedVideoResponse = await fetch(processedVideoUrl);
-      if (processedVideoResponse.ok) break;
+      
+      if (processedVideoResponse.ok) {
+        console.log(`[create-subclip] Video ready on attempt ${retries + 1}`);
+        break;
+      }
+      
+      // Log detailed error information
+      const status = processedVideoResponse.status;
+      const statusText = processedVideoResponse.statusText;
+      let errorBody = 'No response body';
+      
+      try {
+        errorBody = await processedVideoResponse.text();
+      } catch (e) {
+        console.error('[create-subclip] Could not read error response body');
+      }
+      
+      console.error('[create-subclip] Cloudinary fetch failed:', {
+        attempt: retries + 1,
+        status,
+        statusText,
+        errorBody,
+        url: processedVideoUrl
+      });
       
       retries++;
       if (retries < maxRetries) {
-        console.log(`[create-subclip] Video not ready, waiting... (attempt ${retries}/${maxRetries})`);
+        console.log(`[create-subclip] Retrying in ${2 * retries} seconds... (attempt ${retries}/${maxRetries})`);
         await new Promise(resolve => setTimeout(resolve, 2000 * retries)); // Exponential backoff
       }
     }
     
     if (!processedVideoResponse || !processedVideoResponse.ok) {
-      console.error('[create-subclip] Failed to download processed video after retries');
-      return new Response(JSON.stringify({ error: 'Video processing timed out. Please try again.' }), {
+      const finalStatus = processedVideoResponse?.status || 'unknown';
+      console.error('[create-subclip] Failed to download processed video after all retries. Final status:', finalStatus);
+      return new Response(JSON.stringify({ 
+        error: 'Video processing timed out. Please try again.',
+        details: `Cloudinary returned status ${finalStatus}`
+      }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
