@@ -49,9 +49,18 @@ export const SubClipGenerator = ({
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video) {
+      console.log('[SubClipGenerator] Video ref not available yet');
+      return;
+    }
     
     console.log('[SubClipGenerator] Setting up video metadata detection');
+    console.log('[SubClipGenerator] Video URL:', videoUrl);
+    console.log('[SubClipGenerator] Initial readyState:', video.readyState);
+    console.log('[SubClipGenerator] Initial duration:', video.duration);
+    
+    // Force the video to start loading
+    video.load();
 
     let cleanedUp = false;
     let pollInterval: number | undefined;
@@ -109,11 +118,14 @@ export const SubClipGenerator = ({
       
       pollCount++;
       
+      console.log(`[SubClipGenerator] Poll #${pollCount}: readyState=${video.readyState}, duration=${video.duration}`);
+      
     if (video.readyState >= 1 && video.duration && !isNaN(video.duration) && isFinite(video.duration)) {
       console.log('[SubClipGenerator] Metadata detected via polling (readyState: ' + video.readyState + ', duration: ' + video.duration + ')');
       handleLoadedMetadata();
       } else if (pollCount > 16) { // 16 * 300ms = ~5 seconds
         console.error('[SubClipGenerator] Metadata loading timed out after 5s');
+        console.error('[SubClipGenerator] Final state: readyState=' + video.readyState + ', duration=' + video.duration);
         handleError();
       }
     }, 300);
@@ -202,6 +214,8 @@ export const SubClipGenerator = ({
                 src={videoUrl}
                 controls
                 className="w-full rounded-md"
+                crossOrigin="anonymous"
+                preload="metadata"
               />
               <div className="mt-4 space-y-2">
                 {videoLoading ? (
