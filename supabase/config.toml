@@ -32,3 +32,27 @@ verify_jwt = false
 
 [functions.create-subclip]
 verify_jwt = true
+
+[functions.oauth-tiktok]
+verify_jwt = true
+
+[functions.oauth-instagram]
+verify_jwt = true
+
+[functions.oauth-youtube]
+verify_jwt = true
+
+[functions.publish-to-tiktok]
+verify_jwt = false
+
+[functions.publish-to-instagram]
+verify_jwt = false
+
+[functions.publish-to-youtube]
+verify_jwt = false
+
+[functions.refresh-social-tokens]
+verify_jwt = false
+
+[functions.process-scheduled-posts]
+verify_jwt = false

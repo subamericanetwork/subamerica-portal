@@ -19,7 +19,8 @@ import {
   FileText,
   Music2,
   Users,
-  BookOpen
+  BookOpen,
+  Share2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -81,6 +82,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Profile", href: "/profile", icon: User },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Audio", href: "/audio", icon: Music2 },
+    { name: "Social Console", href: "/artist-portal/social-console", icon: Share2 },
     { name: "Events", href: "/events", icon: Calendar },
     { name: "Posts", href: "/posts", icon: Image },
     { name: "Merch", href: "/merch", icon: ShoppingBag },
