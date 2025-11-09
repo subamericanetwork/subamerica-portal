@@ -56,15 +56,23 @@ export const SubClipGenerator = ({
     let cleanedUp = false;
     let pollInterval: number | undefined;
 
-    const handleLoadedMetadata = () => {
-      if (cleanedUp) return;
-      const duration = Math.floor(video.duration);
-      console.log('[SubClipGenerator] Video duration loaded:', duration);
-      setVideoDuration(duration);
-      setEndTime(Math.min(30, duration));
-      setVideoLoading(false);
-      cleanup();
-    };
+  const handleLoadedMetadata = () => {
+    if (cleanedUp) return;
+    const duration = video.duration;
+    
+    // Only proceed if duration is a valid number (not NaN, not Infinity, > 0)
+    if (!duration || isNaN(duration) || !isFinite(duration) || duration <= 0) {
+      console.log('[SubClipGenerator] Duration not ready yet:', duration);
+      return; // Don't cleanup, let polling continue
+    }
+    
+    const floorDuration = Math.floor(duration);
+    console.log('[SubClipGenerator] Valid video duration loaded:', floorDuration);
+    setVideoDuration(floorDuration);
+    setEndTime(Math.min(30, floorDuration));
+    setVideoLoading(false);
+    cleanup();
+  };
 
     const handleError = () => {
       if (cleanedUp) return;
@@ -84,11 +92,11 @@ export const SubClipGenerator = ({
       video.removeEventListener('error', handleError);
     };
 
-    // Strategy 1: Check if metadata is already loaded
-    if (video.readyState >= 1) {
-      console.log('[SubClipGenerator] Metadata already loaded (readyState: ' + video.readyState + ')');
-      handleLoadedMetadata();
-    }
+  // Strategy 1: Check if metadata is already loaded
+  if (video.readyState >= 1 && video.duration && !isNaN(video.duration) && isFinite(video.duration)) {
+    console.log('[SubClipGenerator] Metadata already loaded (readyState: ' + video.readyState + ', duration: ' + video.duration + ')');
+    handleLoadedMetadata();
+  }
 
     // Strategy 2: Event listeners (always set up)
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -101,9 +109,9 @@ export const SubClipGenerator = ({
       
       pollCount++;
       
-      if (video.readyState >= 1) {
-        console.log('[SubClipGenerator] Metadata detected via polling (readyState: ' + video.readyState + ')');
-        handleLoadedMetadata();
+    if (video.readyState >= 1 && video.duration && !isNaN(video.duration) && isFinite(video.duration)) {
+      console.log('[SubClipGenerator] Metadata detected via polling (readyState: ' + video.readyState + ', duration: ' + video.duration + ')');
+      handleLoadedMetadata();
       } else if (pollCount > 16) { // 16 * 300ms = ~5 seconds
         console.error('[SubClipGenerator] Metadata loading timed out after 5s');
         handleError();
