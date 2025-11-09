@@ -42,16 +42,44 @@ export const SubClipGenerator = ({
   const [generatedClip, setGeneratedClip] = useState<any>(null);
   const [qrPreview, setQrPreview] = useState('');
   const [orientation, setOrientation] = useState<'vertical' | 'landscape'>('vertical');
+  const [videoLoading, setVideoLoading] = useState(true);
+  const [videoError, setVideoError] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.addEventListener('loadedmetadata', () => {
-        const duration = Math.floor(videoRef.current!.duration);
-        setVideoDuration(duration);
-        setEndTime(Math.min(30, duration));
-      });
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleLoadedMetadata = () => {
+      const duration = Math.floor(video.duration);
+      console.log('[SubClipGenerator] Video duration loaded:', duration);
+      setVideoDuration(duration);
+      setEndTime(Math.min(30, duration));
+      setVideoLoading(false);
+    };
+
+    const handleError = () => {
+      console.error('[SubClipGenerator] Video failed to load');
+      setVideoError(true);
+      setVideoLoading(false);
+    };
+
+    // Check if metadata is already loaded
+    if (video.readyState >= 1) {
+      // Metadata already available
+      handleLoadedMetadata();
+    } else {
+      // Wait for metadata to load
+      video.addEventListener('loadedmetadata', handleLoadedMetadata);
     }
-  }, []);
+
+    video.addEventListener('error', handleError);
+
+    // Cleanup
+    return () => {
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('error', handleError);
+    };
+  }, [videoUrl]);
 
   useEffect(() => {
     // Generate QR preview - using a simple placeholder for now
@@ -133,50 +161,65 @@ export const SubClipGenerator = ({
                 className="w-full rounded-md"
               />
               <div className="mt-4 space-y-2">
-                <Label>Clip Range: {startTime}s - {endTime}s ({duration}s)</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label className="w-16">Start:</Label>
-                    <input
-                      type="range"
-                      min="0"
-                      max={videoDuration}
-                      value={startTime}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setStartTime(val);
-                        if (val >= endTime) {
-                          setEndTime(Math.min(val + 30, videoDuration));
-                        }
-                      }}
-                      className="flex-1"
-                    />
-                    <span className="w-12 text-sm">{startTime}s</span>
+                {videoLoading ? (
+                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading video metadata...
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="w-16">End:</Label>
-                    <input
-                      type="range"
-                      min="0"
-                      max={videoDuration}
-                      value={endTime}
-                      onChange={(e) => {
-                        const val = Number(e.target.value);
-                        setEndTime(val);
-                        if (val <= startTime) {
-                          setStartTime(Math.max(0, val - 30));
-                        }
-                      }}
-                      className="flex-1"
-                    />
-                    <span className="w-12 text-sm">{endTime}s</span>
+                ) : videoError ? (
+                  <div className="text-sm text-destructive">
+                    Failed to load video. Please try again.
                   </div>
-                </div>
-                {duration < 3 && (
-                  <p className="text-sm text-destructive">Minimum duration is 3 seconds</p>
-                )}
-                {duration > 60 && (
-                  <p className="text-sm text-destructive">Maximum duration is 60 seconds</p>
+                ) : (
+                  <>
+                    <Label>Clip Range: {startTime}s - {endTime}s ({duration}s)</Label>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Label className="w-16">Start:</Label>
+                        <input
+                          type="range"
+                          min="0"
+                          max={Math.max(videoDuration, 1)}
+                          value={startTime}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setStartTime(val);
+                            if (val >= endTime) {
+                              setEndTime(Math.min(val + 30, videoDuration));
+                            }
+                          }}
+                          className="flex-1"
+                          disabled={videoDuration === 0}
+                        />
+                        <span className="w-12 text-sm">{startTime}s</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Label className="w-16">End:</Label>
+                        <input
+                          type="range"
+                          min="0"
+                          max={Math.max(videoDuration, 1)}
+                          value={endTime}
+                          onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setEndTime(val);
+                            if (val <= startTime) {
+                              setStartTime(Math.max(0, val - 30));
+                            }
+                          }}
+                          className="flex-1"
+                          disabled={videoDuration === 0}
+                        />
+                        <span className="w-12 text-sm">{endTime}s</span>
+                      </div>
+                    </div>
+                    {duration < 3 && (
+                      <p className="text-sm text-destructive">Minimum duration is 3 seconds</p>
+                    )}
+                    {duration > 60 && (
+                      <p className="text-sm text-destructive">Maximum duration is 60 seconds</p>
+                    )}
+                  </>
                 )}
               </div>
             </Card>
