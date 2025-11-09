@@ -46,6 +46,7 @@ export const SubClipGenerator = ({
   const [videoError, setVideoError] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState(false);
+  const [videoMounted, setVideoMounted] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -132,7 +133,7 @@ export const SubClipGenerator = ({
 
     // Cleanup on unmount
     return cleanup;
-  }, [videoUrl]);
+  }, [videoUrl, videoMounted]);
 
   useEffect(() => {
     // Generate QR preview - using a simple placeholder for now
@@ -210,7 +211,10 @@ export const SubClipGenerator = ({
           <div className="space-y-4">
             <Card className="p-4">
               <video
-                ref={videoRef}
+                ref={(el) => {
+                  videoRef.current = el;
+                  if (el && !videoMounted) setVideoMounted(true);
+                }}
                 src={videoUrl}
                 controls
                 className="w-full rounded-md"
