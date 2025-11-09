@@ -161,28 +161,16 @@ serve(async (req) => {
     const videoTimestamp = Math.floor(Date.now() / 1000);
     const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
     
-    // Build eager transformation for video processing
-    const eagerTransformation = [
-      {
-        start_offset: start_time,
-        end_offset: end_time,
-        width: 1080,
-        height: 1920,
-        crop: 'fill',
-        gravity: 'auto',
-        overlay: qrUploadData.public_id.replace(/\//g, ':'),
-        gravity_overlay: 'south_east',
-        x: 30,
-        y: 30,
-        width_overlay: 180,
-        flags: 'layer_apply',
-      }
-    ];
+    // Build eager transformation for video processing using Cloudinary string format
+    const trimTransform = `so_${start_time},eo_${end_time}`;
+    const resizeTransform = `w_1080,h_1920,c_fill,g_auto`;
+    const qrOverlay = `l_${qrUploadData.public_id.replace(/\//g, ':')},g_south_east,x_30,y_30,w_180,fl_layer_apply`;
+    const eagerTransformation = `${trimTransform}/${resizeTransform}/${qrOverlay}`;
     
     const videoUploadParams = {
       public_id: videoPublicId,
       timestamp: videoTimestamp,
-      eager: JSON.stringify(eagerTransformation),
+      eager: eagerTransformation,
       resource_type: 'video',
     };
     
@@ -194,7 +182,7 @@ serve(async (req) => {
     videoFormData.append('timestamp', videoTimestamp.toString());
     videoFormData.append('api_key', CLOUDINARY_API_KEY!);
     videoFormData.append('signature', videoSignature);
-    videoFormData.append('eager', JSON.stringify(eagerTransformation));
+    videoFormData.append('eager', eagerTransformation);
     videoFormData.append('resource_type', 'video');
     
     console.log('[create-subclip] Uploading video to Cloudinary with transformations...');
