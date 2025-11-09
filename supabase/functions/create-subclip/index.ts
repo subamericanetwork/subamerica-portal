@@ -157,20 +157,21 @@ serve(async (req) => {
     
     console.log('[create-subclip] Source video URL:', sourceVideoUrl);
 
-    // Upload video to Cloudinary with transformations
+    // Upload video to Cloudinary with eager transformations
     const videoTimestamp = Math.floor(Date.now() / 1000);
     const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
     
-    // Build eager transformation for video processing using Cloudinary string format
-    const trimTransform = `so_${start_time},eo_${end_time}`;
-    const resizeTransform = `w_1080,h_1920,c_fill,g_auto`;
-    const qrOverlay = `l_${qrUploadData.public_id.replace(/\//g, ':')},g_south_east,x_30,y_30,w_180,fl_layer_apply`;
-    const eagerTransformation = `${trimTransform}/${resizeTransform}/${qrOverlay}`;
+    // Build eager transformation with QR overlay
+    const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
+    const eagerTransformation = `so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply`;
+    
+    console.log('[create-subclip] Uploading video with eager transformation:', eagerTransformation);
     
     const videoUploadParams = {
       public_id: videoPublicId,
       timestamp: videoTimestamp,
       eager: eagerTransformation,
+      eager_async: 'true'
     };
     
     const videoSignature = await generateSignature(videoUploadParams);
@@ -182,9 +183,8 @@ serve(async (req) => {
     videoFormData.append('api_key', CLOUDINARY_API_KEY!);
     videoFormData.append('signature', videoSignature);
     videoFormData.append('eager', eagerTransformation);
+    videoFormData.append('eager_async', 'true');
     videoFormData.append('resource_type', 'video');
-    
-    console.log('[create-subclip] Uploading video to Cloudinary with transformations...');
     
     const videoUploadResponse = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`,
@@ -206,68 +206,70 @@ serve(async (req) => {
     const videoUploadData = await videoUploadResponse.json();
     console.log('[create-subclip] Video uploaded to Cloudinary:', videoUploadData.public_id);
     
-    // Build the transformation URL directly (don't rely on eager transformations)
-    const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
-    
-    // Log transformation components for debugging
-    console.log('[create-subclip] Transformation details:', {
-      qrPublicId: qrUploadData.public_id,
-      qrLayerId: qrLayerId,
-      videoPublicId: videoUploadData.public_id,
-      startTime: start_time,
-      endTime: end_time,
-      duration: end_time - start_time
-    });
-    
-    const processedVideoUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/video/upload/so_${start_time},eo_${end_time},w_1080,h_1920,c_fill,g_auto/l_${qrLayerId},g_south_east,x_30,y_30,w_180,fl_layer_apply/${videoUploadData.public_id}.mp4`;
-    console.log('[create-subclip] Processed video URL:', processedVideoUrl);
-
-    // Download processed video with retry logic (Cloudinary needs time to process)
-    let processedVideoResponse;
+    // Poll Cloudinary Admin API for eager transformation status
+    let processedVideoUrl = null;
     let retries = 0;
-    const maxRetries = 5;
+    const maxRetries = 20;
     
-    while (retries < maxRetries) {
-      processedVideoResponse = await fetch(processedVideoUrl);
+    while (retries < maxRetries && !processedVideoUrl) {
+      await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds between checks
       
-      if (processedVideoResponse.ok) {
-        console.log(`[create-subclip] Video ready on attempt ${retries + 1}`);
-        break;
-      }
-      
-      // Log detailed error information
-      const status = processedVideoResponse.status;
-      const statusText = processedVideoResponse.statusText;
-      let errorBody = 'No response body';
-      
-      try {
-        errorBody = await processedVideoResponse.text();
-      } catch (e) {
-        console.error('[create-subclip] Could not read error response body');
-      }
-      
-      console.error('[create-subclip] Cloudinary fetch failed:', {
-        attempt: retries + 1,
-        status,
-        statusText,
-        errorBody,
-        url: processedVideoUrl
+      const adminTimestamp = Math.floor(Date.now() / 1000);
+      const adminSignature = await generateSignature({
+        timestamp: adminTimestamp,
+        public_id: videoPublicId
       });
       
-      retries++;
-      if (retries < maxRetries) {
-        console.log(`[create-subclip] Retrying in ${2 * retries} seconds... (attempt ${retries}/${maxRetries})`);
-        await new Promise(resolve => setTimeout(resolve, 2000 * retries)); // Exponential backoff
+      const adminUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video/upload/${encodeURIComponent(videoPublicId)}?timestamp=${adminTimestamp}&signature=${adminSignature}&api_key=${CLOUDINARY_API_KEY}`;
+      
+      const adminResponse = await fetch(adminUrl);
+      
+      if (adminResponse.ok) {
+        const resourceData = await adminResponse.json();
+        console.log(`[create-subclip] Checking transformation status (attempt ${retries + 1}/${maxRetries})`);
+        
+        if (resourceData.eager && resourceData.eager.length > 0) {
+          const eagerTransform = resourceData.eager[0];
+          
+          if (eagerTransform.status === 'complete' && eagerTransform.secure_url) {
+            processedVideoUrl = eagerTransform.secure_url;
+            console.log('[create-subclip] Eager transformation complete:', processedVideoUrl);
+            break;
+          } else if (eagerTransform.status === 'error') {
+            console.error('[create-subclip] Eager transformation failed:', eagerTransform);
+            return new Response(JSON.stringify({ error: 'Video transformation failed' }), {
+              status: 500,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            });
+          } else {
+            console.log(`[create-subclip] Transformation status: ${eagerTransform.status}`);
+          }
+        } else {
+          console.log('[create-subclip] No eager transformations found yet');
+        }
+      } else {
+        console.error('[create-subclip] Admin API error:', adminResponse.status);
       }
+      
+      retries++;
     }
     
-    if (!processedVideoResponse || !processedVideoResponse.ok) {
-      const finalStatus = processedVideoResponse?.status || 'unknown';
-      console.error('[create-subclip] Failed to download processed video after all retries. Final status:', finalStatus);
+    if (!processedVideoUrl) {
+      console.error('[create-subclip] Transformation timed out after all retries');
       return new Response(JSON.stringify({ 
-        error: 'Video processing timed out. Please try again.',
-        details: `Cloudinary returned status ${finalStatus}`
+        error: 'Video processing timed out. Please try again.'
       }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Download the processed video
+    const processedVideoResponse = await fetch(processedVideoUrl);
+    
+    if (!processedVideoResponse.ok) {
+      console.error('[create-subclip] Failed to download processed video:', processedVideoResponse.status);
+      return new Response(JSON.stringify({ error: 'Failed to download processed video' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
