@@ -214,15 +214,13 @@ serve(async (req) => {
     while (retries < maxRetries && !processedVideoUrl) {
       await new Promise(resolve => setTimeout(resolve, 3000)); // Wait 3 seconds between checks
       
-      const adminTimestamp = Math.floor(Date.now() / 1000);
-      const adminSignature = await generateSignature({
-        timestamp: adminTimestamp,
-        public_id: videoPublicId
+      const adminUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video/upload/${encodeURIComponent(videoPublicId)}`;
+      
+      const adminResponse = await fetch(adminUrl, {
+        headers: {
+          'Authorization': `Basic ${btoa(`${CLOUDINARY_API_KEY}:${CLOUDINARY_API_SECRET}`)}`
+        }
       });
-      
-      const adminUrl = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/resources/video/upload/${encodeURIComponent(videoPublicId)}?timestamp=${adminTimestamp}&signature=${adminSignature}&api_key=${CLOUDINARY_API_KEY}`;
-      
-      const adminResponse = await fetch(adminUrl);
       
       if (adminResponse.ok) {
         const resourceData = await adminResponse.json();
