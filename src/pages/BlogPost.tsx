@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, User, Eye } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { BlogCommentList } from "@/components/BlogCommentList";
+import { BlogContentViewer } from "@/components/BlogContentViewer";
 
 interface BlogPost {
   id: string;
@@ -168,9 +169,7 @@ export default function BlogPost() {
             )}
 
             {/* Article Content */}
-            <div className="text-foreground whitespace-pre-wrap leading-relaxed">
-              {post.content}
-            </div>
+            <BlogContentViewer content={post.content} />
           </article>
 
           {/* Comments Section */}
