@@ -426,7 +426,7 @@ serve(async (req) => {
       } catch (aiError) {
         console.error('[create-subclip] AI caption generation failed:', aiError);
         // Provide a better fallback caption
-        generatedCaption = `🎵 ${video.title}\n\nWatch the full video on SubAmerica! 🔥`;
+        generatedCaption = `🎵 ${video.title} 🎵\n\nWatch the full video on SubAmerica! 🔥`;
         hashtags = ['#music', '#artist', '#viral', '#fyp', '#newrelease'];
         console.log('[create-subclip] Using fallback caption');
       }
