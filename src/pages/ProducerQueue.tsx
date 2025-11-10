@@ -330,7 +330,7 @@ export default function ProducerQueue() {
                   <h4 className="font-semibold mb-2">Hashtags</h4>
                   <div className="flex flex-wrap gap-2">
                     {selectedItem.social_scheduled_posts.hashtags.map((tag) => (
-                      <Badge key={tag} variant="secondary">#{tag}</Badge>
+                      <Badge key={tag} variant="secondary">{tag}</Badge>
                     ))}
                   </div>
                 </div>

@@ -222,7 +222,7 @@ export default function SubClipLibrary() {
                   <div className="flex flex-wrap gap-1">
                     {clip.hashtags?.slice(0, 3).map((tag) => (
                       <Badge key={tag} variant="secondary" className="text-xs">
-                        #{tag}
+                        {tag}
                       </Badge>
                     ))}
                     {clip.hashtags?.length > 3 && (
@@ -284,7 +284,7 @@ export default function SubClipLibrary() {
                 <h4 className="font-semibold mb-2">Hashtags</h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedClip.hashtags?.map((tag) => (
-                    <Badge key={tag} variant="secondary">#{tag}</Badge>
+                    <Badge key={tag} variant="secondary">{tag}</Badge>
                   ))}
                 </div>
               </div>
