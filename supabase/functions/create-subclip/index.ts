@@ -172,10 +172,11 @@ serve(async (req) => {
     
     // QR size and positioning - 100px with 20px padding for better scannability
     const qrSize = '100'; // 100px for better detection
-    const qrPadding = '20'; // 20px from edges
+    const qrPaddingX = '20'; // 20px from right edge
+    const qrPaddingY = '50'; // 50px from bottom edge (moved up)
     
     // Traditional QR code: black squares on white background with thick black border for contrast
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_8px_solid_black,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_8px_solid_black,fl_layer_apply,g_south_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
