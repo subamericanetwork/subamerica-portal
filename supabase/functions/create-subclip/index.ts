@@ -103,20 +103,19 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as SVG with generous quiet zone
-    const qrSvg = qrcode(qrUrl, {
-      output: "svg",
-      border: 8,          // 8 modules = generous quiet zone for scanning
-      ecl: 'HIGH'         // High error correction
-    });
-
-    // Convert SVG to PNG using canvas rendering with proper scaling
-    // Create a large canvas (800x800) to ensure the QR has sufficient quiet zone
-    const svgDataUrl = `data:image/svg+xml;base64,${btoa(qrSvg)}`;
+    // Generate QR code using QR Server API - guarantees proper quiet zone
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=${encodeURIComponent(qrUrl)}&format=png&margin=50&ecc=H`;
     
-    // Use Deno's image conversion or upload SVG directly with better transformation
-    // For now, we'll use SVG and rely on Cloudinary to convert properly
-    console.log('[create-subclip] QR code generated as SVG with 8-module quiet zone');
+    console.log('[create-subclip] Generating QR code via API with 50px margin');
+
+    // Fetch the QR PNG from API
+    const qrImageResponse = await fetch(qrApiUrl);
+    if (!qrImageResponse.ok) {
+      throw new Error('Failed to generate QR code from API');
+    }
+
+    const qrPngBuffer = await qrImageResponse.arrayBuffer();
+    console.log('[create-subclip] QR code generated as PNG with guaranteed quiet zone');
 
     // Upload QR code to Cloudinary
     const qrTimestamp = Math.floor(Date.now() / 1000);
@@ -125,20 +124,18 @@ serve(async (req) => {
     const qrUploadParams = {
       public_id: qrPublicId,
       timestamp: qrTimestamp,
-      eager: 'w_800,h_800,c_lpad,b_white,q_100,f_png', // Scale to 800x800 with padding, convert to PNG
-      eager_async: 'false',
+      // NO eager transformations - PNG already perfect from API
     };
     
     const qrSignature = await generateSignature(qrUploadParams);
     
     const qrFormData = new FormData();
-    qrFormData.append('file', new Blob([qrSvg], { type: 'image/svg+xml' }));
+    qrFormData.append('file', new Blob([qrPngBuffer], { type: 'image/png' })); // Upload PNG buffer
     qrFormData.append('public_id', qrPublicId);
     qrFormData.append('timestamp', qrTimestamp.toString());
     qrFormData.append('api_key', CLOUDINARY_API_KEY!);
     qrFormData.append('signature', qrSignature);
-    qrFormData.append('eager', 'w_800,h_800,c_lpad,b_white,q_100,f_png');
-    qrFormData.append('eager_async', 'false');
+    // NO eager parameter - image is already perfect
     
     const qrUploadResponse = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
