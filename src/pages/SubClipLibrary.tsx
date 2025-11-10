@@ -277,7 +277,7 @@ export default function SubClipLibrary() {
                 <video src={selectedClip.clip_url} controls className="w-full h-full" />
               </div>
               <div>
-                <h4 className="font-semibold mb-2">Caption</h4>
+                <h4 className="font-semibold mb-2">Post Description</h4>
                 <p className="text-sm">{selectedClip.caption}</p>
               </div>
               <div>
