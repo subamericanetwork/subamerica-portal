@@ -103,10 +103,11 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as SVG
+    // Generate QR code as SVG with high error correction
     const qrSvg = qrcode(qrUrl, {
       output: "svg",
-      border: 2
+      border: 2,
+      ecLevel: 'H'  // High error correction for better scannability
     });
 
     console.log('[create-subclip] QR code generated as SVG');
@@ -169,12 +170,12 @@ serve(async (req) => {
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size and positioning - 75px with 20px padding
-    const qrSize = '75'; // 75px as requested
+    // QR size and positioning - 100px with 20px padding for better scannability
+    const qrSize = '100'; // 100px for better detection
     const qrPadding = '20'; // 20px from edges
     
-    // Small QR with minimal border
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_white,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
+    // QR with inverted colors for dark backgrounds: white squares on black background with white border
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_black,bo_5px_solid_white,e_negate,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
