@@ -217,7 +217,7 @@ export const SubClipGenerator = ({
           is_draft: false,
           caption: editedCaption
         })
-        .eq('id', generatedClip.id);
+        .eq('id', generatedClip.subclip_id);
 
       if (error) throw error;
 
