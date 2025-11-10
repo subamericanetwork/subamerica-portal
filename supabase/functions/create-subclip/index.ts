@@ -170,13 +170,13 @@ serve(async (req) => {
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size and positioning - compact 100px size with white background and border
-    const qrSize = '100'; // 100px - compact, less intrusive size
+    // QR size and positioning - large enough to survive compression and remain scannable
+    const qrSize = '280'; // 280px - large enough to survive video compression and remain scannable
     const qrPaddingX = '20'; // 20px from right edge
     const qrPaddingY = '50'; // 50px from bottom edge (moved up)
     
-    // QR code overlay in top-right corner - SVG with white background and border for contrast
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    // QR code overlay in top-right corner - SVG with white background and border for contrast, high quality
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,q_auto:best,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
