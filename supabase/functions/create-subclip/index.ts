@@ -103,14 +103,20 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as SVG with maximum size and error correction to prevent corruption during video overlay
+    // Generate QR code as SVG with generous quiet zone
     const qrSvg = qrcode(qrUrl, {
       output: "svg",
-      border: 4,      // Larger quiet zone for better scannability
-      ecl: 'HIGH'     // High error correction
+      border: 8,          // 8 modules = generous quiet zone for scanning
+      ecl: 'HIGH'         // High error correction
     });
 
-    console.log('[create-subclip] QR code generated as high-resolution SVG');
+    // Convert SVG to PNG using canvas rendering with proper scaling
+    // Create a large canvas (800x800) to ensure the QR has sufficient quiet zone
+    const svgDataUrl = `data:image/svg+xml;base64,${btoa(qrSvg)}`;
+    
+    // Use Deno's image conversion or upload SVG directly with better transformation
+    // For now, we'll use SVG and rely on Cloudinary to convert properly
+    console.log('[create-subclip] QR code generated as SVG with 8-module quiet zone');
 
     // Upload QR code to Cloudinary
     const qrTimestamp = Math.floor(Date.now() / 1000);
@@ -119,8 +125,8 @@ serve(async (req) => {
     const qrUploadParams = {
       public_id: qrPublicId,
       timestamp: qrTimestamp,
-      eager: 'w_600,h_600,c_pad,w_800,h_800,b_white,q_100,f_png', // Scale to 600px then pad to 800px for 100px quiet zone
-      eager_async: 'false', // Wait for conversion
+      eager: 'w_800,h_800,c_lpad,b_white,q_100,f_png', // Scale to 800x800 with padding, convert to PNG
+      eager_async: 'false',
     };
     
     const qrSignature = await generateSignature(qrUploadParams);
@@ -131,7 +137,7 @@ serve(async (req) => {
     qrFormData.append('timestamp', qrTimestamp.toString());
     qrFormData.append('api_key', CLOUDINARY_API_KEY!);
     qrFormData.append('signature', qrSignature);
-    qrFormData.append('eager', 'w_600,h_600,c_pad,w_800,h_800,b_white,q_100,f_png');
+    qrFormData.append('eager', 'w_800,h_800,c_lpad,b_white,q_100,f_png');
     qrFormData.append('eager_async', 'false');
     
     const qrUploadResponse = await fetch(
