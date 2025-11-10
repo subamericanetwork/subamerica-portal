@@ -119,6 +119,8 @@ serve(async (req) => {
     const qrUploadParams = {
       public_id: qrPublicId,
       timestamp: qrTimestamp,
+      eager: 'f_png,w_600,h_600,q_100', // Convert to high-res PNG for sharp overlay
+      eager_async: 'false', // Wait for conversion
     };
     
     const qrSignature = await generateSignature(qrUploadParams);
@@ -129,6 +131,8 @@ serve(async (req) => {
     qrFormData.append('timestamp', qrTimestamp.toString());
     qrFormData.append('api_key', CLOUDINARY_API_KEY!);
     qrFormData.append('signature', qrSignature);
+    qrFormData.append('eager', 'f_png,w_600,h_600,q_100');
+    qrFormData.append('eager_async', 'false');
     
     const qrUploadResponse = await fetch(
       `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -149,6 +153,13 @@ serve(async (req) => {
     
     const qrUploadData = await qrUploadResponse.json();
     console.log('[create-subclip] QR code uploaded to Cloudinary:', qrUploadData.public_id);
+    
+    // Get the high-res PNG version from eager transformation
+    let qrPngPublicId = qrUploadData.public_id;
+    if (qrUploadData.eager && qrUploadData.eager.length > 0) {
+      qrPngPublicId = qrUploadData.public_id; // PNG replaces SVG at same path
+      console.log('[create-subclip] High-res PNG QR created for sharp overlay');
+    }
 
     // Get source video URL from Supabase Storage
     const videoPathParts = video.video_url.split('/videos/')[1];
@@ -163,24 +174,31 @@ serve(async (req) => {
     const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
     
     // Build transformation with QR overlay based on orientation
-    const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
+    const qrLayerId = qrPngPublicId.replace(/\//g, ':');
     
     // Set dimensions based on orientation
     const dimensions = orientation === 'vertical' 
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size and positioning - large enough to survive compression and remain scannable
-    const qrSize = '280'; // 280px - large enough to survive video compression and remain scannable
-    const qrPaddingX = '20'; // 20px from right edge
-    const qrPaddingY = '50'; // 50px from bottom edge (moved up)
+    // Calculate when QR should appear (last 2.5 seconds of clip as end-card)
+    const clipDuration = end_time - start_time;
+    const qrDisplayDuration = 2.5; // Show QR in last 2.5 seconds only
+    const qrStartOffset = Math.max(0, clipDuration - qrDisplayDuration);
+    const qrAbsoluteStart = start_time + qrStartOffset;
     
-    // QR code overlay in top-right corner - SVG with white background and border for contrast, high quality
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,q_auto:best,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    // QR size and positioning - balanced size for social media
+    const qrSize = '220'; // 220px - scannable but not intrusive
+    const qrPaddingX = '30'; // 30px from right edge
+    const qrPaddingY = '30'; // 30px from top edge
+    
+    // End-card QR: appears only in last 2.5 seconds, high-res PNG for scannability
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},b_white,bo_3px_solid_black,q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
-      qrSize, 
+      qrSize,
+      qrTiming: `end-card (shows at ${qrAbsoluteStart}s for last ${qrDisplayDuration}s)`,
       transformation: eagerTransformation 
     });
     
@@ -324,8 +342,8 @@ serve(async (req) => {
     }
     
     console.log('[create-subclip] Processed video downloaded after', retries, 'retries');
-    console.log('[create-subclip] Processed video should have QR overlay at bottom-right');
-    console.log('[create-subclip] QR size:', orientation === 'vertical' ? '0.25' : '0.20', 'Padding: 0.05');
+    console.log('[create-subclip] Processed video has end-card QR (220px, top-right, last 2.5s)');
+    console.log('[create-subclip] QR timing: appears at', qrAbsoluteStart, 'seconds in source video');
     
     const processedVideoBlob = await processedVideoResponse.blob();
     const processedVideoBuffer = await processedVideoBlob.arrayBuffer();
