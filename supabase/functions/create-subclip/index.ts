@@ -119,7 +119,7 @@ serve(async (req) => {
     const qrUploadParams = {
       public_id: qrPublicId,
       timestamp: qrTimestamp,
-      eager: 'c_pad,w_800,h_800,b_white,q_100,f_png', // Pad crop creates proper quiet zone
+      eager: 'w_600,h_600,c_pad,w_800,h_800,b_white,q_100,f_png', // Scale to 600px then pad to 800px for 100px quiet zone
       eager_async: 'false', // Wait for conversion
     };
     
@@ -131,7 +131,7 @@ serve(async (req) => {
     qrFormData.append('timestamp', qrTimestamp.toString());
     qrFormData.append('api_key', CLOUDINARY_API_KEY!);
     qrFormData.append('signature', qrSignature);
-    qrFormData.append('eager', 'c_pad,w_800,h_800,b_white,q_100,f_png');
+    qrFormData.append('eager', 'w_600,h_600,c_pad,w_800,h_800,b_white,q_100,f_png');
     qrFormData.append('eager_async', 'false');
     
     const qrUploadResponse = await fetch(
@@ -193,7 +193,7 @@ serve(async (req) => {
     const qrPaddingY = '30'; // 30px from top edge
     
     // End-card QR: appears only in last 2.5 seconds, high-res PNG for scannability
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},bo_2px_solid_black,q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
