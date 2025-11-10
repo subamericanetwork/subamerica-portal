@@ -150,59 +150,6 @@ serve(async (req) => {
     const qrUploadData = await qrUploadResponse.json();
     console.log('[create-subclip] QR code uploaded to Cloudinary:', qrUploadData.public_id);
 
-    // Convert SVG to high-res PNG (800x800) for better quality and scannability
-    console.log('[create-subclip] Converting QR to high-res PNG...');
-    const qrPngUrl = `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/image/upload/w_800,h_800,f_png,q_100/${qrUploadData.public_id}`;
-
-    // Download the high-res PNG
-    const qrPngResponse = await fetch(qrPngUrl);
-    if (!qrPngResponse.ok) {
-      console.error('[create-subclip] Failed to convert QR to PNG');
-      return new Response(JSON.stringify({ error: 'Failed to generate high-res QR code' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const qrPngBlob = await qrPngResponse.blob();
-    const qrPngBuffer = await qrPngBlob.arrayBuffer();
-
-    // Upload high-res PNG to Cloudinary
-    const qrPngPublicId = `qr_codes/qr_png_${user.id}_${qrTimestamp}`;
-    const qrPngUploadParams = {
-      public_id: qrPngPublicId,
-      timestamp: Math.floor(Date.now() / 1000),
-    };
-
-    const qrPngSignature = await generateSignature(qrPngUploadParams);
-
-    const qrPngFormData = new FormData();
-    qrPngFormData.append('file', new Blob([new Uint8Array(qrPngBuffer)], { type: 'image/png' }));
-    qrPngFormData.append('public_id', qrPngPublicId);
-    qrPngFormData.append('timestamp', qrPngUploadParams.timestamp.toString());
-    qrPngFormData.append('api_key', CLOUDINARY_API_KEY!);
-    qrPngFormData.append('signature', qrPngSignature);
-
-    const qrPngUploadResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: qrPngFormData,
-      }
-    );
-
-    if (!qrPngUploadResponse.ok) {
-      const errorText = await qrPngUploadResponse.text();
-      console.error('[create-subclip] High-res QR PNG upload error:', errorText);
-      return new Response(JSON.stringify({ error: 'Failed to upload high-res QR code' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    const qrPngUploadData = await qrPngUploadResponse.json();
-    console.log('[create-subclip] High-res QR PNG uploaded:', qrPngUploadData.public_id);
-
     // Get source video URL from Supabase Storage
     const videoPathParts = video.video_url.split('/videos/')[1];
     const { data: { publicUrl: sourceVideoUrl } } = supabaseClient.storage
@@ -216,20 +163,20 @@ serve(async (req) => {
     const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
     
     // Build transformation with QR overlay based on orientation
-    const qrLayerId = qrPngUploadData.public_id.replace(/\//g, ':');
+    const qrLayerId = qrUploadData.public_id.replace(/\//g, ':');
     
     // Set dimensions based on orientation
     const dimensions = orientation === 'vertical' 
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size and positioning - large 200px for better scannability (SVG will be rasterized at this size)
-    const qrSize = '200'; // 200px - large size to preserve detail during rasterization
+    // QR size and positioning - compact 100px size with white background and border
+    const qrSize = '100'; // 100px - compact, less intrusive size
     const qrPaddingX = '20'; // 20px from right edge
     const qrPaddingY = '50'; // 50px from bottom edge (moved up)
     
-    // QR code overlay in top-right corner - high-res PNG with built-in padding
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    // QR code overlay in top-right corner - SVG with white background and border for contrast
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
@@ -543,7 +490,7 @@ serve(async (req) => {
 
       // Optional: Cleanup Cloudinary assets to save storage
       try {
-        // Delete original SVG QR code from Cloudinary
+        // Delete QR code from Cloudinary
         await fetch(
           `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`,
           {
@@ -554,21 +501,6 @@ serve(async (req) => {
               api_key: CLOUDINARY_API_KEY,
               timestamp: Math.floor(Date.now() / 1000),
               signature: await generateSignature({ public_id: qrUploadData.public_id, timestamp: Math.floor(Date.now() / 1000) })
-            })
-          }
-        );
-        
-        // Delete high-res PNG QR code from Cloudinary
-        await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              public_id: qrPngUploadData.public_id,
-              api_key: CLOUDINARY_API_KEY,
-              timestamp: Math.floor(Date.now() / 1000),
-              signature: await generateSignature({ public_id: qrPngUploadData.public_id, timestamp: Math.floor(Date.now() / 1000) })
             })
           }
         );
