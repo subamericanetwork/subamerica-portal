@@ -107,7 +107,7 @@ serve(async (req) => {
     const qrSvg = qrcode(qrUrl, {
       output: "svg",
       border: 2,
-      ecLevel: 'H'  // High error correction for better scannability
+      ecl: 'HIGH'  // High error correction for better scannability
     });
 
     console.log('[create-subclip] QR code generated as SVG');
@@ -175,7 +175,7 @@ serve(async (req) => {
     const qrPadding = '20'; // 20px from edges
     
     // QR with inverted colors for dark backgrounds: white squares on black background with white border
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_black,bo_5px_solid_white,e_negate,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},e_negate,w_${qrSize},b_black,bo_5px_solid_white,fl_layer_apply,g_south_east,x_${qrPadding},y_${qrPadding}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
