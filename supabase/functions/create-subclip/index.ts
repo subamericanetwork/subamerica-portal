@@ -103,14 +103,14 @@ serve(async (req) => {
     const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
-    // Generate QR code as SVG with high error correction
+    // Generate QR code as SVG with maximum size and error correction to prevent corruption during video overlay
     const qrSvg = qrcode(qrUrl, {
       output: "svg",
-      border: 2,
-      ecl: 'HIGH'  // High error correction for better scannability
+      border: 4,      // Larger quiet zone for better scannability
+      ecl: 'HIGH'     // High error correction
     });
 
-    console.log('[create-subclip] QR code generated as SVG');
+    console.log('[create-subclip] QR code generated as high-resolution SVG');
 
     // Upload QR code to Cloudinary
     const qrTimestamp = Math.floor(Date.now() / 1000);
@@ -170,13 +170,13 @@ serve(async (req) => {
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // QR size and positioning - 100px with 20px padding for better scannability
-    const qrSize = '100'; // 100px for better detection
+    // QR size and positioning - large 200px for better scannability (SVG will be rasterized at this size)
+    const qrSize = '200'; // 200px - large size to preserve detail during rasterization
     const qrPaddingX = '20'; // 20px from right edge
     const qrPaddingY = '50'; // 50px from bottom edge (moved up)
     
-    // Traditional QR code: black squares on white background with thick black border for contrast
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_8px_solid_black,fl_layer_apply,g_south_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    // QR code overlay with minimal border interference - quiet zone is in the QR itself now
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,fl_layer_apply,g_south_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
