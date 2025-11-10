@@ -69,6 +69,7 @@ export default function SubClipLibrary() {
           videos (title)
         `)
         .eq('artist_id', artist.id)
+        .eq('is_draft', false)  // Only show non-draft clips
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -173,6 +174,7 @@ export default function SubClipLibrary() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="none">None</SelectItem>
             <SelectItem value="tip">Tip</SelectItem>
             <SelectItem value="ticket">Ticket</SelectItem>
             <SelectItem value="content">Content</SelectItem>

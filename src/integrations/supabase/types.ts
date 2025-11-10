@@ -2164,6 +2164,7 @@ export type Database = {
           end_time: number | null
           hashtags: string[] | null
           id: string
+          is_draft: boolean | null
           qr_type: string | null
           qr_url: string | null
           source_video_id: string
@@ -2181,6 +2182,7 @@ export type Database = {
           end_time?: number | null
           hashtags?: string[] | null
           id?: string
+          is_draft?: boolean | null
           qr_type?: string | null
           qr_url?: string | null
           source_video_id: string
@@ -2198,6 +2200,7 @@ export type Database = {
           end_time?: number | null
           hashtags?: string[] | null
           id?: string
+          is_draft?: boolean | null
           qr_type?: string | null
           qr_url?: string | null
           source_video_id?: string

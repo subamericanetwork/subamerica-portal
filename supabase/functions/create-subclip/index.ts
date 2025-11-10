@@ -60,6 +60,15 @@ serve(async (req) => {
       });
     }
 
+    // Validate qr_type
+    const validQrTypes = ['none', 'tip', 'ticket', 'content', 'merch'];
+    if (!validQrTypes.includes(qr_type)) {
+      return new Response(JSON.stringify({ error: 'Invalid QR type' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const duration = end_time - start_time;
     if (duration < 3 || duration > 60) {
       return new Response(JSON.stringify({ error: 'Clip duration must be between 3 and 60 seconds' }), {
@@ -93,75 +102,81 @@ serve(async (req) => {
     const artistSlug = video.artists.slug;
 
     // Generate QR code URL based on type
-    const qrUrls = {
+    const qrUrls: Record<string, string> = {
+      none: '',
       tip: `https://subamerica.net/${artistSlug}?action=tip&utm_source=social&utm_medium=qr&utm_campaign=subclip`,
       ticket: `https://subamerica.net/${artistSlug}?action=tickets&utm_source=social&utm_medium=qr`,
       content: `https://subamerica.net/${artistSlug}?action=subscribe&utm_source=social&utm_medium=qr`,
       merch: `https://subamerica.net/${artistSlug}/merch?utm_source=social&utm_medium=qr`,
     };
 
-    const qrUrl = qrUrls[qr_type as keyof typeof qrUrls];
-    console.log('[create-subclip] Generated QR URL:', qrUrl);
+    const qrUrl = qrUrls[qr_type];
+    console.log('[create-subclip] Generated QR URL:', qrUrl || 'none');
 
-    // Generate QR code using QR Server API - guarantees proper quiet zone
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=${encodeURIComponent(qrUrl)}&format=png&margin=4&ecc=H`;
+    // Generate and upload QR code only if qr_type is not 'none'
+    let qrPngPublicId = '';
     
-    console.log('[create-subclip] Generating QR code via API with 50px margin');
+    if (qr_type !== 'none') {
+      // Generate QR code using QR Server API - guarantees proper quiet zone
+      const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=${encodeURIComponent(qrUrl)}&format=png&margin=4&ecc=H`;
+      
+      console.log('[create-subclip] Generating QR code via API with 50px margin');
 
-    // Fetch the QR PNG from API
-    const qrImageResponse = await fetch(qrApiUrl);
-    if (!qrImageResponse.ok) {
-      throw new Error('Failed to generate QR code from API');
-    }
-
-    const qrPngBuffer = await qrImageResponse.arrayBuffer();
-    console.log('[create-subclip] QR code generated as PNG with guaranteed quiet zone');
-
-    // Upload QR code to Cloudinary
-    const qrTimestamp = Math.floor(Date.now() / 1000);
-    const qrPublicId = `qr_codes/qr_${user.id}_${qrTimestamp}`;
-    
-    const qrUploadParams = {
-      public_id: qrPublicId,
-      timestamp: qrTimestamp,
-      // NO eager transformations - PNG already perfect from API
-    };
-    
-    const qrSignature = await generateSignature(qrUploadParams);
-    
-    const qrFormData = new FormData();
-    qrFormData.append('file', new Blob([qrPngBuffer], { type: 'image/png' })); // Upload PNG buffer
-    qrFormData.append('public_id', qrPublicId);
-    qrFormData.append('timestamp', qrTimestamp.toString());
-    qrFormData.append('api_key', CLOUDINARY_API_KEY!);
-    qrFormData.append('signature', qrSignature);
-    // NO eager parameter - image is already perfect
-    
-    const qrUploadResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: qrFormData,
+      // Fetch the QR PNG from API
+      const qrImageResponse = await fetch(qrApiUrl);
+      if (!qrImageResponse.ok) {
+        throw new Error('Failed to generate QR code from API');
       }
-    );
-    
-    if (!qrUploadResponse.ok) {
-      const errorText = await qrUploadResponse.text();
-      console.error('[create-subclip] QR upload error:', errorText);
-      return new Response(JSON.stringify({ error: 'Failed to upload QR code' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-    
-    const qrUploadData = await qrUploadResponse.json();
-    console.log('[create-subclip] QR code uploaded to Cloudinary:', qrUploadData.public_id);
-    
-    // Get the high-res PNG version from eager transformation
-    let qrPngPublicId = qrUploadData.public_id;
-    if (qrUploadData.eager && qrUploadData.eager.length > 0) {
-      qrPngPublicId = qrUploadData.public_id; // PNG replaces SVG at same path
-      console.log('[create-subclip] High-res PNG QR created for sharp overlay');
+
+      const qrPngBuffer = await qrImageResponse.arrayBuffer();
+      console.log('[create-subclip] QR code generated as PNG with guaranteed quiet zone');
+
+      // Upload QR code to Cloudinary
+      const qrTimestamp = Math.floor(Date.now() / 1000);
+      const qrPublicId = `qr_codes/qr_${user.id}_${qrTimestamp}`;
+      
+      const qrUploadParams = {
+        public_id: qrPublicId,
+        timestamp: qrTimestamp,
+        // NO eager transformations - PNG already perfect from API
+      };
+      
+      const qrSignature = await generateSignature(qrUploadParams);
+      
+      const qrFormData = new FormData();
+      qrFormData.append('file', new Blob([qrPngBuffer], { type: 'image/png' })); // Upload PNG buffer
+      qrFormData.append('public_id', qrPublicId);
+      qrFormData.append('timestamp', qrTimestamp.toString());
+      qrFormData.append('api_key', CLOUDINARY_API_KEY!);
+      qrFormData.append('signature', qrSignature);
+      // NO eager parameter - image is already perfect
+      
+      const qrUploadResponse = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: qrFormData,
+        }
+      );
+      
+      if (!qrUploadResponse.ok) {
+        const errorText = await qrUploadResponse.text();
+        console.error('[create-subclip] QR upload error:', errorText);
+        return new Response(JSON.stringify({ error: 'Failed to upload QR code' }), {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      const qrUploadData = await qrUploadResponse.json();
+      console.log('[create-subclip] QR code uploaded to Cloudinary:', qrUploadData.public_id);
+      
+      qrPngPublicId = qrUploadData.public_id;
+      if (qrUploadData.eager && qrUploadData.eager.length > 0) {
+        console.log('[create-subclip] High-res PNG QR created for sharp overlay');
+      }
+    } else {
+      console.log('[create-subclip] Skipping QR code generation (type: none)');
     }
 
     // Get source video URL from Supabase Storage
@@ -172,38 +187,48 @@ serve(async (req) => {
     
     console.log('[create-subclip] Source video URL:', sourceVideoUrl);
 
-    // Upload video to Cloudinary with eager transformations
+    // Upload video to Cloudinary with transformations
     const videoTimestamp = Math.floor(Date.now() / 1000);
     const videoPublicId = `subclips/clip_${user.id}_${videoTimestamp}`;
-    
-    // Build transformation with QR overlay based on orientation
-    const qrLayerId = qrPngPublicId.replace(/\//g, ':');
     
     // Set dimensions based on orientation
     const dimensions = orientation === 'vertical' 
       ? 'w_1080,h_1920'  // 9:16 for TikTok/Reels
       : 'w_1920,h_1080'; // 16:9 for YouTube/Facebook
     
-    // Calculate when QR should appear (last 2.5 seconds of clip as end-card)
-    const clipDuration = end_time - start_time;
-    const qrDisplayDuration = 2.5; // Show QR in last 2.5 seconds only
-    const qrStartOffset = Math.max(0, clipDuration - qrDisplayDuration);
-    const qrAbsoluteStart = start_time + qrStartOffset;
+    // Build transformation - with or without QR overlay
+    let eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center`;
     
-    // QR size and positioning - balanced size for social media
-    const qrSize = '300'; // 300px - larger for better mobile scannability
-    const qrPaddingX = '30'; // 30px from right edge
-    const qrPaddingY = '30'; // 30px from top edge
-    
-    // End-card QR: appears only in last 2.5 seconds, high-res PNG for scannability
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
-    
-    console.log('[create-subclip] Transformation:', { 
-      orientation, 
-      qrSize,
-      qrTiming: `end-card (shows at ${qrAbsoluteStart}s for last ${qrDisplayDuration}s)`,
-      transformation: eagerTransformation 
-    });
+    if (qr_type !== 'none' && qrPngPublicId) {
+      // Add QR overlay if QR type is not 'none'
+      const qrLayerId = qrPngPublicId.replace(/\//g, ':');
+      
+      // Calculate when QR should appear (last 2.5 seconds of clip as end-card)
+      const clipDuration = end_time - start_time;
+      const qrDisplayDuration = 2.5; // Show QR in last 2.5 seconds only
+      const qrStartOffset = Math.max(0, clipDuration - qrDisplayDuration);
+      const qrAbsoluteStart = start_time + qrStartOffset;
+      
+      // QR size and positioning - balanced size for social media
+      const qrSize = '300'; // 300px - larger for better mobile scannability
+      const qrPaddingX = '30'; // 30px from right edge
+      const qrPaddingY = '30'; // 30px from top edge
+      
+      // End-card QR: appears only in last 2.5 seconds, high-res PNG for scannability
+      eagerTransformation += `/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
+      
+      console.log('[create-subclip] Transformation with QR:', { 
+        orientation, 
+        qrSize,
+        qrTiming: `end-card (shows at ${qrAbsoluteStart}s for last ${qrDisplayDuration}s)`,
+        transformation: eagerTransformation 
+      });
+    } else {
+      console.log('[create-subclip] Transformation without QR:', { 
+        orientation,
+        transformation: eagerTransformation 
+      });
+    }
     
     console.log('[create-subclip] Uploading raw video to Cloudinary');
     
@@ -345,12 +370,15 @@ serve(async (req) => {
     }
     
     console.log('[create-subclip] Processed video downloaded after', retries, 'retries');
-    console.log('[create-subclip] Processed video has end-card QR (220px, top-right, last 2.5s)');
-    console.log('[create-subclip] QR timing: appears at', qrAbsoluteStart, 'seconds in source video');
+    
+    if (qr_type !== 'none') {
+      console.log('[create-subclip] Processed video has end-card QR (300px, top-right, last 2.5s)');
+    } else {
+      console.log('[create-subclip] Processed video without QR code');
+    }
     
     const processedVideoBlob = await processedVideoResponse.blob();
     const processedVideoBuffer = await processedVideoBlob.arrayBuffer();
-    console.log('[create-subclip] Processed video downloaded');
 
     // Generate post description with Lovable AI if requested
     let generatedCaption = caption || '';
@@ -481,7 +509,7 @@ serve(async (req) => {
 
       console.log('[create-subclip] Thumbnail uploaded:', storedThumbnailUrl);
 
-      // Insert into subclip_library
+      // Insert into subclip_library with is_draft=true
       const { data: subclip, error: dbError } = await supabaseClient
         .from('subclip_library')
         .insert({
@@ -494,9 +522,10 @@ serve(async (req) => {
           caption: generatedCaption,
           hashtags,
           qr_type,
-          qr_url: qrUrl,
+          qr_url: qr_type !== 'none' ? qrUrl : null,
           thumbnail_url: storedThumbnailUrl,
-          status: 'ready'
+          status: 'ready',
+          is_draft: true  // Save as draft initially
         })
         .select()
         .single();
@@ -511,20 +540,22 @@ serve(async (req) => {
 
       // Optional: Cleanup Cloudinary assets to save storage
       try {
-        // Delete QR code from Cloudinary
-        await fetch(
-          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              public_id: qrUploadData.public_id,
-              api_key: CLOUDINARY_API_KEY,
-              timestamp: Math.floor(Date.now() / 1000),
-              signature: await generateSignature({ public_id: qrUploadData.public_id, timestamp: Math.floor(Date.now() / 1000) })
-            })
-          }
-        );
+        // Delete QR code from Cloudinary if it was created
+        if (qr_type !== 'none' && qrPngPublicId) {
+          await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/destroy`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                public_id: qrPngPublicId,
+                api_key: CLOUDINARY_API_KEY,
+                timestamp: Math.floor(Date.now() / 1000),
+                signature: await generateSignature({ public_id: qrPngPublicId, timestamp: Math.floor(Date.now() / 1000) })
+              })
+            }
+          );
+        }
         
         // Delete video from Cloudinary
         await fetch(
@@ -533,10 +564,10 @@ serve(async (req) => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              public_id: videoUploadData.public_id,
+              public_id: videoPublicId,
               api_key: CLOUDINARY_API_KEY,
               timestamp: Math.floor(Date.now() / 1000),
-              signature: await generateSignature({ public_id: videoUploadData.public_id, timestamp: Math.floor(Date.now() / 1000), resource_type: 'video' })
+              signature: await generateSignature({ public_id: videoPublicId, timestamp: Math.floor(Date.now() / 1000), resource_type: 'video' })
             })
           }
         );
