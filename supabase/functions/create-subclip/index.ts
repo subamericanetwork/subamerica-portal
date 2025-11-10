@@ -175,8 +175,8 @@ serve(async (req) => {
     const qrPaddingX = '20'; // 20px from right edge
     const qrPaddingY = '50'; // 50px from bottom edge (moved up)
     
-    // QR code overlay with minimal border interference - quiet zone is in the QR itself now
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,fl_layer_apply,g_south_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    // QR code overlay in top-right corner - away from bottom text overlays
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/l_${qrLayerId},w_${qrSize},b_white,bo_2px_solid_black,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
