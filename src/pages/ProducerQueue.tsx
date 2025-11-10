@@ -322,7 +322,7 @@ export default function ProducerQueue() {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">Caption</h4>
+                  <h4 className="font-semibold mb-2">Post Description</h4>
                   <p className="text-sm">{selectedItem.social_scheduled_posts.caption}</p>
                 </div>
 

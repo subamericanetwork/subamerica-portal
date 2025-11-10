@@ -335,17 +335,17 @@ export const SubClipGenerator = ({
 
             <Card className="p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Auto-generate caption with AI</Label>
+                <Label>Auto-generate post description with AI</Label>
                 <Switch checked={autoCaption} onCheckedChange={setAutoCaption} />
               </div>
               {!autoCaption && (
                 <div className="space-y-2">
-                  <Label>Caption</Label>
+                  <Label>Post Description</Label>
                   <Textarea
                     value={manualCaption}
                     onChange={(e) => setManualCaption(e.target.value)}
                     maxLength={2200}
-                    placeholder="Write your caption..."
+                    placeholder="Write your post description..."
                     className="min-h-[100px]"
                   />
                   <p className="text-xs text-muted-foreground">{manualCaption.length}/2200 characters</p>
@@ -407,7 +407,7 @@ export const SubClipGenerator = ({
             {generatedClip && (
               <Card className="p-4 space-y-3">
                 <div>
-                  <h4 className="font-semibold mb-2">Generated Caption</h4>
+                  <h4 className="font-semibold mb-2">Generated Post Description</h4>
                   <p className="text-sm">{generatedClip.caption}</p>
                 </div>
                 {generatedClip.hashtags && generatedClip.hashtags.length > 0 && (

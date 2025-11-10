@@ -352,12 +352,12 @@ serve(async (req) => {
     const processedVideoBuffer = await processedVideoBlob.arrayBuffer();
     console.log('[create-subclip] Processed video downloaded');
 
-    // Generate caption with Lovable AI if requested
+    // Generate post description with Lovable AI if requested
     let generatedCaption = caption || '';
     let hashtags: string[] = [];
 
     if (auto_caption && !caption) {
-      console.log('[create-subclip] Generating AI caption...');
+      console.log('[create-subclip] Generating AI post description...');
       try {
         const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
@@ -370,11 +370,11 @@ serve(async (req) => {
             messages: [
               {
                 role: 'system',
-                content: 'You are a professional social media caption writer. Create engaging captions with relevant hashtags for TikTok/Instagram. Format your response as: [Caption text]\\n\\nHashtags: #tag1 #tag2 #tag3'
+                content: 'You are a professional social media post description writer. Create engaging post descriptions with relevant hashtags for TikTok/Instagram. Format your response as: [Post description text]\\n\\nHashtags: #tag1 #tag2 #tag3'
               },
               {
                 role: 'user',
-                content: `Create a viral caption for a ${duration}s video titled "${video.title}". Include 5-8 relevant hashtags. The video is about ${video.kind.replace('_', ' ')}. Make it engaging and optimized for TikTok/Instagram Reels.`
+                content: `Create a viral post description for a ${duration}s video titled "${video.title}". Include 5-8 relevant hashtags. The video is about ${video.kind.replace('_', ' ')}. Make it engaging and optimized for TikTok/Instagram Reels.`
               }
             ]
           })
@@ -404,10 +404,10 @@ serve(async (req) => {
         
         if (!aiMessage || aiMessage.trim() === '') {
           console.error('[create-subclip] AI returned empty content');
-          throw new Error('AI returned empty caption');
+          throw new Error('AI returned empty post description');
         }
         
-        // Parse caption and hashtags
+        // Parse post description and hashtags
         const parts = aiMessage.split('Hashtags:');
         generatedCaption = parts[0].trim();
         
@@ -421,11 +421,11 @@ serve(async (req) => {
             });
         }
         
-        console.log('[create-subclip] AI caption generated:', generatedCaption);
+        console.log('[create-subclip] AI post description generated:', generatedCaption);
         console.log('[create-subclip] AI hashtags:', hashtags);
       } catch (aiError) {
-        console.error('[create-subclip] AI caption generation failed:', aiError);
-        // Provide a better fallback caption
+        console.error('[create-subclip] AI post description generation failed:', aiError);
+        // Provide a better fallback post description
         generatedCaption = `🎵 ${video.title} 🎵\n\nWatch the full video on SubAmerica! 🔥`;
         hashtags = ['#music', '#artist', '#viral', '#fyp', '#newrelease'];
         console.log('[create-subclip] Using fallback caption');
