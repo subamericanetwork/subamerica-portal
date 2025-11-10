@@ -104,7 +104,7 @@ serve(async (req) => {
     console.log('[create-subclip] Generated QR URL:', qrUrl);
 
     // Generate QR code using QR Server API - guarantees proper quiet zone
-    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=${encodeURIComponent(qrUrl)}&format=png&margin=50&ecc=H`;
+    const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=${encodeURIComponent(qrUrl)}&format=png&margin=4&ecc=H`;
     
     console.log('[create-subclip] Generating QR code via API with 50px margin');
 
@@ -191,7 +191,7 @@ serve(async (req) => {
     const qrAbsoluteStart = start_time + qrStartOffset;
     
     // QR size and positioning - balanced size for social media
-    const qrSize = '220'; // 220px - scannable but not intrusive
+    const qrSize = '300'; // 300px - larger for better mobile scannability
     const qrPaddingX = '30'; // 30px from right edge
     const qrPaddingY = '30'; // 30px from top edge
     
