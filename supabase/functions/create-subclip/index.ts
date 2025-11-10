@@ -195,8 +195,13 @@ serve(async (req) => {
     const qrPaddingX = '30'; // 30px from right edge
     const qrPaddingY = '30'; // 30px from top edge
     
+    // Text positioning - centered below QR code
+    const scanTextSize = '40'; // Font size in pixels
+    const scanTextPaddingY = parseInt(qrPaddingY) + parseInt(qrSize) + 15; // QR top padding + QR size + 15px gap
+    
     // End-card QR: appears only in last 2.5 seconds, high-res PNG for scannability
-    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}`;
+    // Text overlay: "SCAN" centered below QR code
+    const eagerTransformation = `so_${start_time},eo_${end_time}/${dimensions},c_fill,g_center/so_${qrAbsoluteStart},l_${qrLayerId},w_${qrSize},q_100,fl_layer_apply,g_north_east,x_${qrPaddingX},y_${qrPaddingY}/so_${qrAbsoluteStart},l_text:Arial_${scanTextSize}_bold:SCAN,co_rgb:ffffff,fl_layer_apply,g_north_east,x_${parseInt(qrPaddingX) + parseInt(qrSize)/2},y_${scanTextPaddingY}`;
     
     console.log('[create-subclip] Transformation:', { 
       orientation, 
