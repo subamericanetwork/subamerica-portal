@@ -55,6 +55,7 @@ import SubClipLibrary from "./pages/SubClipLibrary";
 import ProducerQueue from "./pages/ProducerQueue";
 import OAuthCallback from "./pages/OAuthCallback";
 import Streaming from "./pages/Streaming";
+import Test from "./pages/Test";
 import { useEffect } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAppLifecycle } from "@/hooks/useAppLifecycle";
@@ -106,6 +107,7 @@ const AppRoutes = () => {
           <Route path="/privacy" element={<Privacy />} />
           <Route path="/copyright" element={<Copyright />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/test" element={<Test />} />
           
           {/* Member Routes */}
           <Route path="/member/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
