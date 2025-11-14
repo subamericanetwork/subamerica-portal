@@ -1,3 +1,4 @@
+// Force rebuild
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
@@ -11,14 +12,14 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     hmr: {
-      protocol: 'ws',
-      host: 'localhost',
+      protocol: "ws",
+      host: "localhost",
       port: 8080,
-      clientPort: 8080
+      clientPort: 8080,
     },
     watch: {
-      usePolling: true
-    }
+      usePolling: true,
+    },
   },
   plugins: [
     react(),
