@@ -53,6 +53,7 @@ import SocialAnalytics from "./pages/SocialAnalytics";
 import SubClipLibrary from "./pages/SubClipLibrary";
 import ProducerQueue from "./pages/ProducerQueue";
 import OAuthCallback from "./pages/OAuthCallback";
+import Streaming from "./pages/Streaming";
 import { useEffect } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
 import { useAppLifecycle } from "@/hooks/useAppLifecycle";
@@ -116,6 +117,7 @@ const AppRoutes = () => {
           <Route path="/videos" element={<ArtistRoute><Videos /></ArtistRoute>} />
           <Route path="/audio" element={<ArtistRoute><Audio /></ArtistRoute>} />
           <Route path="/events" element={<ArtistRoute><Events /></ArtistRoute>} />
+          <Route path="/streaming" element={<ArtistRoute><Streaming /></ArtistRoute>} />
           <Route path="/posts" element={<ArtistRoute><Posts /></ArtistRoute>} />
           <Route path="/merch" element={<ArtistRoute><Merch /></ArtistRoute>} />
           <Route path="/monetization" element={<ArtistRoute><Monetization /></ArtistRoute>} />

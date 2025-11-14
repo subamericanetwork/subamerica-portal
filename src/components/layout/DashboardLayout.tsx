@@ -23,7 +23,8 @@ import {
   Share2,
   BarChart3,
   Film,
-  CheckSquare
+  CheckSquare,
+  Radio
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -83,6 +84,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Profile", href: "/profile", icon: User },
+    { name: "Go Live", href: "/streaming", icon: Radio },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Audio", href: "/audio", icon: Music2 },
     { name: "Social Console", href: "/artist-portal/social-console", icon: Share2 },
