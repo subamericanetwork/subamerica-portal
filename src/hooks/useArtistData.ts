@@ -17,6 +17,10 @@ interface Artist {
   country?: string | null;
   is_verified?: boolean;
   verified_at?: string | null;
+  subscription_tier?: 'signal' | 'sonar' | 'trident' | 'pro' | null;
+  streaming_minutes_used?: number;
+  streaming_minutes_included?: number;
+  last_streaming_reset?: string;
 }
 
 interface Video {

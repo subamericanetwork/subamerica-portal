@@ -208,7 +208,7 @@ const AdminMembership = () => {
             email: selectedUser.email,
             display_name: selectedUser.display_name,
             slug: slug,
-            subscription_tier: 'free',
+            subscription_tier: 'signal',
             is_verified: setVerified,
           });
 

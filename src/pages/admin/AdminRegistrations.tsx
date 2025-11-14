@@ -15,7 +15,10 @@ interface Artist {
   email: string;
   display_name: string;
   slug: string;
-  subscription_tier: 'free' | 'basic' | 'premium';
+  subscription_tier: 'signal' | 'sonar' | 'trident' | null;
+  streaming_minutes_used?: number;
+  streaming_minutes_included?: number;
+  last_streaming_reset?: string;
 }
 
 interface UserRole {

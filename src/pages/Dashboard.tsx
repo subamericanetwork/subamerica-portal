@@ -34,6 +34,8 @@ import { useSocialStats } from "@/hooks/useSocialStats";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { useToast } from "@/hooks/use-toast";
 
+const { toast } = useToast();
+
 interface Tip {
   id: string;
   created_at: string;
@@ -54,6 +56,7 @@ const Dashboard = () => {
   const { artist, videos, events, products, audioTracks, portSettings, loading, surfaceProducts, featuredVideo, featuredAudio, faqs } = useArtistData();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [tips, setTips] = useState<Tip[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const { stats: socialStats, loading: socialStatsLoading } = useSocialStats(artist?.id);
