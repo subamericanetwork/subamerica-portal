@@ -21,7 +21,8 @@ import {
   ArrowRight,
   Package,
   HeartHandshake,
-  Music
+  Music,
+  Radio
 } from "lucide-react";
 import { useArtistData } from "@/hooks/useArtistData";
 import { useNavigate } from "react-router-dom";
@@ -31,6 +32,7 @@ import { format } from "date-fns";
 import { SocialMediaReachCard } from "@/components/SocialMediaReachCard";
 import { useSocialStats } from "@/hooks/useSocialStats";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
+import { useToast } from "@/hooks/use-toast";
 
 interface Tip {
   id: string;
@@ -185,6 +187,46 @@ const Dashboard = () => {
     .slice(0, 1);
 
   const isNewUser = videos.length === 0 && events.length === 0 && products.length === 0;
+
+  const handlePurchaseStreamingTime = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('purchase-streaming-time', {
+        body: { artist_id: artist.id }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.url) {
+        window.open(data.url, '_blank');
+        
+        toast({
+          title: "Opening checkout...",
+          description: "Complete your purchase to add 1 hour of streaming time"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start checkout",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpgradeToTrident = async () => {
+    try {
+      toast({
+        title: "Upgrade to Trident! 🔱",
+        description: "Contact support to upgrade and get 50% off your first month"
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to start upgrade",
+        variant: "destructive"
+      });
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -411,6 +453,138 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Streaming Usage Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Radio className="h-5 w-5" />
+              Streaming Usage
+              {artist?.subscription_tier === 'trident' && (
+                <Badge variant="default" className="ml-2">🔱 Trident</Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              {artist?.subscription_tier === 'trident'
+                ? 'Your monthly livestreaming allowance'
+                : 'Upgrade to Trident to go live'
+              }
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {artist?.subscription_tier === 'trident' ? (
+              <>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Hours Used</span>
+                    <span className="font-medium">
+                      {Math.floor((artist.streaming_minutes_used || 0) / 60)}h {(artist.streaming_minutes_used || 0) % 60}m of 10h
+                    </span>
+                  </div>
+                  <Progress 
+                    value={((artist.streaming_minutes_used || 0) / 600) * 100} 
+                    className="h-2"
+                  />
+                </div>
+                
+                <div className="mt-4 flex items-center justify-between">
+                  <div>
+                    <p className="text-2xl font-bold">
+                      {Math.floor((600 - (artist.streaming_minutes_used || 0)) / 60)}h {(600 - (artist.streaming_minutes_used || 0)) % 60}m
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Remaining this month
+                    </p>
+                  </div>
+                  
+                  {(600 - (artist.streaming_minutes_used || 0)) < 120 && (
+                    <Alert variant="default" className="max-w-xs">
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        Less than 2 hours remaining
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+                
+                <div className="mt-4 pt-4 border-t">
+                  <p className="text-sm text-muted-foreground">
+                    Resets on: {artist.last_streaming_reset ? format(new Date(new Date(artist.last_streaming_reset).setMonth(new Date(artist.last_streaming_reset).getMonth() + 1)), 'MMMM 1, yyyy') : 'N/A'}
+                  </p>
+                </div>
+                
+                <div className="mt-4 space-y-2">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={handlePurchaseStreamingTime}
+                  >
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Buy 1 Hour ($15)
+                  </Button>
+                  
+                  <Button 
+                    className="w-full"
+                    onClick={() => navigate('/streaming')}
+                    disabled={(600 - (artist.streaming_minutes_used || 0)) <= 0}
+                  >
+                    <Radio className="h-4 w-4 mr-2" />
+                    Go Live Now
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
+                  <Radio className="h-8 w-8 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Livestreaming Locked</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Upgrade to Trident to go live and connect with your audience in real-time.
+                </p>
+                <ul className="text-sm text-left mb-6 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>10 hours of livestreaming per month</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Guaranteed OTT broadcast rotation</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>Unlimited video uploads</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <span>3 Muse Coins per month</span>
+                  </li>
+                </ul>
+                
+                <div className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20 rounded-lg p-4 mb-4">
+                  <Badge variant="default" className="mb-2">
+                    🎉 Limited Time Offer
+                  </Badge>
+                  <p className="text-lg font-bold">
+                    50% off your first month!
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Only $49.50 for your first month (then $99/mo)
+                  </p>
+                </div>
+                
+                <Button 
+                  size="lg" 
+                  className="w-full"
+                  onClick={handleUpgradeToTrident}
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Upgrade to Trident
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Two Column Layout: Recent Activity + Content Previews */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

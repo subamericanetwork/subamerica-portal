@@ -217,6 +217,98 @@ export type Database = {
           },
         ]
       }
+      artist_live_streams: {
+        Row: {
+          artist_id: string
+          cloudinary_public_id: string | null
+          cloudinary_vod_url: string | null
+          converted_to_track: boolean | null
+          converted_track_id: string | null
+          created_at: string | null
+          description: string | null
+          duration_minutes: number | null
+          ended_at: string | null
+          hls_playback_url: string | null
+          hls_tv_feed_url: string | null
+          id: string
+          livepush_stream_id: string | null
+          peak_viewers: number | null
+          rtmp_ingest_url: string
+          scheduled_start: string | null
+          started_at: string | null
+          status: string
+          stream_key: string
+          thumbnail_url: string | null
+          title: string
+          total_watch_time_minutes: number | null
+          updated_at: string | null
+          user_id: string
+          viewer_count: number | null
+        }
+        Insert: {
+          artist_id: string
+          cloudinary_public_id?: string | null
+          cloudinary_vod_url?: string | null
+          converted_to_track?: boolean | null
+          converted_track_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          ended_at?: string | null
+          hls_playback_url?: string | null
+          hls_tv_feed_url?: string | null
+          id?: string
+          livepush_stream_id?: string | null
+          peak_viewers?: number | null
+          rtmp_ingest_url: string
+          scheduled_start?: string | null
+          started_at?: string | null
+          status?: string
+          stream_key: string
+          thumbnail_url?: string | null
+          title: string
+          total_watch_time_minutes?: number | null
+          updated_at?: string | null
+          user_id: string
+          viewer_count?: number | null
+        }
+        Update: {
+          artist_id?: string
+          cloudinary_public_id?: string | null
+          cloudinary_vod_url?: string | null
+          converted_to_track?: boolean | null
+          converted_track_id?: string | null
+          created_at?: string | null
+          description?: string | null
+          duration_minutes?: number | null
+          ended_at?: string | null
+          hls_playback_url?: string | null
+          hls_tv_feed_url?: string | null
+          id?: string
+          livepush_stream_id?: string | null
+          peak_viewers?: number | null
+          rtmp_ingest_url?: string
+          scheduled_start?: string | null
+          started_at?: string | null
+          status?: string
+          stream_key?: string
+          thumbnail_url?: string | null
+          title?: string
+          total_watch_time_minutes?: number | null
+          updated_at?: string | null
+          user_id?: string
+          viewer_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_live_streams_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       artist_posts: {
         Row: {
           artist_id: string
@@ -414,6 +506,7 @@ export type Database = {
           email: string
           id: string
           is_verified: boolean | null
+          last_streaming_reset: string | null
           payout_paypal_email: string | null
           payout_primary_method: string | null
           payout_venmo_email: string | null
@@ -424,6 +517,8 @@ export type Database = {
           slug: string
           socials: Json | null
           state: string | null
+          streaming_minutes_included: number | null
+          streaming_minutes_used: number | null
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           subscription_expires_at: string | null
@@ -450,6 +545,7 @@ export type Database = {
           email: string
           id?: string
           is_verified?: boolean | null
+          last_streaming_reset?: string | null
           payout_paypal_email?: string | null
           payout_primary_method?: string | null
           payout_venmo_email?: string | null
@@ -460,6 +556,8 @@ export type Database = {
           slug: string
           socials?: Json | null
           state?: string | null
+          streaming_minutes_included?: number | null
+          streaming_minutes_used?: number | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_expires_at?: string | null
@@ -486,6 +584,7 @@ export type Database = {
           email?: string
           id?: string
           is_verified?: boolean | null
+          last_streaming_reset?: string | null
           payout_paypal_email?: string | null
           payout_primary_method?: string | null
           payout_venmo_email?: string | null
@@ -496,6 +595,8 @@ export type Database = {
           slug?: string
           socials?: Json | null
           state?: string | null
+          streaming_minutes_included?: number | null
+          streaming_minutes_used?: number | null
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           subscription_expires_at?: string | null
@@ -515,6 +616,8 @@ export type Database = {
         Row: {
           artist_id: string
           audio_url: string | null
+          cloudinary_public_id: string | null
+          cloudinary_resource_type: string | null
           created_at: string
           description: string | null
           duration: number | null
@@ -525,6 +628,10 @@ export type Database = {
           moderation_notes: string | null
           moderation_status: string
           published_at: string | null
+          recorded_on_mobile: boolean | null
+          recording_duration_seconds: number | null
+          source_stream_id: string | null
+          source_type: string | null
           status: string
           tags: string[] | null
           thumb_url: string | null
@@ -534,6 +641,8 @@ export type Database = {
         Insert: {
           artist_id: string
           audio_url?: string | null
+          cloudinary_public_id?: string | null
+          cloudinary_resource_type?: string | null
           created_at?: string
           description?: string | null
           duration?: number | null
@@ -544,6 +653,10 @@ export type Database = {
           moderation_notes?: string | null
           moderation_status?: string
           published_at?: string | null
+          recorded_on_mobile?: boolean | null
+          recording_duration_seconds?: number | null
+          source_stream_id?: string | null
+          source_type?: string | null
           status?: string
           tags?: string[] | null
           thumb_url?: string | null
@@ -553,6 +666,8 @@ export type Database = {
         Update: {
           artist_id?: string
           audio_url?: string | null
+          cloudinary_public_id?: string | null
+          cloudinary_resource_type?: string | null
           created_at?: string
           description?: string | null
           duration?: number | null
@@ -563,6 +678,10 @@ export type Database = {
           moderation_notes?: string | null
           moderation_status?: string
           published_at?: string | null
+          recorded_on_mobile?: boolean | null
+          recording_duration_seconds?: number | null
+          source_stream_id?: string | null
+          source_type?: string | null
           status?: string
           tags?: string[] | null
           thumb_url?: string | null
@@ -575,6 +694,13 @@ export type Database = {
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audio_tracks_source_stream_id_fkey"
+            columns: ["source_stream_id"]
+            isOneToOne: false
+            referencedRelation: "artist_live_streams"
             referencedColumns: ["id"]
           },
         ]
@@ -2154,6 +2280,41 @@ export type Database = {
           },
         ]
       }
+      streaming_time_purchases: {
+        Row: {
+          amount_paid: number
+          artist_id: string
+          id: string
+          minutes_purchased: number
+          purchased_at: string | null
+          stripe_payment_intent_id: string | null
+        }
+        Insert: {
+          amount_paid: number
+          artist_id: string
+          id?: string
+          minutes_purchased: number
+          purchased_at?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Update: {
+          amount_paid?: number
+          artist_id?: string
+          id?: string
+          minutes_purchased?: number
+          purchased_at?: string | null
+          stripe_payment_intent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streaming_time_purchases_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subclip_library: {
         Row: {
           artist_id: string
@@ -2394,6 +2555,8 @@ export type Database = {
         Row: {
           artist_id: string
           captions_url: string | null
+          cloudinary_public_id: string | null
+          cloudinary_resource_type: string | null
           created_at: string | null
           duration: number | null
           explicit: boolean | null
@@ -2406,7 +2569,11 @@ export type Database = {
           provider: string | null
           provider_id: string | null
           published_at: string | null
+          recorded_on_mobile: boolean | null
+          recording_duration_seconds: number | null
           source: string | null
+          source_stream_id: string | null
+          source_type: string | null
           status: Database["public"]["Enums"]["video_status"] | null
           tags: string[] | null
           thumb_url: string | null
@@ -2417,6 +2584,8 @@ export type Database = {
         Insert: {
           artist_id: string
           captions_url?: string | null
+          cloudinary_public_id?: string | null
+          cloudinary_resource_type?: string | null
           created_at?: string | null
           duration?: number | null
           explicit?: boolean | null
@@ -2429,7 +2598,11 @@ export type Database = {
           provider?: string | null
           provider_id?: string | null
           published_at?: string | null
+          recorded_on_mobile?: boolean | null
+          recording_duration_seconds?: number | null
           source?: string | null
+          source_stream_id?: string | null
+          source_type?: string | null
           status?: Database["public"]["Enums"]["video_status"] | null
           tags?: string[] | null
           thumb_url?: string | null
@@ -2440,6 +2613,8 @@ export type Database = {
         Update: {
           artist_id?: string
           captions_url?: string | null
+          cloudinary_public_id?: string | null
+          cloudinary_resource_type?: string | null
           created_at?: string | null
           duration?: number | null
           explicit?: boolean | null
@@ -2452,7 +2627,11 @@ export type Database = {
           provider?: string | null
           provider_id?: string | null
           published_at?: string | null
+          recorded_on_mobile?: boolean | null
+          recording_duration_seconds?: number | null
           source?: string | null
+          source_stream_id?: string | null
+          source_type?: string | null
           status?: Database["public"]["Enums"]["video_status"] | null
           tags?: string[] | null
           thumb_url?: string | null
@@ -2468,6 +2647,13 @@ export type Database = {
             referencedRelation: "artists"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "videos_source_stream_id_fkey"
+            columns: ["source_stream_id"]
+            isOneToOne: false
+            referencedRelation: "artist_live_streams"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -2478,6 +2664,11 @@ export type Database = {
       approve_artist_application: {
         Args: { admin_id: string; admin_notes?: string; application_id: string }
         Returns: Json
+      }
+      can_start_stream: { Args: { p_artist_id: string }; Returns: Json }
+      deduct_streaming_minutes: {
+        Args: { p_artist_id: string; p_minutes_used: number }
+        Returns: undefined
       }
       get_user_primary_role: {
         Args: { user_id_param: string }
@@ -2492,6 +2683,7 @@ export type Database = {
       }
       is_artist: { Args: { user_id_param: string }; Returns: boolean }
       is_artist_owner: { Args: { _artist_id: string }; Returns: boolean }
+      reset_monthly_streaming_usage: { Args: never; Returns: undefined }
       should_auto_approve_content: {
         Args: { artist_id_param: string }
         Returns: boolean
@@ -2513,7 +2705,7 @@ export type Database = {
       pay_mode: "heartland_hosted" | "woo_heartland"
       post_publish_status: "draft" | "published" | "archived"
       publish_status: "draft" | "pending" | "scheduled" | "published"
-      subscription_tier: "free" | "pro" | "premium"
+      subscription_tier: "signal" | "pro" | "trident"
       video_kind:
         | "music_video"
         | "performance_clip"
@@ -2660,7 +2852,7 @@ export const Constants = {
       pay_mode: ["heartland_hosted", "woo_heartland"],
       post_publish_status: ["draft", "published", "archived"],
       publish_status: ["draft", "pending", "scheduled", "published"],
-      subscription_tier: ["free", "pro", "premium"],
+      subscription_tier: ["signal", "pro", "trident"],
       video_kind: [
         "music_video",
         "performance_clip",

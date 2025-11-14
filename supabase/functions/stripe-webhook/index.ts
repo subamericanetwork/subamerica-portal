@@ -227,6 +227,47 @@ serve(async (req) => {
       });
     }
 
+    // Check if this is a streaming time purchase
+    if (metadata.type === 'streaming_time') {
+      logStep("Processing streaming time purchase", { artistId, minutesPurchased: metadata.minutes_purchased });
+      
+      const minutesPurchased = parseInt(metadata.minutes_purchased || '60');
+      
+      // Get current artist streaming minutes
+      const { data: artist } = await supabaseClient
+        .from('artists')
+        .select('streaming_minutes_included')
+        .eq('id', artistId)
+        .single();
+
+      if (artist) {
+        // Add purchased minutes to artist's balance
+        await supabaseClient
+          .from('artists')
+          .update({
+            streaming_minutes_included: artist.streaming_minutes_included + minutesPurchased
+          })
+          .eq('id', artistId);
+
+        // Log the purchase
+        await supabaseClient
+          .from('streaming_time_purchases')
+          .insert({
+            artist_id: artistId,
+            minutes_purchased: minutesPurchased,
+            amount_paid: session.amount_total ? session.amount_total / 100 : 15.00,
+            stripe_payment_intent_id: session.payment_intent as string
+          });
+
+        logStep("Streaming time purchase complete", { minutesPurchased });
+      }
+
+      return new Response(JSON.stringify({ received: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     // Handle tip payment
     const artistName = metadata.artist_name || "Unknown Artist";
     const artistSlug = metadata.artist_slug || "";

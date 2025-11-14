@@ -236,6 +236,172 @@ serve(async (req) => {
       );
     }
 
+    // CREATE LIVE STREAM
+    if (action === 'create-live-stream' && req.method === 'POST') {
+      const { title, description, artistId, scheduledStart } = requestBody;
+
+      console.log(`Creating live stream for artist ${artistId}`);
+
+      // Get artist data
+      const { data: artist } = await supabase
+        .from('artists')
+        .select('subscription_tier, streaming_minutes_used, streaming_minutes_included')
+        .eq('id', artistId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (!artist) {
+        throw new Error('Unauthorized');
+      }
+
+      // Check if artist is Trident tier
+      if (artist.subscription_tier !== 'trident') {
+        return new Response(
+          JSON.stringify({
+            error: 'upgrade_required',
+            message: 'Upgrade to Trident to go live!',
+            discount: {
+              code: 'GOLIVE50',
+              description: '50% off first month',
+              price: 49.50
+            }
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+
+      // Check if artist has minutes remaining
+      const minutesRemaining = artist.streaming_minutes_included - artist.streaming_minutes_used;
+      if (minutesRemaining <= 0) {
+        return new Response(
+          JSON.stringify({
+            error: 'no_minutes',
+            message: 'You\'ve used all 10 hours this month',
+            action: 'purchase',
+            price: 15.00,
+            per: '1 hour'
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+        );
+      }
+
+      // Generate unique RTMP stream key
+      const streamKey = crypto.randomUUID();
+      const rtmpUrl = `rtmp://rtmp.livepush.io/live/${streamKey}`;
+
+      // Get admin access token
+      const accessToken = await getAdminAccessToken();
+
+      // Create Livepush stream
+      const livepushResponse = await fetch('https://api.livepush.io/streams', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: title,
+          description: description || '',
+          ingest: { rtmp: rtmpUrl },
+          transcode: { hls: true, resolution: '1080p' },
+          record: true
+        }),
+      });
+
+      if (!livepushResponse.ok) {
+        const errorText = await livepushResponse.text();
+        console.error('Livepush stream creation error:', errorText);
+        throw new Error(`Failed to create stream: ${errorText}`);
+      }
+
+      const livepushStream = await livepushResponse.json();
+
+      // Store in database
+      const { data: stream } = await supabase
+        .from('artist_live_streams')
+        .insert({
+          artist_id: artistId,
+          user_id: user.id,
+          title,
+          description,
+          stream_key: streamKey,
+          rtmp_ingest_url: rtmpUrl,
+          livepush_stream_id: livepushStream.id,
+          hls_playback_url: livepushStream.playback_url,
+          status: scheduledStart ? 'scheduled' : 'ready',
+          scheduled_start: scheduledStart || null
+        })
+        .select()
+        .single();
+
+      console.log(`Live stream created: ${stream.id}`);
+
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          stream_id: stream.id,
+          rtmp_url: rtmpUrl,
+          stream_key: streamKey,
+          hls_url: livepushStream.playback_url,
+          status: stream.status,
+          minutes_remaining: minutesRemaining
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // END LIVE STREAM
+    if (action === 'end-stream' && req.method === 'POST') {
+      const { streamId } = requestBody;
+
+      const { data: stream } = await supabase
+        .from('artist_live_streams')
+        .select('*, artists!inner(user_id)')
+        .eq('id', streamId)
+        .single();
+
+      if (!stream || stream.artists.user_id !== user.id) {
+        throw new Error('Unauthorized');
+      }
+
+      // Update stream status
+      const { data: updatedStream } = await supabase
+        .from('artist_live_streams')
+        .update({
+          status: 'ended',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', streamId)
+        .select()
+        .single();
+
+      // Calculate duration and deduct minutes
+      if (updatedStream.started_at) {
+        const durationMs = new Date(updatedStream.ended_at).getTime() - new Date(updatedStream.started_at).getTime();
+        const durationMinutes = Math.ceil(durationMs / (1000 * 60));
+
+        await supabase
+          .from('artist_live_streams')
+          .update({ duration_minutes: durationMinutes })
+          .eq('id', streamId);
+
+        await supabase.rpc('deduct_streaming_minutes', {
+          p_artist_id: stream.artist_id,
+          p_minutes_used: durationMinutes
+        });
+
+        return new Response(
+          JSON.stringify({ success: true, duration_minutes: durationMinutes }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // CREATE PLAYLIST STREAM
     if (action === 'create-playlist-stream' && req.method === 'POST') {
       const { playlistId, artistId } = requestBody;
