@@ -1,0 +1,220 @@
+import { useState, useEffect } from "react";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useGoLive } from "@/hooks/useGoLive";
+import { StreamSetupForm } from "@/components/StreamSetupForm";
+import { RTMPCredentials } from "@/components/RTMPCredentials";
+import { StreamControls } from "@/components/StreamControls";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Loader2, AlertCircle, Zap, Clock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const Streaming = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [artistId, setArtistId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [eligibility, setEligibility] = useState<any>(null);
+  const { createStream, endStream, checkEligibility, stream, creating, streamStatus } = useGoLive(artistId || '');
+
+  useEffect(() => {
+    const fetchArtist = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('artists')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching artist:', error);
+        setLoading(false);
+        return;
+      }
+
+      setArtistId(data.id);
+    };
+
+    fetchArtist();
+  }, [user]);
+
+  useEffect(() => {
+    if (!artistId) return;
+
+    const checkStreamEligibility = async () => {
+      const result = await checkEligibility();
+      setEligibility(result);
+      setLoading(false);
+    };
+
+    checkStreamEligibility();
+  }, [artistId]);
+
+  const handleCreateStream = async (config: any) => {
+    if (!artistId) return;
+    await createStream(config);
+  };
+
+  const handleEndStream = async () => {
+    if (!stream) return;
+    const success = await endStream(stream.streamId);
+    if (success) {
+      navigate('/dashboard');
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!eligibility?.canStream && eligibility?.reason === 'upgrade_required') {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-yellow-500" />
+                Upgrade to Trident
+              </CardTitle>
+              <CardDescription>
+                Live streaming is available for Trident subscribers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Upgrade to the Trident tier to unlock live streaming capabilities and connect with your audience in real-time.
+              </p>
+              <div className="bg-muted p-4 rounded-lg space-y-2">
+                <h4 className="font-medium">Trident Includes:</h4>
+                <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
+                  <li>Live streaming with RTMP</li>
+                  <li>120 minutes included per month</li>
+                  <li>HLS playback for viewers</li>
+                  <li>Stream recordings saved automatically</li>
+                  <li>Real-time viewer analytics</li>
+                </ul>
+              </div>
+              <Button onClick={() => navigate('/monetization')} className="w-full">
+                Upgrade to Trident
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (!eligibility?.canStream && eligibility?.reason === 'no_minutes') {
+    return (
+      <DashboardLayout>
+        <div className="max-w-2xl mx-auto p-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5 text-orange-500" />
+                No Streaming Minutes Remaining
+              </CardTitle>
+              <CardDescription>
+                Purchase additional streaming time to continue
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  You've used all your included streaming minutes for this billing period.
+                </AlertDescription>
+              </Alert>
+              <Button onClick={() => navigate('/monetization')} className="w-full">
+                Purchase Streaming Time
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  return (
+    <DashboardLayout>
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Go Live</h1>
+          <p className="text-muted-foreground">
+            Stream live to your audience using OBS, Streamlabs, or any RTMP-compatible software
+          </p>
+          {eligibility?.minutesRemaining && (
+            <p className="text-sm text-muted-foreground mt-2">
+              {eligibility.minutesRemaining} streaming minutes remaining this month
+            </p>
+          )}
+        </div>
+
+        {!stream && streamStatus === 'idle' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Create New Stream</CardTitle>
+              <CardDescription>
+                Set up your stream details before going live
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StreamSetupForm onSubmit={handleCreateStream} loading={creating} />
+            </CardContent>
+          </Card>
+        )}
+
+        {stream && (streamStatus === 'waiting' || streamStatus === 'live') && (
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-6">
+              <RTMPCredentials
+                rtmpUrl={stream.rtmpUrl}
+                streamKey={stream.streamKey}
+                hlsPlaybackUrl={stream.hlsPlaybackUrl}
+              />
+            </div>
+            <div>
+              <StreamControls
+                streamId={stream.streamId}
+                status={streamStatus}
+                onEndStream={handleEndStream}
+              />
+            </div>
+          </div>
+        )}
+
+        {streamStatus === 'ended' && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Stream Ended</CardTitle>
+              <CardDescription>
+                Your stream has ended successfully
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Your stream recording will be available in your dashboard shortly.
+              </p>
+              <Button onClick={() => navigate('/dashboard')} className="w-full">
+                Back to Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default Streaming;
