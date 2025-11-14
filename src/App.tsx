@@ -95,7 +95,8 @@ const AppRoutes = () => {
   return (
     <>
       <MiniPlayer />
-      <InstallBanner />
+      {/* InstallBanner temporarily disabled during PWA debugging */}
+      {/* <InstallBanner /> */}
       <Routes>
           <Route path="/" element={<ArtistPortal />} />
           <Route path="/portals" element={<Portals />} />
