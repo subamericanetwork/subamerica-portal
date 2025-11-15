@@ -6,7 +6,7 @@ import "./components/jukebox-player.css";
 import { cleanupServiceWorkers } from "./lib/cleanupServiceWorkers";
 
 console.log('[Main] [1/5] Starting application initialization...');
-console.log('[Main] PWA disabled - app starting without service worker');
+console.log('[Main] PWA re-enabled with streaming protection');
 
 const rootElement = document.getElementById("root");
 if (!rootElement) {
