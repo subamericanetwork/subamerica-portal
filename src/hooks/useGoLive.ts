@@ -25,6 +25,27 @@ export const useGoLive = (artistId: string) => {
 
   const checkEligibility = async () => {
     try {
+      // Check if user is admin first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+      
+      const { data: isAdmin, error: adminError } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+      
+      if (adminError) console.error('Admin check error:', adminError);
+      
+      // If admin, grant immediate access with unlimited minutes
+      if (isAdmin) {
+        return {
+          canStream: true,
+          isAdmin: true,
+          minutesRemaining: 999999,
+          message: 'Admin access granted'
+        };
+      }
+
       const { data: artist, error } = await supabase
         .from('artists')
         .select('subscription_tier, streaming_minutes_used, streaming_minutes_included')

@@ -6,10 +6,13 @@ import { useGoLive } from "@/hooks/useGoLive";
 import { StreamSetupForm } from "@/components/StreamSetupForm";
 import { RTMPCredentials } from "@/components/RTMPCredentials";
 import { StreamControls } from "@/components/StreamControls";
+import { UpgradeToTridentCard } from "@/components/UpgradeToTridentCard";
+import { PurchaseMinutesCard } from "@/components/PurchaseMinutesCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Loader2, AlertCircle, Zap, Clock } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, Shield, Clock, AlertCircle, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Streaming = () => {
@@ -77,70 +80,31 @@ const Streaming = () => {
     );
   }
 
+  // Admin access badge
+  const AdminBadge = () => (
+    <Badge variant="default" className="mb-4">
+      <Shield className="h-3 w-3 mr-1" />
+      Admin Access
+    </Badge>
+  );
+
+  // Show upgrade card for non-admin users who need Trident
   if (!eligibility?.canStream && eligibility?.reason === 'upgrade_required') {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-yellow-500" />
-                Upgrade to Trident
-              </CardTitle>
-              <CardDescription>
-                Live streaming is available for Trident subscribers
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Upgrade to the Trident tier to unlock live streaming capabilities and connect with your audience in real-time.
-              </p>
-              <div className="bg-muted p-4 rounded-lg space-y-2">
-                <h4 className="font-medium">Trident Includes:</h4>
-                <ul className="text-sm space-y-1 list-disc list-inside text-muted-foreground">
-                  <li>Live streaming with RTMP</li>
-                  <li>120 minutes included per month</li>
-                  <li>HLS playback for viewers</li>
-                  <li>Stream recordings saved automatically</li>
-                  <li>Real-time viewer analytics</li>
-                </ul>
-              </div>
-              <Button onClick={() => navigate('/monetization')} className="w-full">
-                Upgrade to Trident
-              </Button>
-            </CardContent>
-          </Card>
+          <UpgradeToTridentCard />
         </div>
       </DashboardLayout>
     );
   }
 
+  // Show purchase minutes card for users with no minutes remaining
   if (!eligibility?.canStream && eligibility?.reason === 'no_minutes') {
     return (
       <DashboardLayout>
         <div className="max-w-2xl mx-auto p-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-orange-500" />
-                No Streaming Minutes Remaining
-              </CardTitle>
-              <CardDescription>
-                Purchase additional streaming time to continue
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  You've used all your included streaming minutes for this billing period.
-                </AlertDescription>
-              </Alert>
-              <Button onClick={() => navigate('/monetization')} className="w-full">
-                Purchase Streaming Time
-              </Button>
-            </CardContent>
-          </Card>
+          <PurchaseMinutesCard minutesRemaining={eligibility.minutesRemaining} />
         </div>
       </DashboardLayout>
     );
@@ -150,13 +114,14 @@ const Streaming = () => {
     <DashboardLayout>
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Go Live</h1>
+          <h1 className="text-3xl font-bold mb-2">Live Streaming</h1>
           <p className="text-muted-foreground">
-            Stream live to your audience using OBS, Streamlabs, or any RTMP-compatible software
+            Go live and connect with your audience in real-time
           </p>
-          {eligibility?.minutesRemaining && (
+          {eligibility?.isAdmin && <AdminBadge />}
+          {eligibility?.minutesRemaining && !eligibility?.isAdmin && (
             <p className="text-sm text-muted-foreground mt-2">
-              {eligibility.minutesRemaining} streaming minutes remaining this month
+              {eligibility.minutesRemaining} streaming minutes remaining
             </p>
           )}
         </div>
