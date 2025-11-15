@@ -331,7 +331,7 @@ serve(async (req) => {
               streaming_mode: 'own_account',
               provider: 'mux',
               stream_key: muxStream.data.stream_key,
-              rtmp_ingest_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              rtmp_ingest_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
               hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: 'ready',
               show_on_tv: false, // Own account streams are private
@@ -345,7 +345,7 @@ serve(async (req) => {
             JSON.stringify({
               success: true,
               stream_id: stream.id,
-              rtmp_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              rtmp_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
               stream_key: muxStream.data.stream_key,
               hls_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: stream.status
@@ -564,7 +564,7 @@ serve(async (req) => {
             JSON.stringify({
               success: true,
               stream_id: stream.id,
-              rtmp_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              rtmp_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
               stream_key: muxStream.data.stream_key,
               hls_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: stream.status,
