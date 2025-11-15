@@ -135,7 +135,11 @@ const Streaming = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <StreamSetupForm onSubmit={handleCreateStream} loading={creating} />
+              <StreamSetupForm
+                artistId={artistId!}
+                onSubmit={handleCreateStream}
+                loading={creating}
+              />
             </CardContent>
           </Card>
         )}

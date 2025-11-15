@@ -16,6 +16,10 @@ interface StreamConfig {
   description?: string;
   thumbnailUrl?: string;
   scheduledStart?: string;
+  streamingMode: 'own_account' | 'subamerica_managed';
+  provider?: 'mux' | 'livepush';
+  showOnTv?: boolean;
+  showOnWeb?: boolean;
 }
 
 export const useGoLive = (artistId: string) => {
@@ -24,24 +28,45 @@ export const useGoLive = (artistId: string) => {
   const [streamStatus, setStreamStatus] = useState<'idle' | 'creating' | 'waiting' | 'live' | 'ended'>('idle');
   const { toast } = useToast();
 
-  const checkEligibility = async () => {
+  const checkEligibility = async (streamingMode?: 'own_account' | 'subamerica_managed') => {
     try {
-      // Check if user is admin first
+      // For own_account mode, just check if credentials exist
+      if (streamingMode === 'own_account') {
+        const { data: credentials } = await supabase
+          .from('artist_streaming_credentials')
+          .select('provider, is_active')
+          .eq('artist_id', artistId)
+          .eq('is_active', true)
+          .maybeSingle();
+
+        if (!credentials) {
+          return {
+            canStream: false,
+            reason: 'no_credentials',
+            message: 'Please connect your streaming account first',
+          };
+        }
+
+        return {
+          canStream: true,
+          minutesRemaining: 999999, // No limits for own account
+          message: 'Using your own streaming account',
+        };
+      }
+
+      // For subamerica_managed mode, check admin OR (trident + minutes)
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
-      // Call has_role with explicit type casting
       const { data: isAdmin, error: adminError } = await supabase.rpc('has_role', {
         _user_id: user.id,
         _role: 'admin' as Database['public']['Enums']['app_role']
       });
       
-      // Log any errors for debugging
       if (adminError) {
         console.error('Admin check error:', adminError);
       }
       
-      // If admin check succeeded and user is admin, grant immediate access
       if (isAdmin === true) {
         console.log('✅ Admin access granted for user:', user.id);
         return {
@@ -51,8 +76,6 @@ export const useGoLive = (artistId: string) => {
           message: 'Admin access granted'
         };
       }
-      
-      console.log('User is not admin, checking artist subscription...');
 
       const { data: artist, error } = await supabase
         .from('artists')
