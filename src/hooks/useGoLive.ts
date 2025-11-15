@@ -147,6 +147,10 @@ export const useGoLive = (artistId: string) => {
           description: config.description,
           thumbnailUrl: config.thumbnailUrl,
           scheduledStart: config.scheduledStart,
+          streaming_mode: config.streamingMode,
+          provider: config.provider,
+          show_on_tv: config.showOnTv,
+          show_on_web: config.showOnWeb,
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
