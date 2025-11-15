@@ -309,7 +309,7 @@ serve(async (req) => {
       const accessToken = await getAdminAccessToken();
 
       // Create Livepush stream
-      const livepushResponse = await fetch('https://api.livepush.io/streams', {
+      const livepushResponse = await fetch('https://octopus.livepush.io/streams', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
