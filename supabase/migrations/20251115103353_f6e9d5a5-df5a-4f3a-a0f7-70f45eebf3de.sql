@@ -1,0 +1,2 @@
+-- Add platform_verified column to social_auth table to store official verification status from social platforms
+ALTER TABLE social_auth ADD COLUMN IF NOT EXISTS platform_verified boolean DEFAULT false;

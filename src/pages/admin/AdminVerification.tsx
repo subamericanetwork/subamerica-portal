@@ -12,6 +12,12 @@ import { toast } from "sonner";
 import { CheckCircle, XCircle, ExternalLink } from "lucide-react";
 import { SocialStat } from "@/hooks/useSocialStats";
 
+interface SocialAuth {
+  platform: string;
+  platform_verified: boolean;
+  platform_username: string | null;
+}
+
 interface VerificationRequest {
   id: string;
   artist_id: string;
@@ -23,6 +29,7 @@ interface VerificationRequest {
     email: string;
     slug: string;
     artist_social_stats: SocialStat[];
+    social_auth: SocialAuth[];
   };
 }
 
@@ -48,7 +55,8 @@ const AdminVerification = () => {
             display_name, 
             email, 
             slug,
-            artist_social_stats(*)
+            artist_social_stats(*),
+            social_auth(platform, platform_verified, platform_username)
           )
         `)
         .order('requested_at', { ascending: false });
@@ -344,6 +352,33 @@ const AdminVerification = () => {
                   );
                 })()}
               </div>
+
+              {/* Platform Verification Status */}
+              {selectedRequest.artists.social_auth && selectedRequest.artists.social_auth.length > 0 && (
+                <div>
+                  <h3 className="font-semibold mb-2">Platform Verification Status</h3>
+                  <div className="space-y-2">
+                    {selectedRequest.artists.social_auth.map(auth => (
+                      <div key={auth.platform} className="flex items-center justify-between p-3 border rounded-lg">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium capitalize">{auth.platform}</span>
+                          {auth.platform_username && (
+                            <span className="text-sm text-muted-foreground">@{auth.platform_username}</span>
+                          )}
+                        </div>
+                        {auth.platform_verified ? (
+                          <Badge className="bg-blue-500 text-white">
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            Platform Verified
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline">Not Verified</Badge>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div>
                 <h3 className="font-semibold mb-2">Verification Evidence</h3>

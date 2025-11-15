@@ -51,7 +51,7 @@ serve(async (req) => {
 
       const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
       authUrl.searchParams.set('client_key', clientId!);
-      authUrl.searchParams.set('scope', 'user.info.basic,video.upload,video.publish');
+      authUrl.searchParams.set('scope', 'user.info.basic,video.upload,video.publish,artist.certification.read,user.info.profile');
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('redirect_uri', redirectUri);
       authUrl.searchParams.set('state', state);
@@ -104,14 +104,15 @@ serve(async (req) => {
         throw new Error(tokenData.error_description || 'Failed to get access token');
       }
 
-      // Get user info
-      const userInfoResponse = await fetch('https://open.tiktokapis.com/v2/user/info/', {
+      // Get user info including verification status
+      const userInfoResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,is_verified', {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`,
         },
       });
 
       const userInfo = await userInfoResponse.json();
+      const isVerified = userInfo?.data?.user?.is_verified || false;
 
       // Store tokens in social_auth
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
@@ -125,6 +126,7 @@ serve(async (req) => {
           expires_at: expiresAt.toISOString(),
           platform_user_id: userInfo.data.user.open_id,
           platform_username: userInfo.data.user.display_name,
+          platform_verified: isVerified,
           is_active: true,
         }, {
           onConflict: 'artist_id,platform'
