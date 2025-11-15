@@ -318,6 +318,7 @@ serve(async (req) => {
         body: JSON.stringify({
           name: title,
           description: description || '',
+          category: 'music',
           ingest: { rtmp: rtmpUrl },
           transcode: { hls: true, resolution: '1080p' },
           record: true
