@@ -6,14 +6,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Share2, Clock, CheckCircle, AlertCircle, XCircle } from "lucide-react";
+import { Share2, Clock, CheckCircle, AlertCircle, XCircle, TrendingUp, Users, Heart, Video, RefreshCw } from "lucide-react";
 import SchedulePostDialog from "@/components/SchedulePostDialog";
+import { TikTokVideoList } from "@/components/TikTokVideoList";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 
 interface SocialAuth {
   platform: string;
   platform_username: string;
   is_active: boolean;
   expires_at: string;
+  platform_verified?: boolean;
 }
 
 interface ScheduledPost {
@@ -87,7 +90,7 @@ const SocialConsole = () => {
     try {
       const { data } = await supabase
         .from('social_auth')
-        .select('platform, platform_username, is_active, expires_at')
+        .select('platform, platform_username, is_active, expires_at, platform_verified')
         .eq('is_active', true);
 
       setConnectedAccounts(data || []);
@@ -95,6 +98,48 @@ const SocialConsole = () => {
       console.error('Error fetching connected accounts:', error);
     }
   };
+
+  const syncTikTokStats = async () => {
+    try {
+      toast.loading('Syncing TikTok stats...');
+      const { data, error } = await supabase.functions.invoke('sync-tiktok-stats');
+      
+      if (error) throw error;
+      
+      toast.success(`Synced ${data.synced} account(s)`);
+      if (artistId) {
+        fetchTikTokStats();
+      }
+    } catch (error) {
+      console.error('Error syncing stats:', error);
+      toast.error('Failed to sync stats');
+    }
+  };
+
+  const [tiktokStats, setTiktokStats] = useState<any>(null);
+  
+  const fetchTikTokStats = async () => {
+    if (!artistId) return;
+    
+    try {
+      const { data } = await supabase
+        .from('artist_social_stats')
+        .select('*')
+        .eq('artist_id', artistId)
+        .eq('platform', 'tiktok')
+        .single();
+      
+      setTiktokStats(data);
+    } catch (error) {
+      console.error('Error fetching TikTok stats:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (artistId) {
+      fetchTikTokStats();
+    }
+  }, [artistId]);
 
   const fetchScheduledPosts = async (id: string) => {
     try {
@@ -199,6 +244,7 @@ const SocialConsole = () => {
         <TabsList>
           <TabsTrigger value="accounts">Connected Accounts</TabsTrigger>
           <TabsTrigger value="scheduled">Scheduled Posts</TabsTrigger>
+          <TabsTrigger value="tiktok">TikTok</TabsTrigger>
         </TabsList>
 
         <TabsContent value="accounts" className="space-y-4">
@@ -305,6 +351,73 @@ const SocialConsole = () => {
                 </Card>
               ))}
             </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="tiktok" className="space-y-6">
+          {connectedAccounts.find(a => a.platform === 'tiktok') ? (
+            <>
+              {tiktokStats && (
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-2">
+                        🎵 TikTok Statistics
+                        {connectedAccounts.find(a => a.platform === 'tiktok')?.platform_verified && (
+                          <VerifiedBadge size="sm" />
+                        )}
+                      </CardTitle>
+                      <CardDescription>
+                        Last updated: {new Date(tiktokStats.last_updated).toLocaleString()}
+                      </CardDescription>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={syncTikTokStats}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Sync Stats
+                    </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
+                        <Users className="h-6 w-6 mb-2 text-primary" />
+                        <div className="text-2xl font-bold">{tiktokStats.followers_count?.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">Followers</div>
+                      </div>
+                      <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
+                        <TrendingUp className="h-6 w-6 mb-2 text-primary" />
+                        <div className="text-2xl font-bold">{tiktokStats.metrics?.following_count?.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">Following</div>
+                      </div>
+                      <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
+                        <Heart className="h-6 w-6 mb-2 text-primary" />
+                        <div className="text-2xl font-bold">{tiktokStats.metrics?.likes_count?.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">Total Likes</div>
+                      </div>
+                      <div className="flex flex-col items-center p-4 bg-muted rounded-lg">
+                        <Video className="h-6 w-6 mb-2 text-primary" />
+                        <div className="text-2xl font-bold">{tiktokStats.metrics?.video_count?.toLocaleString()}</div>
+                        <div className="text-sm text-muted-foreground">Videos</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <TikTokVideoList />
+            </>
+          ) : (
+            <Card>
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground mb-4">Connect your TikTok account to view stats and videos</p>
+                <Button onClick={() => handleConnect('tiktok')}>
+                  Connect TikTok
+                </Button>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
       </Tabs>

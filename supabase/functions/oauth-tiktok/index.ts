@@ -51,7 +51,7 @@ serve(async (req) => {
 
       const authUrl = new URL('https://www.tiktok.com/v2/auth/authorize/');
       authUrl.searchParams.set('client_key', clientId!);
-      authUrl.searchParams.set('scope', 'user.info.basic,video.upload,video.publish,artist.certification.read,user.info.profile');
+      authUrl.searchParams.set('scope', 'user.info.basic,video.upload,video.publish,artist.certification.read,user.info.profile,user.info.stats,video.list');
       authUrl.searchParams.set('response_type', 'code');
       authUrl.searchParams.set('redirect_uri', redirectUri);
       authUrl.searchParams.set('state', state);
@@ -104,15 +104,16 @@ serve(async (req) => {
         throw new Error(tokenData.error_description || 'Failed to get access token');
       }
 
-      // Get user info including verification status
-      const userInfoResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,is_verified', {
+      // Get user info including verification status and stats
+      const userInfoResponse = await fetch('https://open.tiktokapis.com/v2/user/info/?fields=open_id,union_id,avatar_url,display_name,username,is_verified,follower_count,following_count,likes_count,video_count', {
         headers: {
           'Authorization': `Bearer ${tokenData.access_token}`,
         },
       });
 
       const userInfo = await userInfoResponse.json();
-      const isVerified = userInfo?.data?.user?.is_verified || false;
+      const userData = userInfo?.data?.user || {};
+      const isVerified = userData.is_verified || false;
 
       // Store tokens in social_auth
       const expiresAt = new Date(Date.now() + tokenData.expires_in * 1000);
@@ -124,13 +125,35 @@ serve(async (req) => {
           access_token: tokenData.access_token,
           refresh_token: tokenData.refresh_token,
           expires_at: expiresAt.toISOString(),
-          platform_user_id: userInfo.data.user.open_id,
-          platform_username: userInfo.data.user.display_name,
+          platform_user_id: userData.open_id,
+          platform_username: userData.display_name,
           platform_verified: isVerified,
           is_active: true,
         }, {
           onConflict: 'artist_id,platform'
         });
+
+      // Store follower stats in artist_social_stats
+      if (userData.follower_count !== undefined) {
+        await supabaseClient
+          .from('artist_social_stats')
+          .upsert({
+            artist_id: artist.id,
+            platform: 'tiktok',
+            followers_count: userData.follower_count,
+            profile_url: `https://www.tiktok.com/@${userData.username || userData.display_name}`,
+            metrics: {
+              following_count: userData.following_count || 0,
+              likes_count: userData.likes_count || 0,
+              video_count: userData.video_count || 0,
+            },
+            is_visible: true,
+            show_stats: true,
+            last_updated: new Date().toISOString(),
+          }, {
+            onConflict: 'artist_id,platform'
+          });
+      }
 
       // Clean up state
       await supabaseClient

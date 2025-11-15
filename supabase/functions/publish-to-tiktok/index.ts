@@ -32,27 +32,75 @@ serve(async (req) => {
   }
 
   try {
-    const { subclip_id, scheduled_post_id, caption, hashtags, privacy_level = 'public' } = await req.json();
+    const { subclip_id, video_id, audio_id, scheduled_post_id, caption, hashtags, privacy_level = 'public' } = await req.json();
 
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Get SubClip
-    const { data: subclip } = await supabaseClient
-      .from('subclip_library')
-      .select('*, artists(user_id)')
-      .eq('id', subclip_id)
-      .single();
+    let videoBlob: Blob | null = null;
+    let artistId: string | null = null;
+    let mediaType = 'subclip';
 
-    if (!subclip) throw new Error('SubClip not found');
+    // Get media based on type
+    if (subclip_id) {
+      // Get SubClip
+      const { data: subclip } = await supabaseClient
+        .from('subclip_library')
+        .select('*, artists(user_id)')
+        .eq('id', subclip_id)
+        .single();
+
+      if (!subclip) throw new Error('SubClip not found');
+      artistId = subclip.artist_id;
+
+      const { data } = await supabaseClient.storage
+        .from('social_clips')
+        .download(subclip.clip_url.split('/social_clips/')[1]);
+      videoBlob = data;
+    } else if (video_id) {
+      // Get Video
+      const { data: video } = await supabaseClient
+        .from('videos')
+        .select('*, artists(user_id)')
+        .eq('id', video_id)
+        .single();
+
+      if (!video) throw new Error('Video not found');
+      artistId = video.artist_id;
+      mediaType = 'video';
+
+      const { data } = await supabaseClient.storage
+        .from('videos')
+        .download(video.video_url.split('/videos/')[1]);
+      videoBlob = data;
+    } else if (audio_id) {
+      // Get Audio - need to handle audio to video conversion
+      const { data: audio } = await supabaseClient
+        .from('audio_tracks')
+        .select('*, artists(user_id)')
+        .eq('id', audio_id)
+        .single();
+
+      if (!audio) throw new Error('Audio track not found');
+      artistId = audio.artist_id;
+      mediaType = 'audio';
+
+      // For audio, we'd need a static image + audio
+      // TikTok requires video format, so this needs special handling
+      throw new Error('Audio to TikTok publishing requires video conversion - coming soon');
+    } else {
+      throw new Error('Must provide subclip_id, video_id, or audio_id');
+    }
+
+    if (!videoBlob) throw new Error('Failed to download media');
 
     // Get auth
     let { data: auth } = await supabaseClient
       .from('social_auth')
       .select('*')
-      .eq('artist_id', subclip.artist_id)
+      .eq('artist_id', artistId)
       .eq('platform', 'tiktok')
       .eq('is_active', true)
       .single();
@@ -73,13 +121,6 @@ serve(async (req) => {
         .eq('id', auth.id);
       auth.access_token = newTokens.access_token;
     }
-
-    // Download video
-    const { data: videoBlob } = await supabaseClient.storage
-      .from('social_clips')
-      .download(subclip.clip_url.split('/social_clips/')[1]);
-
-    if (!videoBlob) throw new Error('Failed to download video');
 
     const videoBytes = new Uint8Array(await videoBlob.arrayBuffer());
 
@@ -166,8 +207,10 @@ serve(async (req) => {
     await supabaseClient
       .from('social_posts')
       .insert({
-        artist_id: subclip.artist_id,
-        subclip_id,
+        artist_id: artistId,
+        subclip_id: subclip_id || null,
+        video_id: video_id || null,
+        audio_id: audio_id || null,
         scheduled_post_id,
         platform: 'tiktok',
         external_id: publishId,
