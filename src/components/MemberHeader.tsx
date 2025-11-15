@@ -6,11 +6,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
 
+interface ActiveStream {
+  id: string;
+  title: string;
+  status: string;
+}
+
 export function MemberHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut, user } = useAuth();
   const [hasPortalAccess, setHasPortalAccess] = useState(false);
+  const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
 
   useEffect(() => {
     const checkPortalAccess = async () => {
@@ -26,6 +33,56 @@ export function MemberHeader() {
     };
 
     checkPortalAccess();
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const checkActiveStream = async () => {
+      const { data: artistData } = await supabase
+        .from('artists')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!artistData) return;
+
+      const { data: stream } = await supabase
+        .from('artist_live_streams')
+        .select('id, title, status')
+        .eq('artist_id', artistData.id)
+        .eq('status', 'live')
+        .single();
+
+      setActiveStream(stream);
+    };
+
+    checkActiveStream();
+
+    // Subscribe to real-time updates
+    const channel = supabase
+      .channel('artist-live-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'artist_live_streams'
+        },
+        (payload) => {
+          const newStream = payload.new as ActiveStream;
+          if (newStream.status === 'live') {
+            setActiveStream(newStream);
+          } else {
+            setActiveStream(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const handleLogout = async () => {
@@ -71,6 +128,19 @@ export function MemberHeader() {
             </Button>
           ))}
           
+          {/* Live Now Button - Desktop */}
+          {activeStream && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="hidden md:flex gap-2 animate-pulse bg-red-600 hover:bg-red-700"
+              onClick={() => navigate("/streaming")}
+            >
+              <Radio className="h-4 w-4" />
+              LIVE
+            </Button>
+          )}
+          
           {/* Portal Dashboard Link (Artists/Admins Only - Desktop) */}
           {hasPortalAccess && (
             <Button
@@ -96,6 +166,18 @@ export function MemberHeader() {
               <item.icon className="h-4 w-4" />
             </Button>
           ))}
+          
+          {/* Live Now Button - Mobile */}
+          {activeStream && (
+            <Button
+              variant="destructive"
+              size="sm"
+              className="md:hidden animate-pulse bg-red-600 hover:bg-red-700"
+              onClick={() => navigate("/streaming")}
+            >
+              <Radio className="h-4 w-4" />
+            </Button>
+          )}
           
           {/* Mobile Portal Dashboard Icon */}
           {hasPortalAccess && (
