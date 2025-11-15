@@ -50,6 +50,14 @@ interface Order {
   total_amount: number;
 }
 
+interface ActiveStream {
+  id: string;
+  title: string;
+  started_at: string;
+  viewer_count: number;
+  status: string;
+}
+
 const Dashboard = () => {
   const { artist, videos, events, products, audioTracks, portSettings, loading, surfaceProducts, featuredVideo, featuredAudio, faqs } = useArtistData();
   const { user } = useAuth();
@@ -60,6 +68,8 @@ const Dashboard = () => {
   const { stats: socialStats, loading: socialStatsLoading } = useSocialStats(artist?.id);
   const [loadingPayments, setLoadingPayments] = useState(true);
   const [checkingRole, setCheckingRole] = useState(true);
+  const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
+  const [streamDuration, setStreamDuration] = useState<string>("");
 
   useEffect(() => {
     checkArtistRole();
@@ -68,8 +78,71 @@ const Dashboard = () => {
   useEffect(() => {
     if (artist) {
       fetchPaymentData();
+      checkActiveStream();
     }
   }, [artist]);
+
+  useEffect(() => {
+    if (!artist) return;
+
+    // Subscribe to real-time stream updates
+    const channel = supabase
+      .channel('dashboard-stream-status')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'artist_live_streams',
+          filter: `artist_id=eq.${artist.id}`
+        },
+        (payload) => {
+          const stream = payload.new as ActiveStream;
+          if (stream.status === 'live') {
+            setActiveStream(stream);
+          } else {
+            setActiveStream(null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [artist]);
+
+  useEffect(() => {
+    if (!activeStream?.started_at) return;
+
+    const updateDuration = () => {
+      const start = new Date(activeStream.started_at);
+      const now = new Date();
+      const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
+      const hours = Math.floor(diff / 3600);
+      const minutes = Math.floor((diff % 3600) / 60);
+      const seconds = diff % 60;
+      setStreamDuration(`${hours > 0 ? `${hours}:` : ''}${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
+    };
+
+    updateDuration();
+    const interval = setInterval(updateDuration, 1000);
+
+    return () => clearInterval(interval);
+  }, [activeStream]);
+
+  const checkActiveStream = async () => {
+    if (!artist) return;
+
+    const { data: stream } = await supabase
+      .from('artist_live_streams')
+      .select('id, title, started_at, viewer_count, status')
+      .eq('artist_id', artist.id)
+      .eq('status', 'live')
+      .single();
+
+    setActiveStream(stream);
+  };
 
   const checkArtistRole = async () => {
     if (!user) {
@@ -232,6 +305,38 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-8 space-y-6">
+        {/* Active Stream Alert */}
+        {activeStream && (
+          <Alert className="border-red-500 bg-red-500/10">
+            <Radio className="h-5 w-5 text-red-500 animate-pulse" />
+            <AlertDescription className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="font-semibold text-lg mb-1">
+                  🔴 You're Live! {activeStream.title}
+                </div>
+                <div className="text-sm text-muted-foreground flex items-center gap-4">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {streamDuration}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Eye className="h-3 w-3" />
+                    {activeStream.viewer_count || 0} viewers
+                  </span>
+                </div>
+              </div>
+              <Button 
+                onClick={() => navigate("/streaming")}
+                size="lg"
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Go to Stream Controls
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Hero Section */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
