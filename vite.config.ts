@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => ({
         description: 'Independent media network amplifying fearless art, sound, and stories 24/7',
         theme_color: '#00CCD6',
         background_color: '#0A1214',
-        display: 'minimal-ui',
+        display: 'standalone',
         scope: '/',
         start_url: '/?pwa=true',
         orientation: 'portrait-primary',
