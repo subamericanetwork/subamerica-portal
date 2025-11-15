@@ -535,7 +535,7 @@ serve(async (req) => {
                 streaming_mode: 'subamerica_managed',
                 provider: 'mux',
                 stream_key: muxStream.data.stream_key,
-                rtmp_ingest_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+                rtmp_ingest_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
                 hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
                 hls_tv_feed_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
                 status: scheduledStart ? 'scheduled' : 'ready',
