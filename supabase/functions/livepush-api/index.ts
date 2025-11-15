@@ -254,8 +254,16 @@ serve(async (req) => {
         throw new Error('Unauthorized');
       }
 
-      // Check if artist is Trident tier
-      if (artist.subscription_tier !== 'trident') {
+      // Check if user is admin
+      const { data: isAdmin } = await supabase.rpc('has_role', {
+        _user_id: user.id,
+        _role: 'admin'
+      });
+      
+      console.log(`User ${user.id} admin status: ${isAdmin}`);
+
+      // Check if artist is Trident tier (skip for admins)
+      if (!isAdmin && artist.subscription_tier !== 'trident') {
         return new Response(
           JSON.stringify({
             error: 'upgrade_required',
@@ -270,9 +278,13 @@ serve(async (req) => {
         );
       }
 
-      // Check if artist has minutes remaining
-      const minutesRemaining = artist.streaming_minutes_included - artist.streaming_minutes_used;
-      if (minutesRemaining <= 0) {
+      // Calculate minutes remaining
+      const minutesRemaining = isAdmin 
+        ? 999999 
+        : artist.streaming_minutes_included - artist.streaming_minutes_used;
+
+      // Check if artist has minutes remaining (skip for admins)
+      if (!isAdmin && minutesRemaining <= 0) {
         return new Response(
           JSON.stringify({
             error: 'no_minutes',
@@ -283,6 +295,10 @@ serve(async (req) => {
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
         );
+      }
+
+      if (isAdmin) {
+        console.log('✅ Admin user - bypassing subscription checks');
       }
 
       // Generate unique RTMP stream key
