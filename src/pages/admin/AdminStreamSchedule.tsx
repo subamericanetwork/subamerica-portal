@@ -40,7 +40,7 @@ interface StreamSchedule {
 const AdminStreamSchedule = () => {
   const [streams, setStreams] = useState<StreamSchedule[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [rejectionDialog, setRejectionDialog] = useState<{ open: boolean; streamId: string | null }>({ 
     open: false, 
     streamId: null 

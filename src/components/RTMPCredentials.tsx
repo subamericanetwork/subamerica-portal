@@ -2,12 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Copy, Check, Eye, EyeOff, Monitor, Smartphone, ExternalLink } from "lucide-react";
+import { Copy, Check, Eye, EyeOff, Monitor, Smartphone, ExternalLink, Shield, ShieldOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface RTMPCredentialsProps {
   rtmpUrl: string;
@@ -21,8 +22,14 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
   const [copiedHls, setCopiedHls] = useState(false);
   const [copiedAll, setCopiedAll] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [useSecure, setUseSecure] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
+
+  // Generate both RTMP URLs
+  const rtmpUrlInsecure = rtmpUrl.replace('rtmps://', 'rtmp://').replace(':443', ':5222');
+  const rtmpUrlSecure = rtmpUrl.includes('rtmps://') ? rtmpUrl : rtmpUrl.replace('rtmp://', 'rtmps://').replace(':5222', ':443');
+  const displayRtmpUrl = useSecure ? rtmpUrlSecure : rtmpUrlInsecure;
 
   const copyToClipboard = async (text: string, type: 'url' | 'key' | 'hls' | 'all') => {
     try {
@@ -58,7 +65,7 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
   };
 
   const copyAllCredentials = () => {
-    const allCreds = `RTMP URL: ${rtmpUrl}\nStream Key: ${streamKey}\nHLS Playback URL: ${hlsPlaybackUrl}`;
+    const allCreds = `RTMP URL: ${displayRtmpUrl}\nStream Key: ${streamKey}\nHLS Playback URL: ${hlsPlaybackUrl}`;
     copyToClipboard(allCreds, 'all');
   };
 
@@ -88,23 +95,72 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
         </div>
       </CardHeader>
       <CardContent className="space-y-4 sm:space-y-6">
+        <Alert>
+          <AlertDescription className="text-xs sm:text-sm">
+            <strong>Connection Issues?</strong> Try using standard RTMP first. Some OBS versions have trouble with secure RTMPS connections.
+          </AlertDescription>
+        </Alert>
+
+        <div className="space-y-3">
+          <Label className="text-sm sm:text-base">Connection Type</Label>
+          <RadioGroup 
+            value={useSecure ? "secure" : "standard"} 
+            onValueChange={(val) => setUseSecure(val === "secure")} 
+            className="space-y-2"
+          >
+            <div className="flex items-start space-x-3 rounded-lg border border-border p-3 hover:bg-muted/50 cursor-pointer">
+              <RadioGroupItem value="standard" id="standard" />
+              <div className="flex-1">
+                <Label htmlFor="standard" className="font-medium cursor-pointer flex items-center gap-2">
+                  <ShieldOff className="h-4 w-4" />
+                  Standard RTMP (Recommended)
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  More compatible with OBS and most streaming software (Port 5222)
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start space-x-3 rounded-lg border border-border p-3 hover:bg-muted/50 cursor-pointer">
+              <RadioGroupItem value="secure" id="secure" />
+              <div className="flex-1">
+                <Label htmlFor="secure" className="font-medium cursor-pointer flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Secure RTMPS
+                </Label>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Encrypted connection - may not work with all OBS versions (Port 443)
+                </p>
+              </div>
+            </div>
+          </RadioGroup>
+        </div>
+
         <div className="space-y-2">
-          <Label htmlFor="rtmpUrl" className="text-sm sm:text-base">RTMP Server URL</Label>
+          <Label htmlFor="rtmpUrl" className="text-sm sm:text-base">Server URL</Label>
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               id="rtmpUrl"
-              value={rtmpUrl}
+              value={displayRtmpUrl}
               readOnly
               className={`font-mono ${isMobile ? 'text-sm' : 'text-xs'} min-h-[44px]`}
             />
             <Button
               variant="outline"
               size={isMobile ? "default" : "icon"}
-              onClick={() => copyToClipboard(rtmpUrl, 'url')}
+              onClick={() => copyToClipboard(displayRtmpUrl, 'url')}
               className={isMobile ? "w-full sm:w-auto justify-center min-h-[44px]" : ""}
             >
-              {copiedUrl ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {isMobile && <span className="ml-2">Copy URL</span>}
+              {copiedUrl ? (
+                <>
+                  <Check className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                  {isMobile && "Copied"}
+                </>
+              ) : (
+                <>
+                  <Copy className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                  {isMobile && "Copy"}
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -112,41 +168,56 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
         <div className="space-y-2">
           <Label htmlFor="streamKey" className="text-sm sm:text-base">Stream Key</Label>
           <div className="flex flex-col sm:flex-row gap-2">
-            <Input
-              id="streamKey"
-              value={maskedKey}
-              readOnly
-              type={showKey ? "text" : "password"}
-              className={`font-mono ${isMobile ? 'text-sm' : 'text-xs'} min-h-[44px]`}
-            />
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-1">
+              <Input
+                id="streamKey"
+                value={maskedKey}
+                readOnly
+                type={showKey ? "text" : "password"}
+                className={`font-mono ${isMobile ? 'text-sm' : 'text-xs'} min-h-[44px]`}
+              />
               <Button
                 variant="outline"
                 size={isMobile ? "default" : "icon"}
                 onClick={() => setShowKey(!showKey)}
-                className={isMobile ? "flex-1 min-h-[44px]" : ""}
+                className={isMobile ? "shrink-0" : ""}
               >
-                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                {isMobile && <span className="ml-2">{showKey ? "Hide" : "Show"}</span>}
-              </Button>
-              <Button
-                variant="outline"
-                size={isMobile ? "default" : "icon"}
-                onClick={() => copyToClipboard(streamKey, 'key')}
-                className={isMobile ? "flex-1 min-h-[44px]" : ""}
-              >
-                {copiedKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {isMobile && <span className="ml-2">Copy</span>}
+                {showKey ? (
+                  <>
+                    <EyeOff className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                    {isMobile && "Hide"}
+                  </>
+                ) : (
+                  <>
+                    <Eye className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                    {isMobile && "Show"}
+                  </>
+                )}
               </Button>
             </div>
+            <Button
+              variant="outline"
+              size={isMobile ? "default" : "icon"}
+              onClick={() => copyToClipboard(streamKey, 'key')}
+              className={isMobile ? "w-full sm:w-auto justify-center min-h-[44px]" : ""}
+            >
+              {copiedKey ? (
+                <>
+                  <Check className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                  {isMobile && "Copied"}
+                </>
+              ) : (
+                <>
+                  <Copy className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                  {isMobile && "Copy"}
+                </>
+              )}
+            </Button>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Keep this private! Anyone with your stream key can stream to your channel.
-          </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="hlsUrl" className="text-sm sm:text-base">HLS Playback URL</Label>
+          <Label htmlFor="hlsUrl" className="text-sm sm:text-base">HLS Playback URL (for viewing)</Label>
           <div className="flex flex-col sm:flex-row gap-2">
             <Input
               id="hlsUrl"
@@ -160,108 +231,120 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
               onClick={() => copyToClipboard(hlsPlaybackUrl, 'hls')}
               className={isMobile ? "w-full sm:w-auto justify-center min-h-[44px]" : ""}
             >
-              {copiedHls ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              {isMobile && <span className="ml-2">Copy URL</span>}
+              {copiedHls ? (
+                <>
+                  <Check className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                  {isMobile && "Copied"}
+                </>
+              ) : (
+                <>
+                  <Copy className={`${isMobile ? 'mr-2' : ''} h-4 w-4`} />
+                  {isMobile && "Copy"}
+                </>
+              )}
             </Button>
           </div>
-          <p className="text-xs sm:text-sm text-muted-foreground">
-            Use this URL to preview your stream or embed it elsewhere
-          </p>
         </div>
 
-        <Tabs defaultValue="desktop" className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="desktop" className="flex items-center gap-2">
-              <Monitor className="h-4 w-4" />
-              Desktop Setup
-            </TabsTrigger>
-            <TabsTrigger value="mobile" className="flex items-center gap-2">
-              <Smartphone className="h-4 w-4" />
-              Mobile Setup
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="desktop" className="space-y-4">
-            <div className="bg-muted p-4 rounded-lg space-y-2">
-              <h4 className="font-medium text-sm">OBS Studio Setup:</h4>
-              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Open OBS Studio or your streaming software</li>
-                <li>Go to Settings → Stream</li>
-                <li>Service: Custom</li>
-                <li>Paste the RTMP Server URL</li>
-                <li>Paste the Stream Key</li>
-                <li>Click "Start Streaming"</li>
-              </ol>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="mobile" className="space-y-4">
-            <Alert>
-              <Smartphone className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Recommended: Larix Broadcaster</strong>
-                <p className="text-xs mt-1">Professional RTMP streaming app, free with optional in-app purchases</p>
-                <div className="flex gap-2 mt-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs h-7"
-                    onClick={() => window.open('https://apps.apple.com/app/larix-broadcaster/id1042474385', '_blank')}
-                  >
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    iOS App Store
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-xs h-7"
-                    onClick={() => window.open('https://play.google.com/store/apps/details?id=com.wmspanel.larix_broadcaster', '_blank')}
-                  >
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Google Play
-                  </Button>
+        {!isMobile && (
+          <div className="pt-2">
+            <Button 
+              onClick={copyAllCredentials}
+              variant="default"
+              className="w-full"
+            >
+              {copiedAll ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+              Copy All Credentials
+            </Button>
+          </div>
+        )}
+
+        <div className="pt-2">
+          <Tabs defaultValue="desktop" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="desktop" className="gap-2">
+                <Monitor className="h-4 w-4" />
+                Desktop (OBS)
+              </TabsTrigger>
+              <TabsTrigger value="mobile" className="gap-2">
+                <Smartphone className="h-4 w-4" />
+                Mobile Apps
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="desktop" className="space-y-3 mt-4">
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">OBS Studio Setup:</h4>
+                <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
+                  <li>Open OBS Studio</li>
+                  <li>Go to Settings → Stream</li>
+                  <li>Service: Custom</li>
+                  <li>Paste the Server URL above</li>
+                  <li>Paste the Stream Key above</li>
+                  <li>Click OK, then Start Streaming</li>
+                </ol>
+              </div>
+              <Alert>
+                <AlertDescription className="text-xs">
+                  <strong>Tip:</strong> Start with standard RTMP. If that doesn't work, try secure RTMPS.
+                </AlertDescription>
+              </Alert>
+            </TabsContent>
+            
+            <TabsContent value="mobile" className="space-y-3 mt-4">
+              <div className="space-y-3">
+                <div>
+                  <h4 className="font-medium text-sm flex items-center gap-2">
+                    Recommended Mobile Apps:
+                  </h4>
+                  <ul className="mt-2 space-y-2">
+                    <li className="text-sm">
+                      <strong>Larix Broadcaster</strong> (iOS/Android)
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="h-auto p-0 ml-2"
+                        onClick={() => window.open('https://softvelum.com/larix/', '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Download
+                      </Button>
+                    </li>
+                    <li className="text-sm">
+                      <strong>Streamlabs</strong> (iOS/Android)
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="h-auto p-0 ml-2"
+                        onClick={() => window.open('https://streamlabs.com/mobile-app', '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Download
+                      </Button>
+                    </li>
+                    <li className="text-sm">
+                      <strong>Prism Live Studio</strong> (iOS/Android)
+                      <Button 
+                        variant="link" 
+                        size="sm" 
+                        className="h-auto p-0 ml-2"
+                        onClick={() => window.open('https://prismlive.com/', '_blank')}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Download
+                      </Button>
+                    </li>
+                  </ul>
                 </div>
-              </AlertDescription>
-            </Alert>
-
-            <div className="bg-muted p-4 rounded-lg space-y-2">
-              <h4 className="font-medium text-sm">Larix Broadcaster Setup:</h4>
-              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>Download Larix Broadcaster from your app store</li>
-                <li>Open the app and tap Settings (gear icon)</li>
-                <li>Tap "Connections" → "New Connection"</li>
-                <li>Enter a name for your stream (e.g., "SubAmerica Live")</li>
-                <li>Set Mode to "RTMP"</li>
-                <li>Paste your RTMP Server URL in the "URL" field above</li>
-                <li>Paste your Stream Key in the "Stream name" field</li>
-                <li>Save the connection and select it from the list</li>
-                <li>Tap the red record button to go live!</li>
-              </ol>
-            </div>
-
-            <div className="bg-muted p-4 rounded-lg space-y-2">
-              <h4 className="font-medium text-sm">Alternative Apps:</h4>
-              <ul className="text-xs text-muted-foreground space-y-1">
-                <li><strong>Streamlabs Mobile</strong> - User-friendly with built-in alerts</li>
-                <li><strong>Prism Live Studio</strong> - Feature-rich with multi-camera support</li>
-              </ul>
-              <p className="text-xs text-muted-foreground mt-2">
-                All these apps work the same way - just paste your RTMP URL and Stream Key
-              </p>
-            </div>
-
-            <div className="bg-muted p-4 rounded-lg space-y-2">
-              <h4 className="font-medium text-sm">Mobile Streaming Tips:</h4>
-              <ul className="text-xs text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Use Wi-Fi for best quality (or strong LTE/5G)</li>
-                <li>Keep your phone plugged in while streaming</li>
-                <li>Use landscape mode for better viewing experience</li>
-                <li>Test your stream before going live</li>
-                <li>Consider using a phone tripod or stabilizer</li>
-              </ul>
-            </div>
-          </TabsContent>
-        </Tabs>
+                <Alert>
+                  <AlertDescription className="text-xs">
+                    Each app has slightly different settings. Look for "Custom RTMP" or "RTMP Stream" options and paste your credentials.
+                  </AlertDescription>
+                </Alert>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
       </CardContent>
     </Card>
   );
