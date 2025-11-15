@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen } from "lucide-react";
+import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +17,7 @@ export function MemberHeader() {
   const location = useLocation();
   const { signOut, user } = useAuth();
   const [hasPortalAccess, setHasPortalAccess] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export function MemberHeader() {
       
       if (!error && data) {
         setHasPortalAccess(data === 'artist' || data === 'admin');
+        setIsAdmin(data === 'admin');
       }
     };
 
@@ -154,6 +156,19 @@ export function MemberHeader() {
             </Button>
           )}
           
+          {/* Stream Schedule Link (Admins Only - Desktop) */}
+          {isAdmin && (
+            <Button
+              variant={isActive("/admin/stream-schedule") ? "secondary" : "ghost"}
+              size="sm"
+              className="hidden md:flex gap-2"
+              onClick={() => navigate("/admin/stream-schedule")}
+            >
+              <Calendar className="h-4 w-4" />
+              Stream Schedule
+            </Button>
+          )}
+          
           {/* Mobile: Icons only */}
           {memberNavItems.map((item) => (
             <Button
@@ -188,6 +203,18 @@ export function MemberHeader() {
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {/* Mobile Stream Schedule Icon */}
+          {isAdmin && (
+            <Button
+              variant={isActive("/admin/stream-schedule") ? "secondary" : "ghost"}
+              size="sm"
+              className="md:hidden"
+              onClick={() => navigate("/admin/stream-schedule")}
+            >
+              <Calendar className="h-4 w-4" />
             </Button>
           )}
           

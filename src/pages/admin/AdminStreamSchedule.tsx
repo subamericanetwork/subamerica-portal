@@ -30,6 +30,9 @@ interface StreamSchedule {
   show_on_tv: boolean;
   show_on_web: boolean;
   approval_status: string;
+  status: string;
+  rtmp_ingest_url: string | null;
+  stream_key: string | null;
   created_at: string;
   artists: {
     display_name: string;
@@ -41,6 +44,7 @@ const AdminStreamSchedule = () => {
   const [streams, setStreams] = useState<StreamSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('all');
+  const [goingLive, setGoingLive] = useState<string | null>(null);
   const [rejectionDialog, setRejectionDialog] = useState<{ open: boolean; streamId: string | null }>({ 
     open: false, 
     streamId: null 
@@ -181,6 +185,37 @@ const AdminStreamSchedule = () => {
     }
   };
 
+  const handleGoLive = async (streamId: string) => {
+    setGoingLive(streamId);
+    try {
+      const { error } = await supabase
+        .from('artist_live_streams')
+        .update({
+          status: 'live',
+          started_at: new Date().toISOString()
+        })
+        .eq('id', streamId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Stream is Live!",
+        description: "The stream status has been updated to live",
+      });
+
+      fetchStreams();
+    } catch (error) {
+      console.error('Error setting stream live:', error);
+      toast({
+        title: "Error",
+        description: "Failed to set stream live",
+        variant: "destructive",
+      });
+    } finally {
+      setGoingLive(null);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", label: string }> = {
       pending: { variant: "outline", label: "Pending" },
@@ -298,35 +333,79 @@ const AdminStreamSchedule = () => {
                       </p>
                     </div>
                     
-                    {stream.approval_status === 'pending' && (
-                      <div className="flex gap-2">
+                    <div className="flex gap-2">
+                      {/* Show Go Live button for scheduled streams that are approved */}
+                      {stream.status === 'scheduled' && stream.approval_status !== 'pending' && (
                         <Button
                           variant="default"
                           size="sm"
-                          onClick={() => handleApprove(stream.id)}
-                          disabled={processing === stream.id}
+                          onClick={() => handleGoLive(stream.id)}
+                          disabled={goingLive === stream.id}
                         >
-                          {processing === stream.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
+                          {goingLive === stream.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Going Live...
+                            </>
                           ) : (
                             <>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Approve
+                              <Radio className="h-4 w-4 mr-2" />
+                              Go Live Now
                             </>
                           )}
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => setRejectionDialog({ open: true, streamId: stream.id })}
-                          disabled={processing === stream.id}
-                        >
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Reject
-                        </Button>
-                      </div>
-                    )}
+                      )}
+                      
+                      {/* Show approval buttons only for pending streams */}
+                      {stream.approval_status === 'pending' && (
+                        <>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={() => handleApprove(stream.id)}
+                            disabled={processing === stream.id}
+                          >
+                            {processing === stream.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <>
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Approve
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => setRejectionDialog({ open: true, streamId: stream.id })}
+                            disabled={processing === stream.id}
+                          >
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
+                  
+                  {/* Show RTMP credentials for approved/auto-approved streams */}
+                  {stream.approval_status !== 'pending' && stream.rtmp_ingest_url && (
+                    <div className="p-3 bg-muted rounded-lg space-y-2">
+                      <p className="text-xs font-semibold text-muted-foreground uppercase">Stream Credentials</p>
+                      <div className="font-mono text-xs space-y-1">
+                        <div>
+                          <span className="font-semibold">RTMP URL:</span>
+                          <p className="text-muted-foreground break-all">{stream.rtmp_ingest_url}</p>
+                        </div>
+                        {stream.stream_key && (
+                          <div>
+                            <span className="font-semibold">Stream Key:</span>
+                            <p className="text-muted-foreground break-all">{stream.stream_key}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))
