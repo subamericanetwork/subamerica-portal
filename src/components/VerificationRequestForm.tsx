@@ -34,6 +34,7 @@ export const VerificationRequestForm = ({
   const [missingUrls, setMissingUrls] = useState<string[]>([]);
   const [verificationMethod, setVerificationMethod] = useState<'platform_verified' | 'follower_threshold'>('follower_threshold');
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
+  const [platformVerified, setPlatformVerified] = useState<Record<string, boolean>>({});
   const [evidence, setEvidence] = useState({
     additional_notes: ""
   });
@@ -61,7 +62,23 @@ export const VerificationRequestForm = ({
       }
     };
     
+    const fetchPlatformVerification = async () => {
+      const { data } = await supabase
+        .from('social_auth')
+        .select('platform, platform_verified')
+        .eq('artist_id', artistId);
+      
+      if (data) {
+        const verified = data.reduce((acc, item) => {
+          acc[item.platform] = item.platform_verified || false;
+          return acc;
+        }, {} as Record<string, boolean>);
+        setPlatformVerified(verified);
+      }
+    };
+    
     fetchSocialStats();
+    fetchPlatformVerification();
   }, [artistId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -241,7 +258,15 @@ export const VerificationRequestForm = ({
               {socialStats.map(stat => (
                 <div key={stat.platform} className="flex items-start justify-between gap-2 text-sm">
                   <div className="flex-1">
-                    <div className="font-medium capitalize">{stat.platform}</div>
+                    <div className="font-medium capitalize flex items-center gap-2">
+                      {stat.platform}
+                      {platformVerified[stat.platform] && (
+                        <Badge variant="secondary" className="text-xs bg-blue-500 text-white">
+                          <CheckCircle className="h-3 w-3 mr-1" />
+                          Platform Verified
+                        </Badge>
+                      )}
+                    </div>
                     {stat.profile_url ? (
                       <a 
                         href={stat.profile_url} 

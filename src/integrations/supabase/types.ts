@@ -1797,6 +1797,7 @@ export type Database = {
           platform: string
           platform_user_id: string | null
           platform_username: string | null
+          platform_verified: boolean | null
           refresh_token: string | null
           updated_at: string | null
         }
@@ -1811,6 +1812,7 @@ export type Database = {
           platform: string
           platform_user_id?: string | null
           platform_username?: string | null
+          platform_verified?: boolean | null
           refresh_token?: string | null
           updated_at?: string | null
         }
@@ -1825,6 +1827,7 @@ export type Database = {
           platform?: string
           platform_user_id?: string | null
           platform_username?: string | null
+          platform_verified?: boolean | null
           refresh_token?: string | null
           updated_at?: string | null
         }
