@@ -17,6 +17,7 @@ import { LivepushVideoSync } from "@/components/LivepushVideoSync";
 import { extractThumbnailFromVideo } from "@/lib/thumbnailExtractor";
 import { VideoThumbnailGenerator } from "@/components/VideoThumbnailGenerator";
 import { SubClipGenerator } from "@/components/SubClipGenerator";
+import { ShareToTikTok } from "@/components/ShareToTikTok";
 
 const Videos = () => {
   const { artist, videos, loading } = useArtistData();
@@ -468,6 +469,13 @@ const Videos = () => {
                             <Scissors className="h-4 w-4 mr-2" />
                             Create SubClip
                           </Button>
+                          <ShareToTikTok 
+                            url={`${window.location.origin}/watch/${video.id}`}
+                            title={video.title}
+                            description={`Watch ${video.title} on Subamerica`}
+                            variant="outline"
+                            size="sm"
+                          />
                           {!video.is_featured && (
                             <Button
                               variant="outline"

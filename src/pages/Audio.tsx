@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { extractThumbnailFromVideo } from "@/lib/thumbnailExtractor";
+import { ShareToTikTok } from "@/components/ShareToTikTok";
 
 interface AudioTrack {
   id: string;
@@ -465,6 +466,13 @@ export default function Audio() {
                       <Star className="h-4 w-4 mr-1" />
                       {track.is_featured ? 'Featured' : 'Set Featured'}
                     </Button>
+                    <ShareToTikTok 
+                      url={`${window.location.origin}/audio/${track.id}`}
+                      title={track.title}
+                      description={track.description || `Listen to ${track.title} on Subamerica`}
+                      variant="outline"
+                      size="sm"
+                    />
                     <Button
                       variant={track.published_at ? 'outline' : 'default'}
                       size="sm"
