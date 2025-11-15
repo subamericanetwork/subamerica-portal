@@ -33,6 +33,7 @@ serve(async (req) => {
         artists!inner(display_name, slug)
       `)
       .eq('status', 'live')
+      .eq('show_on_tv', true)
       .order('viewer_count', { ascending: false });
 
     const sources = (liveStreams || []).map((stream: any) => ({

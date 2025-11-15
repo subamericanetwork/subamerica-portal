@@ -73,6 +73,7 @@ export default function LiveStreams() {
           )
         `)
         .eq('status', 'live')
+        .eq('show_on_web', true)
         .order('viewer_count', { ascending: false });
 
       if (error) throw error;

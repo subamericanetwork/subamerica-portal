@@ -219,6 +219,9 @@ export type Database = {
       }
       artist_live_streams: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           artist_id: string
           cloudinary_public_id: string | null
           cloudinary_vod_url: string | null
@@ -233,11 +236,16 @@ export type Database = {
           id: string
           livepush_stream_id: string | null
           peak_viewers: number | null
+          provider: string
+          rejection_reason: string | null
           rtmp_ingest_url: string
           scheduled_start: string | null
+          show_on_tv: boolean
+          show_on_web: boolean
           started_at: string | null
           status: string
           stream_key: string
+          streaming_mode: string
           thumbnail_url: string | null
           title: string
           total_watch_time_minutes: number | null
@@ -246,6 +254,9 @@ export type Database = {
           viewer_count: number | null
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           artist_id: string
           cloudinary_public_id?: string | null
           cloudinary_vod_url?: string | null
@@ -260,11 +271,16 @@ export type Database = {
           id?: string
           livepush_stream_id?: string | null
           peak_viewers?: number | null
+          provider?: string
+          rejection_reason?: string | null
           rtmp_ingest_url: string
           scheduled_start?: string | null
+          show_on_tv?: boolean
+          show_on_web?: boolean
           started_at?: string | null
           status?: string
           stream_key: string
+          streaming_mode?: string
           thumbnail_url?: string | null
           title: string
           total_watch_time_minutes?: number | null
@@ -273,6 +289,9 @@ export type Database = {
           viewer_count?: number | null
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           artist_id?: string
           cloudinary_public_id?: string | null
           cloudinary_vod_url?: string | null
@@ -287,11 +306,16 @@ export type Database = {
           id?: string
           livepush_stream_id?: string | null
           peak_viewers?: number | null
+          provider?: string
+          rejection_reason?: string | null
           rtmp_ingest_url?: string
           scheduled_start?: string | null
+          show_on_tv?: boolean
+          show_on_web?: boolean
           started_at?: string | null
           status?: string
           stream_key?: string
+          streaming_mode?: string
           thumbnail_url?: string | null
           title?: string
           total_watch_time_minutes?: number | null
@@ -411,6 +435,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "artist_social_stats_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      artist_streaming_credentials: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          encrypted_credentials: string
+          id: string
+          is_active: boolean | null
+          last_validated_at: string | null
+          provider: string
+          updated_at: string | null
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          encrypted_credentials: string
+          id?: string
+          is_active?: boolean | null
+          last_validated_at?: string | null
+          provider: string
+          updated_at?: string | null
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          encrypted_credentials?: string
+          id?: string
+          is_active?: boolean | null
+          last_validated_at?: string | null
+          provider?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "artist_streaming_credentials_artist_id_fkey"
             columns: ["artist_id"]
             isOneToOne: false
             referencedRelation: "artists"
