@@ -8,6 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { ProductPicker } from './ProductPicker';
+import { ContentPicker } from './ContentPicker';
+import { CTABuilder } from './CTABuilder';
+import { InfoPreview } from './InfoPreview';
+import { QRBuilder } from './QRBuilder';
 
 interface StreamOverlayEditorProps {
   open: boolean;
@@ -24,7 +29,9 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
   const [triggerTime, setTriggerTime] = useState<string>('');
   const [duration, setDuration] = useState<string>('15');
   const [position, setPosition] = useState<string>('bottom-right');
-  const [contentData, setContentData] = useState<string>('{}');
+  const [contentData, setContentData] = useState<any>({});
+  const [showRawJson, setShowRawJson] = useState(false);
+  const [artistId, setArtistId] = useState<string>('');
   const [platforms, setPlatforms] = useState<string[]>(['web', 'roku', 'firetv', 'appletv', 'android-tv']);
 
   useEffect(() => {
@@ -34,6 +41,27 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
       resetForm();
     }
   }, [overlayId, open]);
+
+  useEffect(() => {
+    if (open) {
+      fetchArtistId();
+    }
+  }, [open, streamId]);
+
+  const fetchArtistId = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('artist_live_streams')
+        .select('artist_id')
+        .eq('id', streamId)
+        .single();
+
+      if (error) throw error;
+      if (data) setArtistId(data.artist_id);
+    } catch (error: any) {
+      console.error('Error fetching artist ID:', error);
+    }
+  };
 
   const fetchOverlay = async () => {
     if (!overlayId) return;
@@ -54,7 +82,7 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
       setTriggerTime(data.trigger_time_seconds.toString());
       setDuration(data.duration_seconds.toString());
       setPosition(data.position);
-      setContentData(JSON.stringify(data.content_data, null, 2));
+      setContentData(data.content_data || {});
       setPlatforms(data.platforms || []);
     }
   };
@@ -64,7 +92,8 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
     setTriggerTime('');
     setDuration('15');
     setPosition('bottom-right');
-    setContentData('{}');
+    setContentData({});
+    setShowRawJson(false);
     setPlatforms(['web', 'roku', 'firetv', 'appletv', 'android-tv']);
   };
 
@@ -78,13 +107,11 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
       return;
     }
 
-    let parsedData;
-    try {
-      parsedData = JSON.parse(contentData);
-    } catch (e) {
+    // Validate content data
+    if (!contentData || Object.keys(contentData).length === 0) {
       toast({
-        title: "Invalid JSON",
-        description: "Content data must be valid JSON",
+        title: "Validation Error",
+        description: "Please configure the overlay content",
         variant: "destructive"
       });
       return;
@@ -98,7 +125,7 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
       trigger_time_seconds: parseInt(triggerTime),
       duration_seconds: parseInt(duration),
       position: position as 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center' | 'banner',
-      content_data: parsedData,
+      content_data: contentData,
       platforms
     };
 
@@ -229,18 +256,83 @@ export function StreamOverlayEditor({ open, onClose, streamId, overlayId, onSave
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="contentData">Content Data (JSON)</Label>
-            <Textarea
-              id="contentData"
-              value={contentData}
-              onChange={(e) => setContentData(e.target.value)}
-              placeholder='{"title": "Example", "price": 29.99}'
-              rows={10}
-              className="font-mono text-sm"
-            />
-            <p className="text-xs text-muted-foreground">
-              Enter JSON data specific to the overlay type
-            </p>
+            <div className="flex items-center justify-between">
+              <Label>Overlay Content</Label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowRawJson(!showRawJson)}
+              >
+                {showRawJson ? 'Show Builder' : 'Show Raw JSON'}
+              </Button>
+            </div>
+
+            {showRawJson ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={JSON.stringify(contentData, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      setContentData(JSON.parse(e.target.value));
+                    } catch {
+                      // Invalid JSON, ignore
+                    }
+                  }}
+                  rows={8}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Advanced: Edit raw JSON data
+                </p>
+              </div>
+            ) : (
+              <>
+                {overlayType === 'product' && artistId && (
+                  <ProductPicker
+                    artistId={artistId}
+                    onSelect={setContentData}
+                    selectedProductId={contentData.product_id}
+                  />
+                )}
+
+                {overlayType === 'content' && artistId && (
+                  <ContentPicker
+                    artistId={artistId}
+                    onSelect={setContentData}
+                    selectedContentId={contentData.content_id}
+                  />
+                )}
+
+                {overlayType === 'cta' && (
+                  <CTABuilder
+                    onUpdate={setContentData}
+                    initialData={contentData}
+                  />
+                )}
+
+                {overlayType === 'info' && artistId && (
+                  <InfoPreview
+                    artistId={artistId}
+                    onUpdate={setContentData}
+                    initialBio={contentData.bio}
+                  />
+                )}
+
+                {overlayType === 'qr' && (
+                  <QRBuilder
+                    onUpdate={setContentData}
+                    initialData={contentData}
+                  />
+                )}
+
+                {!artistId && overlayType !== 'cta' && overlayType !== 'qr' && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Loading artist information...
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
