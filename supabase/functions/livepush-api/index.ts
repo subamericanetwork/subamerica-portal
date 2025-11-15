@@ -238,9 +238,18 @@ serve(async (req) => {
 
     // CREATE LIVE STREAM
     if (action === 'create-live-stream' && req.method === 'POST') {
-      const { title, description, artistId, scheduledStart } = requestBody;
+      const { 
+        title, 
+        description, 
+        artistId, 
+        scheduledStart,
+        streaming_mode = 'subamerica_managed',
+        provider = 'livepush',
+        show_on_tv = true,
+        show_on_web = true
+      } = requestBody;
 
-      console.log(`Creating live stream for artist ${artistId}`);
+      console.log(`Creating ${streaming_mode} ${provider} stream for artist ${artistId}`);
 
       // Get artist data
       const { data: artist } = await supabase
@@ -262,144 +271,393 @@ serve(async (req) => {
       
       console.log(`User ${user.id} admin status: ${isAdmin}`);
 
-      // Check if artist is Trident tier (skip for admins)
-      if (!isAdmin && artist.subscription_tier !== 'trident') {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'upgrade_required',
-            message: 'Upgrade to Trident to go live!',
-            discount: {
-              code: 'GOLIVE50',
-              description: '50% off first month',
-              price: 49.50
+      // Handle Own Account mode
+      if (streaming_mode === 'own_account') {
+        console.log(`Creating stream with artist's own ${provider} account`);
+        
+        // Fetch artist's credentials
+        const { data: credentials, error: credError } = await supabase
+          .from('artist_streaming_credentials')
+          .select('encrypted_credentials, provider')
+          .eq('artist_id', artistId)
+          .eq('provider', provider)
+          .eq('is_active', true)
+          .single();
+        
+        if (!credentials) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'no_credentials',
+              message: `Please connect your ${provider === 'mux' ? 'Mux' : 'Livepush'} account first`
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+          );
+        }
+        
+        // Decrypt credentials
+        const artistCreds = JSON.parse(atob(credentials.encrypted_credentials));
+        
+        // Create stream using artist's credentials
+        if (provider === 'mux') {
+          const muxResponse = await fetch('https://api.mux.com/video/v1/live-streams', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(`${artistCreds.tokenId}:${artistCreds.tokenSecret}`)}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              playback_policy: ['public'],
+              new_asset_settings: { playback_policy: ['public'] },
+              reconnect_window: 60
+            })
+          });
+          
+          if (!muxResponse.ok) {
+            const error = await muxResponse.json();
+            throw new Error(`Mux API error: ${error.message || 'Unknown error'}`);
+          }
+          
+          const muxStream = await muxResponse.json();
+          
+          // Store in database (no minute checks, auto-approved)
+          const { data: stream } = await supabase
+            .from('artist_live_streams')
+            .insert({
+              artist_id: artistId,
+              user_id: user.id,
+              title,
+              description,
+              streaming_mode: 'own_account',
+              provider: 'mux',
+              stream_key: muxStream.data.stream_key,
+              rtmp_ingest_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              status: 'ready',
+              show_on_tv: false, // Own account streams are private
+              show_on_web: false,
+              approval_status: 'auto_approved'
+            })
+            .select()
+            .single();
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              stream_id: stream.id,
+              rtmp_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              stream_key: muxStream.data.stream_key,
+              hls_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              status: stream.status
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          // Livepush with artist credentials
+          const livepushResponse = await fetch('https://api.livepush.io/v1/streams', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${artistCreds.accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: title,
+              description: description || '',
+              record: true
+            })
+          });
+          
+          if (!livepushResponse.ok) {
+            const error = await livepushResponse.json();
+            throw new Error(`Livepush API error: ${error.message || 'Unknown error'}`);
+          }
+          
+          const livepushStream = await livepushResponse.json();
+          const streamKey = livepushStream.stream_key;
+          const rtmpUrl = livepushStream.ingest_url;
+          
+          const { data: stream } = await supabase
+            .from('artist_live_streams')
+            .insert({
+              artist_id: artistId,
+              user_id: user.id,
+              title,
+              description,
+              streaming_mode: 'own_account',
+              provider: 'livepush',
+              stream_key: streamKey,
+              rtmp_ingest_url: rtmpUrl,
+              livepush_stream_id: livepushStream.id,
+              hls_playback_url: livepushStream.playback_url,
+              status: 'ready',
+              show_on_tv: false,
+              show_on_web: false,
+              approval_status: 'auto_approved'
+            })
+            .select()
+            .single();
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              stream_id: stream.id,
+              rtmp_url: rtmpUrl,
+              stream_key: streamKey,
+              hls_url: livepushStream.playback_url,
+              status: stream.status
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+
+      // Handle Subamerica Managed mode
+      if (streaming_mode === 'subamerica_managed') {
+        console.log(`Creating ${provider} stream on Subamerica infrastructure`);
+        
+        // Check if artist is Trident tier (skip for admins)
+        if (!isAdmin && artist.subscription_tier !== 'trident') {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'upgrade_required',
+              message: 'Upgrade to Trident to go live!',
+              discount: {
+                code: 'GOLIVE50',
+                description: '50% off first month',
+                price: 49.50
+              }
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+          );
+        }
+
+        // Calculate minutes remaining
+        const minutesRemaining = isAdmin 
+          ? 999999 
+          : artist.streaming_minutes_included - artist.streaming_minutes_used;
+
+        // Check if artist has minutes remaining (skip for admins)
+        if (!isAdmin && minutesRemaining <= 0) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: 'no_minutes',
+              message: 'You\'ve used all 10 hours this month',
+              action: 'purchase',
+              price: 15.00,
+              per: '1 hour'
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+          );
+        }
+
+        if (isAdmin) {
+          console.log('✅ Admin user - bypassing subscription checks');
+        }
+
+        // Determine approval status
+        const approvalStatus = isAdmin || artist.subscription_tier === 'trident' 
+          ? 'auto_approved' 
+          : 'pending';
+
+        // Branch based on provider choice
+        if (provider === 'mux') {
+          // Get Subamerica's Mux credentials
+          const MUX_TOKEN_ID = Deno.env.get('MUX_TOKEN_ID');
+          const MUX_TOKEN_SECRET = Deno.env.get('MUX_TOKEN_SECRET');
+          
+          if (!MUX_TOKEN_ID || !MUX_TOKEN_SECRET) {
+            throw new Error('Mux credentials not configured');
+          }
+          
+          // Create Mux stream
+          const muxResponse = await fetch('https://api.mux.com/video/v1/live-streams', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Basic ${btoa(`${MUX_TOKEN_ID}:${MUX_TOKEN_SECRET}`)}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              playback_policy: ['public'],
+              new_asset_settings: { playback_policy: ['public'] },
+              reconnect_window: 60
+            })
+          });
+          
+          if (!muxResponse.ok) {
+            const error = await muxResponse.json();
+            let userMessage = 'Failed to create Mux stream';
+            let errorType = 'mux_error';
+            
+            if (error.error === 'max_live_streams_reached') {
+              errorType = 'quota_exceeded';
+              userMessage = 'Mux stream limit reached. Please contact support.';
+            } else if (error.message) {
+              userMessage = error.message;
             }
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-        );
-      }
-
-      // Calculate minutes remaining
-      const minutesRemaining = isAdmin 
-        ? 999999 
-        : artist.streaming_minutes_included - artist.streaming_minutes_used;
-
-      // Check if artist has minutes remaining (skip for admins)
-      if (!isAdmin && minutesRemaining <= 0) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: 'no_minutes',
-            message: 'You\'ve used all 10 hours this month',
-            action: 'purchase',
-            price: 15.00,
-            per: '1 hour'
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
-        );
-      }
-
-      if (isAdmin) {
-        console.log('✅ Admin user - bypassing subscription checks');
-      }
-
-      // Generate unique RTMP stream key
-      const streamKey = crypto.randomUUID();
-      const rtmpUrl = `rtmp://rtmp.livepush.io/live/${streamKey}`;
-
-      // Get admin access token
-      const accessToken = await getAdminAccessToken();
-
-      // Create Livepush stream
-      const livepushResponse = await fetch('https://octopus.livepush.io/streams', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: title,
-          description: description || '',
-          category: 'music',
-          ingest: { rtmp: rtmpUrl },
-          transcode: { hls: true, resolution: '1080p' },
-          record: true
-        }),
-      });
-
-      if (!livepushResponse.ok) {
-        let errorDetails;
-        try {
-          errorDetails = await livepushResponse.json();
-        } catch {
-          errorDetails = await livepushResponse.text();
-        }
-        console.error('Livepush stream creation error:', errorDetails);
-        
-        // Detect specific error types and provide user-friendly messages
-        let userMessage = 'Failed to create stream';
-        let errorType = 'livepush_error';
-        
-        if (typeof errorDetails === 'object' && errorDetails.error) {
-          if (errorDetails.error === 'max_streams_quota_reached') {
-            errorType = 'quota_exceeded';
-            userMessage = 'Your Livepush account has reached its stream limit. Please delete existing streams or contact support to upgrade your plan.';
-          } else if (errorDetails.message) {
-            userMessage = errorDetails.message;
+            
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: errorType,
+                message: userMessage,
+                details: error
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
-        } else if (typeof errorDetails === 'string') {
-          userMessage = errorDetails;
-        }
-        
-        // Return structured error response with 200 status
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: errorType,
-            message: userMessage,
-            details: errorDetails,
-            statusCode: livepushResponse.status
-          }),
-          { 
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          
+          const muxStream = await muxResponse.json();
+          
+          // Store with distribution flags
+          const { data: stream } = await supabase
+            .from('artist_live_streams')
+            .insert({
+              artist_id: artistId,
+              user_id: user.id,
+              title,
+              description,
+              streaming_mode: 'subamerica_managed',
+              provider: 'mux',
+              stream_key: muxStream.data.stream_key,
+              rtmp_ingest_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              hls_tv_feed_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              status: scheduledStart ? 'scheduled' : 'ready',
+              scheduled_start: scheduledStart || null,
+              show_on_tv,
+              show_on_web,
+              approval_status: approvalStatus,
+              approved_by: isAdmin ? user.id : null,
+              approved_at: approvalStatus === 'auto_approved' ? new Date().toISOString() : null
+            })
+            .select()
+            .single();
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              stream_id: stream.id,
+              rtmp_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+              stream_key: muxStream.data.stream_key,
+              hls_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              status: stream.status,
+              approval_status: approvalStatus,
+              minutes_remaining: minutesRemaining
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          // Livepush with Subamerica credentials
+          const streamKey = crypto.randomUUID();
+          const rtmpUrl = `rtmp://rtmp.livepush.io/live/${streamKey}`;
+
+          const accessToken = await getAdminAccessToken();
+
+          const livepushResponse = await fetch('https://octopus.livepush.io/streams', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: title,
+              description: description || '',
+              category: 'music',
+              ingest: { rtmp: rtmpUrl },
+              transcode: { hls: true, resolution: '1080p' },
+              record: true
+            }),
+          });
+
+          if (!livepushResponse.ok) {
+            let errorDetails;
+            try {
+              errorDetails = await livepushResponse.json();
+            } catch {
+              errorDetails = await livepushResponse.text();
+            }
+            console.error('Livepush stream creation error:', errorDetails);
+            
+            let userMessage = 'Failed to create stream';
+            let errorType = 'livepush_error';
+            
+            if (typeof errorDetails === 'object' && errorDetails.error) {
+              if (errorDetails.error === 'max_streams_quota_reached') {
+                errorType = 'quota_exceeded';
+                userMessage = 'Livepush stream limit reached. Please contact support.';
+              } else if (errorDetails.message) {
+                userMessage = errorDetails.message;
+              }
+            } else if (typeof errorDetails === 'string') {
+              userMessage = errorDetails;
+            }
+            
+            return new Response(
+              JSON.stringify({
+                success: false,
+                error: errorType,
+                message: userMessage,
+                details: errorDetails,
+                statusCode: livepushResponse.status
+              }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
           }
-        );
+
+          const livepushStream = await livepushResponse.json();
+
+          const { data: stream } = await supabase
+            .from('artist_live_streams')
+            .insert({
+              artist_id: artistId,
+              user_id: user.id,
+              title,
+              description,
+              streaming_mode: 'subamerica_managed',
+              provider: 'livepush',
+              stream_key: streamKey,
+              rtmp_ingest_url: rtmpUrl,
+              livepush_stream_id: livepushStream.id,
+              hls_playback_url: livepushStream.playback_url,
+              status: scheduledStart ? 'scheduled' : 'ready',
+              scheduled_start: scheduledStart || null,
+              show_on_tv,
+              show_on_web,
+              approval_status: approvalStatus,
+              approved_by: isAdmin ? user.id : null,
+              approved_at: approvalStatus === 'auto_approved' ? new Date().toISOString() : null
+            })
+            .select()
+            .single();
+
+          console.log(`Live stream created: ${stream.id}`);
+
+          return new Response(
+            JSON.stringify({ 
+              success: true,
+              stream_id: stream.id,
+              rtmp_url: rtmpUrl,
+              stream_key: streamKey,
+              hls_url: livepushStream.playback_url,
+              status: stream.status,
+              approval_status: approvalStatus,
+              minutes_remaining: minutesRemaining
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
 
-      const livepushStream = await livepushResponse.json();
-
-      // Store in database
-      const { data: stream } = await supabase
-        .from('artist_live_streams')
-        .insert({
-          artist_id: artistId,
-          user_id: user.id,
-          title,
-          description,
-          stream_key: streamKey,
-          rtmp_ingest_url: rtmpUrl,
-          livepush_stream_id: livepushStream.id,
-          hls_playback_url: livepushStream.playback_url,
-          status: scheduledStart ? 'scheduled' : 'ready',
-          scheduled_start: scheduledStart || null
-        })
-        .select()
-        .single();
-
-      console.log(`Live stream created: ${stream.id}`);
-
+      // Invalid streaming mode
       return new Response(
-        JSON.stringify({ 
-          success: true,
-          stream_id: stream.id,
-          rtmp_url: rtmpUrl,
-          stream_key: streamKey,
-          hls_url: livepushStream.playback_url,
-          status: stream.status,
-          minutes_remaining: minutesRemaining
+        JSON.stringify({
+          success: false,
+          error: 'invalid_mode',
+          message: 'Invalid streaming mode'
         }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
 

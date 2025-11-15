@@ -58,13 +58,17 @@ serve(async (req) => {
             .update({ duration_minutes: durationMinutes })
             .eq('id', stream.id);
 
-          // Deduct minutes from artist's allowance
-          await supabase.rpc('deduct_streaming_minutes', {
-            p_artist_id: stream.artist_id,
-            p_minutes_used: durationMinutes
-          });
+          // Only deduct minutes for subamerica_managed streams
+          if (stream.streaming_mode === 'subamerica_managed') {
+            await supabase.rpc('deduct_streaming_minutes', {
+              p_artist_id: stream.artist_id,
+              p_minutes_used: durationMinutes
+            });
 
-          console.log('[Livepush Webhook] Deducted', durationMinutes, 'minutes from artist', stream.artist_id);
+            console.log('[Livepush Webhook] Deducted', durationMinutes, 'minutes from artist', stream.artist_id);
+          } else {
+            console.log('[Livepush Webhook] Skipping minute deduction for own_account stream');
+          }
         }
         break;
       }
