@@ -10,6 +10,7 @@ import { StreamOverlayManager } from "@/components/admin/StreamOverlayManager";
 import { UpgradeToTridentCard } from "@/components/UpgradeToTridentCard";
 import { PurchaseMinutesCard } from "@/components/PurchaseMinutesCard";
 import { MobileStreamingGuide } from "@/components/MobileStreamingGuide";
+import { StreamingWebhookSetup } from "@/components/StreamingWebhookSetup";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -24,12 +25,23 @@ const Streaming = () => {
   const [artistId, setArtistId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [eligibility, setEligibility] = useState<any>(null);
-  const { createStream, endStream, checkEligibility, stream, creating, streamStatus } = useGoLive(artistId || '');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const { createStream, endStream, checkEligibility, stream, creating, streamStatus, setStreamStatus } = useGoLive(artistId || '');
   const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchArtist = async () => {
       if (!user) return;
+
+      // Check if admin
+      const { data: rolesData } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .eq('role', 'admin')
+        .single();
+      
+      setIsAdmin(!!rolesData);
 
       const { data, error } = await supabase
         .from('artists')
@@ -118,57 +130,47 @@ const Streaming = () => {
     <DashboardLayout>
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <div>
-          <h1 className="text-3xl font-bold mb-2">Live Streaming</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">Go Live</h1>
           <p className="text-muted-foreground">
-            Go live and connect with your audience in real-time
+            Set up your stream and start broadcasting
           </p>
-          {eligibility?.isAdmin && <AdminBadge />}
-          {eligibility?.minutesRemaining && !eligibility?.isAdmin && (
-            <p className="text-sm text-muted-foreground mt-2">
-              {eligibility.minutesRemaining} streaming minutes remaining
-            </p>
-          )}
+          {isAdmin && <AdminBadge />}
         </div>
 
-        {!stream && streamStatus === 'idle' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Stream</CardTitle>
-              <CardDescription>
-                Set up your stream details before going live
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <StreamSetupForm
-                artistId={artistId!}
-                onSubmit={handleCreateStream}
-                loading={creating}
-              />
-            </CardContent>
-          </Card>
+        {isAdmin && (
+          <StreamingWebhookSetup />
         )}
 
-        {stream && (streamStatus === 'waiting' || streamStatus === 'live') && (
-          <>
-            <div className={`grid gap-4 sm:gap-6 ${isMobile ? '' : 'md:grid-cols-2'}`}>
-              <div className="space-y-4 sm:space-y-6">
-                <RTMPCredentials
-                  rtmpUrl={stream.rtmpUrl}
-                  streamKey={stream.streamKey}
-                  hlsPlaybackUrl={stream.hlsPlaybackUrl}
-                />
-                {isMobile && <MobileStreamingGuide />}
-              </div>
-              <div>
-                <StreamControls
-                  streamId={stream.streamId}
-                  status={streamStatus}
-                  onEndStream={handleEndStream}
-                />
-              </div>
-            </div>
-            <StreamOverlayManager streamId={stream.streamId} />
-          </>
+        {!stream && artistId && (
+          <StreamSetupForm
+            artistId={artistId}
+            onSubmit={handleCreateStream}
+            loading={creating}
+          />
+        )}
+
+        {stream && (
+          <div className="space-y-6">
+            <RTMPCredentials
+              rtmpUrl={stream.rtmpUrl}
+              streamKey={stream.streamKey}
+              hlsPlaybackUrl={stream.hlsPlaybackUrl}
+            />
+
+            <MobileStreamingGuide />
+
+            <StreamControls
+              streamId={stream.streamId}
+              status={streamStatus === 'creating' || streamStatus === 'idle' ? 'waiting' : streamStatus}
+              onEndStream={handleEndStream}
+              isAdmin={isAdmin}
+              onStatusChange={setStreamStatus}
+            />
+
+            {stream.streamId && (
+              <StreamOverlayManager streamId={stream.streamId} />
+            )}
+          </div>
         )}
 
         {streamStatus === 'ended' && (
@@ -176,15 +178,12 @@ const Streaming = () => {
             <CardHeader>
               <CardTitle>Stream Ended</CardTitle>
               <CardDescription>
-                Your stream has ended successfully
+                Your stream has ended. Return to the dashboard to see analytics.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Your stream recording will be available in your dashboard shortly.
-              </p>
+            <CardContent>
               <Button onClick={() => navigate('/dashboard')} className="w-full">
-                Back to Dashboard
+                Go to Dashboard
               </Button>
             </CardContent>
           </Card>

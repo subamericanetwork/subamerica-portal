@@ -2,26 +2,80 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Users, Clock, StopCircle } from "lucide-react";
+import { Users, Clock, StopCircle, PlayCircle, AlertTriangle } from "lucide-react";
 import { StreamStatusIndicator } from "./StreamStatusIndicator";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface StreamControlsProps {
   streamId: string;
   status: 'waiting' | 'live' | 'ended';
   onEndStream: () => void;
   viewerCount?: number;
+  isAdmin?: boolean;
+  onStatusChange?: (newStatus: 'live' | 'ended') => void;
 }
 
 export const StreamControls = ({ 
   streamId, 
   status, 
   onEndStream,
-  viewerCount = 0 
+  viewerCount = 0,
+  isAdmin = false,
+  onStatusChange
 }: StreamControlsProps) => {
   const [duration, setDuration] = useState(0);
   const [startTime] = useState(Date.now());
+  const [isForcing, setIsForcing] = useState(false);
   const isMobile = useIsMobile();
+
+  const handleForceLive = async () => {
+    setIsForcing(true);
+    try {
+      const { error } = await supabase
+        .from('artist_live_streams')
+        .update({ 
+          status: 'live',
+          started_at: new Date().toISOString()
+        })
+        .eq('id', streamId);
+
+      if (error) throw error;
+
+      toast.success("Stream manually set to LIVE");
+      onStatusChange?.('live');
+    } catch (error) {
+      console.error('Error forcing live:', error);
+      toast.error("Failed to force live status");
+    } finally {
+      setIsForcing(false);
+    }
+  };
+
+  const handleForceEnd = async () => {
+    setIsForcing(true);
+    try {
+      const { error } = await supabase
+        .from('artist_live_streams')
+        .update({ 
+          status: 'ended',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', streamId);
+
+      if (error) throw error;
+
+      toast.success("Stream manually ended");
+      onStatusChange?.('ended');
+      onEndStream();
+    } catch (error) {
+      console.error('Error forcing end:', error);
+      toast.error("Failed to force end status");
+    } finally {
+      setIsForcing(false);
+    }
+  };
 
   useEffect(() => {
     if (status !== 'live') return;
@@ -87,6 +141,39 @@ export const StreamControls = ({
             <p className={`${isMobile ? 'text-base' : 'text-sm'} text-red-600 dark:text-red-400 font-medium`}>
               🔴 You are now LIVE!
             </p>
+          </div>
+        )}
+
+        {isAdmin && status !== 'ended' && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground flex items-center gap-2">
+              <AlertTriangle className="h-3 w-3" />
+              Admin Override Controls
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {status === 'waiting' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleForceLive}
+                  disabled={isForcing}
+                  className="gap-2"
+                >
+                  <PlayCircle className="h-4 w-4" />
+                  Force Live
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleForceEnd}
+                disabled={isForcing}
+                className="gap-2"
+              >
+                <StopCircle className="h-4 w-4" />
+                Force End
+              </Button>
+            </div>
           </div>
         )}
 
