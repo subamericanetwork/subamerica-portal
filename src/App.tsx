@@ -45,6 +45,8 @@ import BecomeArtist from "./pages/BecomeArtist";
 import ApplicationStatus from "./pages/ApplicationStatus";
 import MemberDashboard from "./pages/MemberDashboard";
 import MemberProfile from "./pages/MemberProfile";
+import LiveStreams from "./pages/LiveStreams";
+import WatchLive from "./pages/WatchLive";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import AdminBlog from "./pages/admin/AdminBlog";
@@ -154,6 +156,8 @@ const AppRoutes = () => {
           <Route path="/oauth-callback" element={<OAuthCallback />} />
           
           <Route path="/watch" element={<Watch />} />
+          <Route path="/live" element={<LiveStreams />} />
+          <Route path="/live/:streamId" element={<WatchLive />} />
           <Route path="/pwa-status" element={<PWAStatus />} />
           <Route path="/:slug" element={<Port />} />
           <Route path="*" element={<NotFound />} />
