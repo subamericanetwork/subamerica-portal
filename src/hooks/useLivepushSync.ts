@@ -29,6 +29,17 @@ export const useLivepushSync = () => {
         throw response.error;
       }
 
+      // Check if the response contains an error in the data
+      if (response.data?.error) {
+        const errorMessage = response.data.message || 'Failed to sync video';
+        console.error('Video sync error:', {
+          error: response.data.error,
+          message: errorMessage,
+          details: response.data.details
+        });
+        throw new Error(errorMessage);
+      }
+
       toast({
         title: "Video Synced!",
         description: "Your video is now available in Livepush",
@@ -37,9 +48,15 @@ export const useLivepushSync = () => {
       return response.data;
     } catch (error) {
       console.error('Sync error:', error);
+      
+      let errorMessage = "Failed to sync video";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Sync Failed",
-        description: error instanceof Error ? error.message : "Failed to sync video",
+        description: errorMessage,
         variant: "destructive",
       });
       throw error;

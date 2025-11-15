@@ -134,6 +134,21 @@ export const useGoLive = (artistId: string) => {
         throw response.error;
       }
 
+      // Check if the response contains an error in the data
+      if (response.data?.error) {
+        const errorMessage = response.data.message || 'Failed to create stream';
+        const errorDetails = response.data.details;
+        
+        // Log detailed error for debugging
+        console.error('Stream creation error:', {
+          error: response.data.error,
+          message: errorMessage,
+          details: errorDetails
+        });
+        
+        throw new Error(errorMessage);
+      }
+
       const credentials: StreamCredentials = {
         streamId: response.data.stream_id,
         rtmpUrl: response.data.rtmp_url,
@@ -153,9 +168,16 @@ export const useGoLive = (artistId: string) => {
       return credentials;
     } catch (error) {
       console.error('Create stream error:', error);
+      
+      // Extract a user-friendly error message
+      let errorMessage = "Failed to create stream";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Stream Creation Failed",
-        description: error instanceof Error ? error.message : "Failed to create stream",
+        description: errorMessage,
         variant: "destructive",
       });
       setStreamStatus('idle');
