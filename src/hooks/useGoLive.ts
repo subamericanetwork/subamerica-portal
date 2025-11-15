@@ -130,20 +130,21 @@ export const useGoLive = (artistId: string) => {
         },
       });
 
+      // Check for network/auth errors first
       if (response.error) {
-        throw response.error;
+        throw new Error('Network error or authentication failed');
       }
 
-      // Check if the response contains an error in the data
-      if (response.data?.error) {
-        const errorMessage = response.data.message || 'Failed to create stream';
-        const errorDetails = response.data.details;
+      // Check if the response contains an application error
+      if (!response.data?.success || response.data?.error) {
+        const errorType = response.data?.error || 'unknown';
+        const errorMessage = response.data?.message || 'Failed to create stream';
         
         // Log detailed error for debugging
         console.error('Stream creation error:', {
-          error: response.data.error,
+          error: errorType,
           message: errorMessage,
-          details: errorDetails
+          details: response.data?.details
         });
         
         throw new Error(errorMessage);
