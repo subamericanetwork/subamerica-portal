@@ -36,6 +36,44 @@ serve(async (req) => {
       .eq('show_on_tv', true)
       .order('viewer_count', { ascending: false });
 
+    // Fetch overlays for all live streams
+    const streamIds = (liveStreams || []).map((s: any) => s.id);
+    const { data: overlays } = streamIds.length > 0 
+      ? await supabase
+          .from('stream_overlays')
+          .select('*')
+          .in('stream_id', streamIds)
+          .order('trigger_time_seconds', { ascending: true })
+      : { data: [] };
+
+    // Group overlays by stream_id (TV-compatible platforms only)
+    const overlaysByStream = (overlays || []).reduce((acc: Record<string, any[]>, overlay: any) => {
+      // Only include overlays that target TV platforms
+      const tvPlatforms = ['roku', 'firetv', 'appletv', 'android-tv'];
+      const hasTvPlatform = overlay.platforms?.some((p: string) => tvPlatforms.includes(p));
+      
+      if (hasTvPlatform) {
+        if (!acc[overlay.stream_id]) {
+          acc[overlay.stream_id] = [];
+        }
+        acc[overlay.stream_id].push({
+          id: overlay.id,
+          type: overlay.overlay_type,
+          trigger_time: overlay.trigger_time_seconds,
+          duration: overlay.duration_seconds,
+          position: overlay.position,
+          data: {
+            ...overlay.content_data,
+            // Add QR code URL for TV → mobile conversion
+            qr_code_url: overlay.overlay_type === 'product' && overlay.content_data?.product_id
+              ? `https://subamerica.net/qr/product/${overlay.content_data.product_id}`
+              : overlay.click_action?.url || null
+          }
+        });
+      }
+      return acc;
+    }, {});
+
     const sources = (liveStreams || []).map((stream: any) => ({
       id: stream.id,
       artist_name: stream.artists.display_name,
@@ -46,7 +84,8 @@ serve(async (req) => {
       thumbnail_url: stream.thumbnail_url,
       started_at: stream.started_at,
       viewers: stream.viewer_count,
-      duration_minutes: stream.duration_minutes
+      duration_minutes: stream.duration_minutes,
+      overlays: overlaysByStream[stream.id] || []
     }));
 
     return new Response(

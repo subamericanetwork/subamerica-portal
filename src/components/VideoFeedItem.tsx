@@ -3,6 +3,7 @@ import { Button } from './ui/button';
 import { Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { Progress } from './ui/progress';
 import { VideoFeedControls } from './VideoFeedControls';
+import { StreamOverlayManager } from './overlays/StreamOverlayManager';
 import { useMediaTracking } from '@/hooks/useMediaTracking';
 
 interface VideoFeedItemProps {
@@ -205,16 +206,25 @@ export const VideoFeedItem = ({ content, isActive, onVideoRef }: VideoFeedItemPr
           </div>
         </>
       ) : (
-        <video
-          ref={videoRef}
-          src={content.video_url}
-          poster={content.thumb_url}
-          className="w-full h-full object-contain"
-          loop
-          playsInline
-          muted={isMuted}
-          onClick={togglePlayPause}
-        />
+        <>
+          <video
+            ref={videoRef}
+            src={content.video_url}
+            poster={content.thumb_url}
+            className="w-full h-full object-contain"
+            loop
+            playsInline
+            muted={isMuted}
+            onClick={togglePlayPause}
+          />
+          {content.video_url?.includes('.m3u8') && (
+            <StreamOverlayManager
+              streamId={content.id}
+              videoElement={videoRef.current}
+              platform="web"
+            />
+          )}
+        </>
       )}
 
       {/* Center Play/Pause Button */}

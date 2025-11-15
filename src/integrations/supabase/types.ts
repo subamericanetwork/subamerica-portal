@@ -2193,6 +2193,110 @@ export type Database = {
           },
         ]
       }
+      stream_overlay_interactions: {
+        Row: {
+          created_at: string | null
+          id: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          overlay_id: string
+          platform: string
+          session_id: string | null
+          stream_id: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          interaction_type: Database["public"]["Enums"]["interaction_type"]
+          overlay_id: string
+          platform: string
+          session_id?: string | null
+          stream_id: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          interaction_type?: Database["public"]["Enums"]["interaction_type"]
+          overlay_id?: string
+          platform?: string
+          session_id?: string | null
+          stream_id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_overlay_interactions_overlay_id_fkey"
+            columns: ["overlay_id"]
+            isOneToOne: false
+            referencedRelation: "stream_overlays"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stream_overlay_interactions_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "artist_live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      stream_overlays: {
+        Row: {
+          click_action: Json | null
+          clickable: boolean
+          content_data: Json
+          created_at: string | null
+          duration_seconds: number
+          id: string
+          overlay_type: Database["public"]["Enums"]["overlay_type"]
+          platforms: string[]
+          position: Database["public"]["Enums"]["overlay_position"]
+          priority: number
+          stream_id: string
+          trigger_time_seconds: number
+          updated_at: string | null
+        }
+        Insert: {
+          click_action?: Json | null
+          clickable?: boolean
+          content_data?: Json
+          created_at?: string | null
+          duration_seconds?: number
+          id?: string
+          overlay_type: Database["public"]["Enums"]["overlay_type"]
+          platforms?: string[]
+          position?: Database["public"]["Enums"]["overlay_position"]
+          priority?: number
+          stream_id: string
+          trigger_time_seconds: number
+          updated_at?: string | null
+        }
+        Update: {
+          click_action?: Json | null
+          clickable?: boolean
+          content_data?: Json
+          created_at?: string | null
+          duration_seconds?: number
+          id?: string
+          overlay_type?: Database["public"]["Enums"]["overlay_type"]
+          platforms?: string[]
+          position?: Database["public"]["Enums"]["overlay_position"]
+          priority?: number
+          stream_id?: string
+          trigger_time_seconds?: number
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stream_overlays_stream_id_fkey"
+            columns: ["stream_id"]
+            isOneToOne: false
+            referencedRelation: "artist_live_streams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       stream_playlists: {
         Row: {
           approval_notes: string | null
@@ -2769,7 +2873,16 @@ export type Database = {
         | "production_manager"
         | "fan"
         | "member"
+      interaction_type: "view" | "click" | "dismiss"
       media_type: "image" | "video"
+      overlay_position:
+        | "top-left"
+        | "top-right"
+        | "bottom-left"
+        | "bottom-right"
+        | "center"
+        | "banner"
+      overlay_type: "product" | "content" | "cta" | "info" | "poll" | "qr"
       pay_mode: "heartland_hosted" | "woo_heartland"
       post_publish_status: "draft" | "published" | "archived"
       publish_status: "draft" | "pending" | "scheduled" | "published"
@@ -2916,7 +3029,17 @@ export const Constants = {
         "fan",
         "member",
       ],
+      interaction_type: ["view", "click", "dismiss"],
       media_type: ["image", "video"],
+      overlay_position: [
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right",
+        "center",
+        "banner",
+      ],
+      overlay_type: ["product", "content", "cta", "info", "poll", "qr"],
       pay_mode: ["heartland_hosted", "woo_heartland"],
       post_publish_status: ["draft", "published", "archived"],
       publish_status: ["draft", "pending", "scheduled", "published"],
