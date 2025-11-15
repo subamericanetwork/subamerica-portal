@@ -326,9 +326,29 @@ serve(async (req) => {
       });
 
       if (!livepushResponse.ok) {
-        const errorText = await livepushResponse.text();
-        console.error('Livepush stream creation error:', errorText);
-        throw new Error(`Failed to create stream: ${errorText}`);
+        let errorDetails;
+        try {
+          errorDetails = await livepushResponse.json();
+        } catch {
+          errorDetails = await livepushResponse.text();
+        }
+        console.error('Livepush stream creation error:', errorDetails);
+        
+        // Return structured error response
+        return new Response(
+          JSON.stringify({
+            error: 'livepush_error',
+            message: typeof errorDetails === 'object' && errorDetails.message 
+              ? errorDetails.message 
+              : 'Failed to create stream with Livepush',
+            details: errorDetails,
+            statusCode: livepushResponse.status
+          }),
+          { 
+            status: livepushResponse.status >= 500 ? 502 : 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        );
       }
 
       const livepushStream = await livepushResponse.json();
