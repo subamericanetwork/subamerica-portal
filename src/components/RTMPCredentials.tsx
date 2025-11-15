@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface RTMPCredentialsProps {
   rtmpUrl: string;
@@ -18,10 +19,12 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
   const [copiedUrl, setCopiedUrl] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [copiedHls, setCopiedHls] = useState(false);
+  const [copiedAll, setCopiedAll] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
-  const copyToClipboard = async (text: string, type: 'url' | 'key' | 'hls') => {
+  const copyToClipboard = async (text: string, type: 'url' | 'key' | 'hls' | 'all') => {
     try {
       await navigator.clipboard.writeText(text);
       
@@ -31,14 +34,19 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
       } else if (type === 'key') {
         setCopiedKey(true);
         setTimeout(() => setCopiedKey(false), 2000);
-      } else {
+      } else if (type === 'hls') {
         setCopiedHls(true);
         setTimeout(() => setCopiedHls(false), 2000);
+      } else if (type === 'all') {
+        setCopiedAll(true);
+        setTimeout(() => setCopiedAll(false), 2000);
       }
 
       toast({
         title: "Copied!",
-        description: `${type === 'url' ? 'RTMP URL' : type === 'key' ? 'Stream Key' : 'HLS URL'} copied to clipboard`,
+        description: type === 'all' 
+          ? 'All credentials copied to clipboard' 
+          : `${type === 'url' ? 'RTMP URL' : type === 'key' ? 'Stream Key' : 'HLS URL'} copied to clipboard`,
       });
     } catch (error) {
       toast({
@@ -49,85 +57,115 @@ export const RTMPCredentials = ({ rtmpUrl, streamKey, hlsPlaybackUrl }: RTMPCred
     }
   };
 
+  const copyAllCredentials = () => {
+    const allCreds = `RTMP URL: ${rtmpUrl}\nStream Key: ${streamKey}\nHLS Playback URL: ${hlsPlaybackUrl}`;
+    copyToClipboard(allCreds, 'all');
+  };
+
   const maskedKey = showKey ? streamKey : '•'.repeat(Math.min(streamKey.length, 32));
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Stream Credentials</CardTitle>
-        <CardDescription>
-          Use these credentials in OBS, Streamlabs, or your streaming software
-        </CardDescription>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div>
+            <CardTitle className="text-lg sm:text-xl">Stream Credentials</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              Use these credentials in OBS, Streamlabs, or your streaming software
+            </CardDescription>
+          </div>
+          {isMobile && (
+            <Button 
+              onClick={copyAllCredentials}
+              variant="default"
+              size="sm"
+              className="w-full sm:w-auto shrink-0"
+            >
+              {copiedAll ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+              Copy All
+            </Button>
+          )}
+        </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="rtmpUrl">RTMP Server URL</Label>
-          <div className="flex gap-2">
+          <Label htmlFor="rtmpUrl" className="text-sm sm:text-base">RTMP Server URL</Label>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               id="rtmpUrl"
               value={rtmpUrl}
               readOnly
-              className="font-mono text-xs"
+              className={`font-mono ${isMobile ? 'text-sm' : 'text-xs'} min-h-[44px]`}
             />
             <Button
               variant="outline"
-              size="icon"
+              size={isMobile ? "default" : "icon"}
               onClick={() => copyToClipboard(rtmpUrl, 'url')}
+              className={isMobile ? "w-full sm:w-auto justify-center min-h-[44px]" : ""}
             >
               {copiedUrl ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {isMobile && <span className="ml-2">Copy URL</span>}
             </Button>
           </div>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="streamKey">Stream Key</Label>
-          <div className="flex gap-2">
+          <Label htmlFor="streamKey" className="text-sm sm:text-base">Stream Key</Label>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               id="streamKey"
               value={maskedKey}
               readOnly
               type={showKey ? "text" : "password"}
-              className="font-mono text-xs"
+              className={`font-mono ${isMobile ? 'text-sm' : 'text-xs'} min-h-[44px]`}
             />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowKey(!showKey)}
-            >
-              {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => copyToClipboard(streamKey, 'key')}
-            >
-              {copiedKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size={isMobile ? "default" : "icon"}
+                onClick={() => setShowKey(!showKey)}
+                className={isMobile ? "flex-1 min-h-[44px]" : ""}
+              >
+                {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {isMobile && <span className="ml-2">{showKey ? "Hide" : "Show"}</span>}
+              </Button>
+              <Button
+                variant="outline"
+                size={isMobile ? "default" : "icon"}
+                onClick={() => copyToClipboard(streamKey, 'key')}
+                className={isMobile ? "flex-1 min-h-[44px]" : ""}
+              >
+                {copiedKey ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {isMobile && <span className="ml-2">Copy</span>}
+              </Button>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs sm:text-sm text-muted-foreground">
             Keep this private! Anyone with your stream key can stream to your channel.
           </p>
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="hlsUrl">Playback URL (HLS)</Label>
-          <div className="flex gap-2">
+          <Label htmlFor="hlsUrl" className="text-sm sm:text-base">HLS Playback URL</Label>
+          <div className="flex flex-col sm:flex-row gap-2">
             <Input
               id="hlsUrl"
               value={hlsPlaybackUrl}
               readOnly
-              className="font-mono text-xs"
+              className={`font-mono ${isMobile ? 'text-sm' : 'text-xs'} min-h-[44px]`}
             />
             <Button
               variant="outline"
-              size="icon"
+              size={isMobile ? "default" : "icon"}
               onClick={() => copyToClipboard(hlsPlaybackUrl, 'hls')}
+              className={isMobile ? "w-full sm:w-auto justify-center min-h-[44px]" : ""}
             >
               {copiedHls ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {isMobile && <span className="ml-2">Copy URL</span>}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">
-            Share this URL with viewers to watch your stream
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Use this URL to preview your stream or embed it elsewhere
           </p>
         </div>
 

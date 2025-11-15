@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Users, Clock, StopCircle } from "lucide-react";
 import { StreamStatusIndicator } from "./StreamStatusIndicator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface StreamControlsProps {
   streamId: string;
@@ -20,6 +21,7 @@ export const StreamControls = ({
 }: StreamControlsProps) => {
   const [duration, setDuration] = useState(0);
   const [startTime] = useState(Date.now());
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (status !== 'live') return;
@@ -46,43 +48,43 @@ export const StreamControls = ({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Stream Controls</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">Stream Controls</CardTitle>
           <StreamStatusIndicator status={status} />
         </div>
-        <CardDescription>
+        <CardDescription className="text-sm sm:text-base">
           Stream ID: {streamId.slice(0, 8)}...
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-            <Users className="h-5 w-5 text-muted-foreground" />
+      <CardContent className="space-y-4 sm:space-y-6">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className={`flex items-center gap-3 ${isMobile ? 'p-4' : 'p-4'} bg-muted rounded-lg`}>
+            <Users className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'} text-muted-foreground`} />
             <div>
-              <p className="text-2xl font-bold">{viewerCount}</p>
-              <p className="text-xs text-muted-foreground">Viewers</p>
+              <p className={`${isMobile ? 'text-3xl' : 'text-2xl'} font-bold`}>{viewerCount}</p>
+              <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground`}>Viewers</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-4 bg-muted rounded-lg">
-            <Clock className="h-5 w-5 text-muted-foreground" />
+          <div className={`flex items-center gap-3 ${isMobile ? 'p-4' : 'p-4'} bg-muted rounded-lg`}>
+            <Clock className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5'} text-muted-foreground`} />
             <div>
-              <p className="text-2xl font-bold">{formatDuration(duration)}</p>
-              <p className="text-xs text-muted-foreground">Duration</p>
+              <p className={`${isMobile ? 'text-3xl' : 'text-2xl'} font-bold`}>{formatDuration(duration)}</p>
+              <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground`}>Duration</p>
             </div>
           </div>
         </div>
 
         {status === 'waiting' && (
-          <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-            <p className="text-sm text-yellow-600 dark:text-yellow-400">
+          <div className={`bg-yellow-500/10 border border-yellow-500/20 rounded-lg ${isMobile ? 'p-4' : 'p-4'}`}>
+            <p className={`${isMobile ? 'text-base' : 'text-sm'} text-yellow-600 dark:text-yellow-400`}>
               Waiting for streaming software to connect...
             </p>
           </div>
         )}
 
         {status === 'live' && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-            <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+          <div className={`bg-red-500/10 border border-red-500/20 rounded-lg ${isMobile ? 'p-4' : 'p-4'}`}>
+            <p className={`${isMobile ? 'text-base' : 'text-sm'} text-red-600 dark:text-red-400 font-medium`}>
               🔴 You are now LIVE!
             </p>
           </div>
@@ -92,10 +94,10 @@ export const StreamControls = ({
           <AlertDialogTrigger asChild>
             <Button 
               variant="destructive" 
-              className="w-full gap-2"
+              className={`w-full gap-2 ${isMobile ? 'min-h-[52px] text-base' : ''}`}
               disabled={status === 'ended'}
             >
-              <StopCircle className="h-4 w-4" />
+              <StopCircle className={`${isMobile ? 'h-5 w-5' : 'h-4 w-4'}`} />
               End Stream
             </Button>
           </AlertDialogTrigger>

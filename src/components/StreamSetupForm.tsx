@@ -11,6 +11,7 @@ import { CalendarIcon, Loader2, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { StreamingCredentialsManager } from "./StreamingCredentialsManager";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface StreamSetupFormProps {
   artistId: string;
@@ -36,6 +37,7 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
   const [provider, setProvider] = useState<"mux" | "livepush">("mux");
   const [showOnTv, setShowOnTv] = useState(true);
   const [showOnWeb, setShowOnWeb] = useState(true);
+  const isMobile = useIsMobile();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,12 +70,12 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
       {/* Streaming Mode Selection */}
       <div className="space-y-3">
-        <Label>Streaming Mode</Label>
+        <Label className="text-sm sm:text-base">Streaming Mode</Label>
         <RadioGroup value={streamingMode} onValueChange={(value: any) => setStreamingMode(value)}>
-          <div className="flex items-start space-x-3 rounded-lg border p-4 hover:bg-accent/5">
+          <div className={`flex items-start space-x-3 rounded-lg border ${isMobile ? 'p-4' : 'p-4'} hover:bg-accent/5`}>
             <RadioGroupItem value="own_account" id="own-account" disabled={loading} />
             <div className="grid gap-1.5 leading-none flex-1">
               <label
@@ -202,33 +204,35 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="title">Stream Title *</Label>
+        <Label htmlFor="title" className="text-sm sm:text-base">Stream Title *</Label>
         <Input
           id="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter your stream title"
+          placeholder="Enter stream title"
           required
           disabled={loading}
           maxLength={100}
+          className="min-h-[44px] text-base"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground text-right font-medium`}>
           {title.length}/100 characters
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" className="text-sm sm:text-base">Stream Description</Label>
         <Textarea
           id="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="What's your stream about?"
+          placeholder="Describe what you'll be streaming..."
           disabled={loading}
-          rows={4}
           maxLength={500}
+          rows={isMobile ? 3 : 4}
+          className="min-h-[88px] text-base"
         />
-        <p className="text-xs text-muted-foreground">
+        <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-muted-foreground text-right font-medium`}>
           {description.length}/500 characters
         </p>
       </div>

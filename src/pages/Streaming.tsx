@@ -9,12 +9,14 @@ import { StreamControls } from "@/components/StreamControls";
 import { StreamOverlayManager } from "@/components/admin/StreamOverlayManager";
 import { UpgradeToTridentCard } from "@/components/UpgradeToTridentCard";
 import { PurchaseMinutesCard } from "@/components/PurchaseMinutesCard";
+import { MobileStreamingGuide } from "@/components/MobileStreamingGuide";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Shield, Clock, AlertCircle, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Streaming = () => {
   const { user } = useAuth();
@@ -23,6 +25,7 @@ const Streaming = () => {
   const [loading, setLoading] = useState(true);
   const [eligibility, setEligibility] = useState<any>(null);
   const { createStream, endStream, checkEligibility, stream, creating, streamStatus } = useGoLive(artistId || '');
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     const fetchArtist = async () => {
@@ -147,13 +150,14 @@ const Streaming = () => {
 
         {stream && (streamStatus === 'waiting' || streamStatus === 'live') && (
           <>
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="space-y-6">
+            <div className={`grid gap-4 sm:gap-6 ${isMobile ? '' : 'md:grid-cols-2'}`}>
+              <div className="space-y-4 sm:space-y-6">
                 <RTMPCredentials
                   rtmpUrl={stream.rtmpUrl}
                   streamKey={stream.streamKey}
                   hlsPlaybackUrl={stream.hlsPlaybackUrl}
                 />
+                {isMobile && <MobileStreamingGuide />}
               </div>
               <div>
                 <StreamControls
