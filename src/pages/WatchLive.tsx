@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { StreamOverlayManager } from '@/components/overlays/StreamOverlayManager';
 import Hls from 'hls.js';
 import { formatDistanceToNow } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface StreamData {
   id: string;
@@ -39,6 +40,7 @@ export default function WatchLive() {
   const [stream, setStream] = useState<StreamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (!streamId) {
@@ -236,19 +238,20 @@ export default function WatchLive() {
   return (
     <PublicLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
+        <div className={`container mx-auto ${isMobile ? 'px-3 py-4' : 'px-4 py-8'}`}>
           <Button
             variant="ghost"
             onClick={() => navigate('/live')}
-            className="mb-4"
+            className={`${isMobile ? 'mb-3 min-h-[44px]' : 'mb-4'}`}
+            size={isMobile ? "default" : "default"}
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'} mr-2`} />
             Back to Live Streams
           </Button>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className={`grid grid-cols-1 lg:grid-cols-3 ${isMobile ? 'gap-4' : 'gap-6'}`}>
             <div className="lg:col-span-2">
-              <div className="relative bg-black rounded-lg overflow-hidden aspect-video mb-4">
+              <div className={`relative bg-black rounded-lg overflow-hidden aspect-video ${isMobile ? 'mb-3' : 'mb-4'}`}>
                 <video
                   ref={videoRef}
                   className="w-full h-full"
@@ -264,44 +267,44 @@ export default function WatchLive() {
                 />
                 <Badge
                   variant="destructive"
-                  className="absolute top-4 left-4 gap-1 animate-pulse"
+                  className={`absolute ${isMobile ? 'top-2 left-2' : 'top-4 left-4'} gap-1 animate-pulse ${isMobile ? 'text-xs px-2 py-1' : ''}`}
                 >
-                  <Radio className="w-3 h-3" />
+                  <Radio className={`${isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'}`} />
                   LIVE
                 </Badge>
               </div>
 
               <Card className="border-muted">
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3 flex-1">
+                <CardHeader className={isMobile ? 'p-4' : ''}>
+                  <div className="flex items-start justify-between gap-3 sm:gap-4">
+                    <div className="flex items-start gap-2 sm:gap-3 flex-1">
                       {getAvatarUrl() ? (
                         <img
                           src={getAvatarUrl()!}
                           alt={stream.artists.display_name}
-                          className="w-12 h-12 rounded-full object-cover cursor-pointer"
+                          className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full object-cover cursor-pointer`}
                           onClick={() => navigate(`/${stream.artists.slug}`)}
                         />
                       ) : (
                         <div
-                          className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center cursor-pointer"
+                          className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-primary/20 flex items-center justify-center cursor-pointer`}
                           onClick={() => navigate(`/${stream.artists.slug}`)}
                         >
-                          <span className="text-lg font-bold text-primary">
+                          <span className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-primary`}>
                             {stream.artists.display_name.charAt(0)}
                           </span>
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-2xl mb-1">{stream.title}</CardTitle>
+                        <CardTitle className={`${isMobile ? 'text-lg' : 'text-2xl'} mb-1`}>{stream.title}</CardTitle>
                         <p
-                          className="text-muted-foreground cursor-pointer hover:text-primary transition-colors"
+                          className={`text-muted-foreground cursor-pointer hover:text-primary transition-colors ${isMobile ? 'text-sm' : ''}`}
                           onClick={() => navigate(`/${stream.artists.slug}`)}
                         >
                           {stream.artists.display_name}
                         </p>
                         {stream.started_at && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-muted-foreground mt-1`}>
                             Started {formatDistanceToNow(new Date(stream.started_at), { addSuffix: true })}
                           </p>
                         )}
@@ -309,15 +312,16 @@ export default function WatchLive() {
                     </div>
                     <Button
                       variant="outline"
-                      size="sm"
+                      size={isMobile ? "default" : "sm"}
                       onClick={handleShare}
+                      className={isMobile ? "shrink-0 px-3 min-h-[44px]" : ""}
                     >
-                      <Share2 className="w-4 h-4 mr-2" />
-                      Share
+                      <Share2 className={`${isMobile ? 'w-5 h-5' : 'w-4 h-4'} ${isMobile ? '' : 'mr-2'}`} />
+                      {!isMobile && "Share"}
                     </Button>
                   </div>
                   {stream.description && (
-                    <CardDescription className="mt-4 text-base">
+                    <CardDescription className={`mt-4 ${isMobile ? 'text-sm' : 'text-base'}`}>
                       {stream.description}
                     </CardDescription>
                   )}
@@ -326,25 +330,25 @@ export default function WatchLive() {
             </div>
 
             <div className="lg:col-span-1">
-              <Card className="border-muted sticky top-20">
-                <CardHeader>
+              <Card className={`border-muted ${isMobile ? '' : 'sticky top-20'}`}>
+                <CardHeader className={isMobile ? 'p-4' : ''}>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">Stream Info</CardTitle>
-                    <Badge variant="secondary" className="gap-1">
-                      <Users className="w-3 h-3" />
-                      {stream.viewer_count} watching
+                    <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'}`}>Stream Info</CardTitle>
+                    <Badge variant="secondary" className={`gap-1 ${isMobile ? 'text-xs px-2 py-1' : ''}`}>
+                      <Users className={`${isMobile ? 'w-3 h-3' : 'w-3 h-3'}`} />
+                      {stream.viewer_count} {isMobile ? '' : 'watching'}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className={`space-y-4 ${isMobile ? 'p-4 pt-0' : ''}`}>
                   <div>
-                    <h4 className="font-semibold mb-2">About {stream.artists.display_name}</h4>
-                    <p className="text-sm text-muted-foreground">
+                    <h4 className={`font-semibold mb-2 ${isMobile ? 'text-sm' : ''}`}>About {stream.artists.display_name}</h4>
+                    <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
                       {stream.artists.bio_short || 'No bio available'}
                     </p>
                   </div>
                   <Button
-                    className="w-full"
+                    className={`w-full ${isMobile ? 'min-h-[44px]' : ''}`}
                     onClick={() => navigate(`/${stream.artists.slug}`)}
                   >
                     View Artist Profile

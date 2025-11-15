@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Radio, Users, Clock } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface LiveStream {
   id: string;
@@ -28,6 +29,7 @@ export default function LiveStreams() {
   const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchLiveStreams();
@@ -115,20 +117,20 @@ export default function LiveStreams() {
   return (
     <PublicLayout>
       <div className="min-h-screen bg-background">
-        <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2 flex items-center gap-3">
-              <Radio className="w-8 h-8 text-destructive animate-pulse" />
+        <div className={`container mx-auto ${isMobile ? 'px-3 py-6' : 'px-4 py-8'}`}>
+          <div className={`${isMobile ? 'mb-6' : 'mb-8'}`}>
+            <h1 className={`${isMobile ? 'text-3xl' : 'text-4xl'} font-bold mb-2 flex items-center gap-3`}>
+              <Radio className={`${isMobile ? 'w-7 h-7' : 'w-8 h-8'} text-destructive animate-pulse`} />
               Live Streams
             </h1>
-            <p className="text-muted-foreground">
+            <p className={`text-muted-foreground ${isMobile ? 'text-sm' : ''}`}>
               Watch artists perform live right now
             </p>
           </div>
 
           {liveStreams.length === 0 ? (
             <Card className="border-muted">
-              <CardContent className="py-12 text-center">
+              <CardContent className={`${isMobile ? 'py-10' : 'py-12'} text-center`}>
                 <Radio className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-xl font-semibold mb-2">No Live Streams</h3>
                 <p className="text-muted-foreground mb-4">
@@ -140,7 +142,7 @@ export default function LiveStreams() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-4' : 'gap-6'}`}>
               {liveStreams.map((stream) => (
                 <Card
                   key={stream.id}
