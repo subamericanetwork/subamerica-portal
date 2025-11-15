@@ -266,6 +266,7 @@ serve(async (req) => {
       if (!isAdmin && artist.subscription_tier !== 'trident') {
         return new Response(
           JSON.stringify({
+            success: false,
             error: 'upgrade_required',
             message: 'Upgrade to Trident to go live!',
             discount: {
@@ -274,7 +275,7 @@ serve(async (req) => {
               price: 49.50
             }
           }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         );
       }
 
@@ -287,13 +288,14 @@ serve(async (req) => {
       if (!isAdmin && minutesRemaining <= 0) {
         return new Response(
           JSON.stringify({
+            success: false,
             error: 'no_minutes',
             message: 'You\'ve used all 10 hours this month',
             action: 'purchase',
             price: 15.00,
             per: '1 hour'
           }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 403 }
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
         );
       }
 
@@ -334,18 +336,32 @@ serve(async (req) => {
         }
         console.error('Livepush stream creation error:', errorDetails);
         
-        // Return structured error response
+        // Detect specific error types and provide user-friendly messages
+        let userMessage = 'Failed to create stream';
+        let errorType = 'livepush_error';
+        
+        if (typeof errorDetails === 'object' && errorDetails.error) {
+          if (errorDetails.error === 'max_streams_quota_reached') {
+            errorType = 'quota_exceeded';
+            userMessage = 'Your Livepush account has reached its stream limit. Please delete existing streams or contact support to upgrade your plan.';
+          } else if (errorDetails.message) {
+            userMessage = errorDetails.message;
+          }
+        } else if (typeof errorDetails === 'string') {
+          userMessage = errorDetails;
+        }
+        
+        // Return structured error response with 200 status
         return new Response(
           JSON.stringify({
-            error: 'livepush_error',
-            message: typeof errorDetails === 'object' && errorDetails.message 
-              ? errorDetails.message 
-              : 'Failed to create stream with Livepush',
+            success: false,
+            error: errorType,
+            message: userMessage,
             details: errorDetails,
             statusCode: livepushResponse.status
           }),
           { 
-            status: livepushResponse.status >= 500 ? 502 : 400,
+            status: 200,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
           }
         );
@@ -525,9 +541,13 @@ serve(async (req) => {
   } catch (error) {
     console.error('Livepush API error:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ 
+        success: false,
+        error: 'server_error',
+        message: error instanceof Error ? error.message : 'Unknown error' 
+      }),
       { 
-        status: 500, 
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

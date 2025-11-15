@@ -25,17 +25,18 @@ export const useLivepushSync = () => {
         },
       });
 
+      // Check for network/auth errors first
       if (response.error) {
-        throw response.error;
+        throw new Error('Network error or authentication failed');
       }
 
-      // Check if the response contains an error in the data
-      if (response.data?.error) {
-        const errorMessage = response.data.message || 'Failed to sync video';
+      // Check if the response contains an application error
+      if (!response.data?.success || response.data?.error) {
+        const errorMessage = response.data?.message || 'Failed to sync video';
         console.error('Video sync error:', {
-          error: response.data.error,
+          error: response.data?.error,
           message: errorMessage,
-          details: response.data.details
+          details: response.data?.details
         });
         throw new Error(errorMessage);
       }
