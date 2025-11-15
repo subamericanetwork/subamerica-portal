@@ -34,8 +34,6 @@ import { useSocialStats } from "@/hooks/useSocialStats";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { useToast } from "@/hooks/use-toast";
 
-const { toast } = useToast();
-
 interface Tip {
   id: string;
   created_at: string;
