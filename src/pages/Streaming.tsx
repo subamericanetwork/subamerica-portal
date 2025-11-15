@@ -7,6 +7,7 @@ import { StreamSetupForm } from "@/components/StreamSetupForm";
 import { RTMPCredentials } from "@/components/RTMPCredentials";
 import { StreamControls } from "@/components/StreamControls";
 import { StreamOverlayManager } from "@/components/admin/StreamOverlayManager";
+import { StreamStatusIndicator } from "@/components/StreamStatusIndicator";
 import { UpgradeToTridentCard } from "@/components/UpgradeToTridentCard";
 import { PurchaseMinutesCard } from "@/components/PurchaseMinutesCard";
 import { MobileStreamingGuide } from "@/components/MobileStreamingGuide";
@@ -15,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Shield, Clock, AlertCircle, Zap } from "lucide-react";
+import { Loader2, Shield, Clock, AlertCircle, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -142,15 +143,49 @@ const Streaming = () => {
         )}
 
         {!stream && artistId && (
-          <StreamSetupForm
-            artistId={artistId}
-            onSubmit={handleCreateStream}
-            loading={creating}
-          />
+          <>
+            <StreamSetupForm
+              artistId={artistId}
+              onSubmit={handleCreateStream}
+              loading={creating}
+            />
+            
+            {/* Admin: Link to Stream Schedule */}
+            {isAdmin && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Manage Scheduled Streams</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    View all scheduled streams, manage their status, and access stream credentials.
+                  </p>
+                  <Button onClick={() => navigate("/admin/stream-schedule")} variant="outline">
+                    <Calendar className="h-4 w-4 mr-2" />
+                    View All Scheduled Streams
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </>
         )}
 
         {stream && (
           <div className="space-y-6">
+            {streamStatus === 'waiting' && (
+              <Alert>
+                <AlertDescription className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <StreamStatusIndicator status={streamStatus} />
+                    <span className="font-semibold">Stream Created!</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Next steps: Connect with OBS using the credentials below, or use the "Force Live" button to go live manually.
+                  </p>
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <RTMPCredentials
               rtmpUrl={stream.rtmpUrl}
               streamKey={stream.streamKey}
@@ -181,10 +216,20 @@ const Streaming = () => {
                 Your stream has ended. Return to the dashboard to see analytics.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-2">
               <Button onClick={() => navigate('/dashboard')} className="w-full">
                 Go to Dashboard
               </Button>
+              {isAdmin && (
+                <Button 
+                  onClick={() => navigate('/admin/stream-schedule')} 
+                  variant="outline" 
+                  className="w-full"
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  View Stream Schedule
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
