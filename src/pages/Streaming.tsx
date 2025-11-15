@@ -19,6 +19,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Shield, Clock, AlertCircle, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toast } from "sonner";
 
 const Streaming = () => {
   const { user } = useAuth();
@@ -27,6 +28,7 @@ const Streaming = () => {
   const [loading, setLoading] = useState(true);
   const [eligibility, setEligibility] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [creatingTest, setCreatingTest] = useState(false);
   const { createStream, endStream, checkEligibility, stream, creating, streamStatus, setStreamStatus } = useGoLive(artistId || '');
   const isMobile = useIsMobile();
 
@@ -84,6 +86,43 @@ const Streaming = () => {
     const success = await endStream(stream.streamId);
     if (success) {
       navigate('/dashboard');
+    }
+  };
+
+  const handleCreateTestStream = async () => {
+    if (!artistId || !user) return;
+    
+    setCreatingTest(true);
+    try {
+      const { data, error } = await supabase
+        .from('artist_live_streams')
+        .insert({
+          artist_id: artistId,
+          user_id: user.id,
+          title: 'Test Stream',
+          description: 'This is a test stream for testing purposes',
+          status: 'live',
+          streaming_mode: 'subamerica_managed',
+          provider: 'mux',
+          rtmp_ingest_url: 'rtmp://test.example.com/live',
+          stream_key: 'test-' + Math.random().toString(36).substring(7),
+          hls_playback_url: 'https://test.example.com/stream.m3u8',
+          started_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast.success('Test stream created and set to live!');
+      
+      // Reload the page to show the test stream
+      window.location.reload();
+    } catch (error) {
+      console.error('Error creating test stream:', error);
+      toast.error('Failed to create test stream');
+    } finally {
+      setCreatingTest(false);
     }
   };
 
@@ -150,22 +189,52 @@ const Streaming = () => {
               loading={creating}
             />
             
-            {/* Admin: Link to Stream Schedule */}
+            {/* Admin: Test Stream & Stream Schedule */}
             {isAdmin && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Manage Scheduled Streams</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    View all scheduled streams, manage their status, and access stream credentials.
-                  </p>
-                  <Button onClick={() => navigate("/admin/stream-schedule")} variant="outline">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    View All Scheduled Streams
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Testing Tools</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      Create a test stream that's immediately set to live status for testing the streaming workflow.
+                    </p>
+                    <Button 
+                      onClick={handleCreateTestStream} 
+                      variant="outline"
+                      disabled={creatingTest}
+                    >
+                      {creatingTest ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Creating Test Stream...
+                        </>
+                      ) : (
+                        <>
+                          <Zap className="h-4 w-4 mr-2" />
+                          Create Test Stream
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Manage Scheduled Streams</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      View all scheduled streams, manage their status, and access stream credentials.
+                    </p>
+                    <Button onClick={() => navigate("/admin/stream-schedule")} variant="outline">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      View All Scheduled Streams
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             )}
           </>
         )}
