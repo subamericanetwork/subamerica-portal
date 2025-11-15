@@ -7,7 +7,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CalendarIcon, Loader2 } from "lucide-react";
+import { CalendarIcon, Loader2, Zap } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { StreamingCredentialsManager } from "./StreamingCredentialsManager";
@@ -31,6 +31,7 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [scheduledDate, setScheduledDate] = useState<Date>();
+  const [scheduledTime, setScheduledTime] = useState("");
   const [streamingMode, setStreamingMode] = useState<"own_account" | "subamerica_managed">("subamerica_managed");
   const [provider, setProvider] = useState<"mux" | "livepush">("mux");
   const [showOnTv, setShowOnTv] = useState(true);
@@ -47,10 +48,18 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
       return; // At least one distribution channel required
     }
 
+    // Combine date and time
+    let finalScheduledDate = scheduledDate;
+    if (scheduledDate && scheduledTime) {
+      const [hours, minutes] = scheduledTime.split(':');
+      finalScheduledDate = new Date(scheduledDate);
+      finalScheduledDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+
     onSubmit({
       title: title.trim(),
       description: description.trim() || undefined,
-      scheduledStart: scheduledDate?.toISOString(),
+      scheduledStart: finalScheduledDate?.toISOString(),
       streamingMode,
       provider: streamingMode === "subamerica_managed" ? provider : undefined,
       showOnTv: streamingMode === "subamerica_managed" ? showOnTv : undefined,
@@ -233,6 +242,27 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
             Required for Subamerica Managed streams
           </p>
         )}
+        
+        {/* Start Now Button */}
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full"
+          onClick={() => {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + 15);
+            setScheduledDate(now);
+            setScheduledTime(format(now, "HH:mm"));
+          }}
+          disabled={loading}
+        >
+          <Zap className="mr-2 h-4 w-4" />
+          Start Now (within 15 minutes)
+        </Button>
+        
+        <p className="text-center text-xs text-muted-foreground">or</p>
+        
+        {/* Date Picker */}
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -244,19 +274,53 @@ export const StreamSetupForm = ({ artistId, onSubmit, loading }: StreamSetupForm
               disabled={loading}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {scheduledDate ? format(scheduledDate, "PPP p") : "Pick a date"}
+              {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={scheduledDate}
-              onSelect={setScheduledDate}
-              disabled={(date) => date < new Date()}
+              onSelect={(date) => {
+                setScheduledDate(date);
+                if (!scheduledTime) {
+                  // Default to current time + 15 minutes
+                  const now = new Date();
+                  now.setMinutes(now.getMinutes() + 15);
+                  setScheduledTime(format(now, "HH:mm"));
+                }
+              }}
+              disabled={(date) => {
+                // Only disable dates before today (not including today)
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                return date < today;
+              }}
               initialFocus
             />
           </PopoverContent>
         </Popover>
+        
+        {/* Time Input - shows when date is selected */}
+        {scheduledDate && (
+          <div className="space-y-2">
+            <Label htmlFor="time">Time</Label>
+            <Input
+              id="time"
+              type="time"
+              value={scheduledTime}
+              onChange={(e) => setScheduledTime(e.target.value)}
+              disabled={loading}
+              required
+            />
+          </div>
+        )}
+        
+        {scheduledDate && scheduledTime && (
+          <p className="text-xs text-muted-foreground">
+            Stream will start: {format(scheduledDate, "PPP")} at {scheduledTime}
+          </p>
+        )}
       </div>
 
       <Button
