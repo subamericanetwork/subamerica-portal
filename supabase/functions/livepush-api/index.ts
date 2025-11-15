@@ -347,7 +347,7 @@ serve(async (req) => {
               stream_id: stream.id,
               rtmp_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
               stream_key: muxStream.data.stream_key,
-              hls_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: stream.status
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -403,7 +403,7 @@ serve(async (req) => {
               stream_id: stream.id,
               rtmp_url: rtmpUrl,
               stream_key: streamKey,
-              hls_url: livepushStream.playback_url,
+              hls_playback_url: livepushStream.playback_url,
               status: stream.status
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -566,7 +566,7 @@ serve(async (req) => {
               stream_id: stream.id,
               rtmp_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
               stream_key: muxStream.data.stream_key,
-              hls_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+              hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: stream.status,
               approval_status: approvalStatus,
               minutes_remaining: minutesRemaining
@@ -665,7 +665,7 @@ serve(async (req) => {
               stream_id: stream.id,
               rtmp_url: rtmpUrl,
               stream_key: streamKey,
-              hls_url: livepushStream.playback_url,
+              hls_playback_url: livepushStream.playback_url,
               status: stream.status,
               approval_status: approvalStatus,
               minutes_remaining: minutesRemaining
