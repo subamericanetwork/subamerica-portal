@@ -6,8 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlayerProvider, usePlayer } from "@/contexts/PlayerContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
-// InstallBanner temporarily disabled during PWA debugging
-// import { InstallBanner } from "@/components/InstallBanner";
+import { InstallBanner } from "@/components/InstallBanner";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import AdminRoute from "@/components/AdminRoute";
 import ArtistRoute from "@/components/ArtistRoute";
@@ -97,8 +96,8 @@ const AppRoutes = () => {
   return (
     <>
       <MiniPlayer />
-      {/* InstallBanner temporarily disabled during PWA debugging */}
-      {/* <InstallBanner /> */}
+      {/* Install Banner - Native browser prompt without service workers */}
+      <InstallBanner />
       <Routes>
           <Route path="/" element={<ArtistPortal />} />
           <Route path="/portals" element={<Portals />} />
