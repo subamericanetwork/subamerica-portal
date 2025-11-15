@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { MemberLayout } from '@/components/layout/MemberLayout';
+import { PublicLayout } from '@/components/layout/PublicLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -199,45 +199,41 @@ export default function WatchLive() {
 
   if (loading) {
     return (
-      <MemberLayout>
-        <div className="min-h-screen bg-background">
+      <PublicLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="container mx-auto px-4 py-8">
-            <Skeleton className="w-full aspect-video mb-6" />
-            <Skeleton className="h-8 w-3/4 mb-4" />
-            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-12 w-64 mb-4" />
+            <Skeleton className="h-96 max-w-4xl w-full" />
           </div>
         </div>
-      </MemberLayout>
+      </PublicLayout>
     );
   }
 
   if (error || !stream) {
     return (
-      <MemberLayout>
-        <div className="min-h-screen bg-background">
-          <div className="container mx-auto px-4 py-8">
-            <Card className="border-muted">
-              <CardContent className="py-12 text-center">
-                <Radio className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-semibold mb-2">{error || 'Stream Not Available'}</h3>
-                <div className="flex gap-3 justify-center">
-                  <Button onClick={() => navigate('/live')}>
-                    View Live Streams
-                  </Button>
-                  <Button variant="outline" onClick={() => navigate(-1)}>
-                    Go Back
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+      <PublicLayout>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Card className="max-w-md mx-4 border-muted">
+            <CardContent className="py-12 text-center">
+              <Radio className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+              <h3 className="text-xl font-semibold mb-2">Stream Not Available</h3>
+              <p className="text-muted-foreground mb-4">
+                {error || 'This stream is no longer available'}
+              </p>
+              <Button onClick={() => navigate('/live')}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Live Streams
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </MemberLayout>
+      </PublicLayout>
     );
   }
 
   return (
-    <MemberLayout>
+    <PublicLayout>
       <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           <Button
@@ -352,6 +348,6 @@ export default function WatchLive() {
           </div>
         </div>
       </div>
-    </MemberLayout>
+    </PublicLayout>
   );
 }

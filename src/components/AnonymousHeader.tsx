@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Home, Play, Sparkles, LogIn, ArrowRight, BookOpen } from "lucide-react";
+import { Home, Play, Sparkles, LogIn, ArrowRight, BookOpen, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
 
@@ -25,6 +25,10 @@ export function AnonymousHeader() {
           <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/watch")}>
             <Play className="h-4 w-4" />
             Watch
+          </Button>
+          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/live")}>
+            <Radio className="h-4 w-4" />
+            Live
           </Button>
           <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/blog")}>
             <BookOpen className="h-4 w-4" />
