@@ -3,6 +3,14 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { authStorage } from "@/lib/authStorage";
 
+// PWA detection utility
+const isPWA = (): boolean => {
+  return window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true ||
+    window.location.search.includes('pwa=true');
+};
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -169,11 +177,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp = async (email: string, password: string, displayName: string) => {
     try {
+      // PWA-aware redirect URL
+      const redirectUrl = isPWA() 
+        ? `${window.location.origin}/?auth=callback&pwa=true`
+        : `${window.location.origin}/?auth=callback`;
+      
+      console.log('[Auth] Sign up redirect URL:', redirectUrl, 'isPWA:', isPWA());
+      
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: redirectUrl,
           data: {
             display_name: displayName,
           }
@@ -192,6 +207,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    console.log("[Auth] Attempting sign in...", 'isPWA:', isPWA());
+    
     // Check for active lockout
     if (lockoutUntil && Date.now() < lockoutUntil) {
       const waitTime = Math.ceil((lockoutUntil - Date.now()) / 1000);

@@ -22,6 +22,10 @@ const Auth = () => {
   const [searchParams] = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "signin";
   const isPasswordReset = searchParams.get("reset") === "true";
+  const isAuthCallback = searchParams.get("auth") === "callback";
+  const isPWAMode = searchParams.get("pwa") === "true" || 
+    window.matchMedia('(display-mode: minimal-ui)').matches ||
+    window.matchMedia('(display-mode: standalone)').matches;
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -53,7 +57,8 @@ const Auth = () => {
     const { error } = await signIn(email, password);
     
     if (error) {
-      toast.error(error.message);
+      console.error('[Auth] Sign in error:', error);
+      toast.error(error.message || "Login failed. Please try again.");
     } else {
       toast.success("Welcome back!");
       navigate("/dashboard");
@@ -82,7 +87,8 @@ const Auth = () => {
     const { error } = await signUp(email, password, displayName);
     
     if (error) {
-      toast.error(error.message);
+      console.error('[Auth] Sign up error:', error);
+      toast.error(error.message || "Sign up failed. Please try again.");
     } else {
       toast.success("Account created! Please check your email to verify your account.");
       // Don't auto-navigate - keep user on auth page until they verify
@@ -204,6 +210,26 @@ const Auth = () => {
             Discover independent artists and support the underground
           </p>
         </div>
+
+        {/* PWA Mode Indicator */}
+        {isPWAMode && (
+          <Alert className="border-primary/30">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Running as installed app
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Auth Callback Status */}
+        {isAuthCallback && (
+          <Alert className="border-primary/30">
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              Completing authentication...
+            </AlertDescription>
+          </Alert>
+        )}
 
         <Card className="border-primary/20 gradient-card">
           <CardHeader>

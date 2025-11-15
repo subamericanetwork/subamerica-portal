@@ -1,10 +1,12 @@
 /**
  * Service Worker Cleanup Utility
- * Removes all service workers and caches from previous PWA implementation
+ * Removes OLD/BROKEN service workers from previous PWA implementation
+ * Preserves NEW VitePWA service workers (v2.0+)
  */
 
 const CLEANUP_FLAG = 'sw_cleanup_completed';
-const CLEANUP_VERSION = '1.0';
+const CLEANUP_VERSION = '2.0'; // Updated for new PWA implementation
+const VITEPWA_SCOPE = '/'; // VitePWA service worker scope
 
 export async function cleanupServiceWorkers(): Promise<void> {
   const startTime = Date.now();
@@ -20,21 +22,34 @@ export async function cleanupServiceWorkers(): Promise<void> {
   console.log('[SW Cleanup] Starting service worker and cache cleanup...');
 
   try {
-    // Unregister all service workers
+    // Unregister ONLY old/broken service workers, keep VitePWA ones
     if ('serviceWorker' in navigator) {
       const registrations = await navigator.serviceWorker.getRegistrations();
       
       if (registrations.length > 0) {
-        console.log(`[SW Cleanup] Found ${registrations.length} service worker(s), unregistering...`);
+        console.log(`[SW Cleanup] Found ${registrations.length} service worker(s), checking versions...`);
         
-        await Promise.all(
-          registrations.map(async (registration) => {
+        let removedCount = 0;
+        for (const registration of registrations) {
+          // Check if this is a VitePWA service worker (v2.0+)
+          const scriptURL = registration.active?.scriptURL || '';
+          const isVitePWA = scriptURL.includes('sw.js') || scriptURL.includes('workbox');
+          
+          // Only remove if it's NOT a VitePWA service worker
+          if (!isVitePWA && registration.scope !== window.location.origin + VITEPWA_SCOPE) {
             await registration.unregister();
-            console.log('[SW Cleanup] Unregistered service worker:', registration.scope);
-          })
-        );
+            console.log('[SW Cleanup] Removed old service worker:', registration.scope);
+            removedCount++;
+          } else {
+            console.log('[SW Cleanup] Keeping VitePWA service worker:', registration.scope);
+          }
+        }
         
-        console.log('[SW Cleanup] ✅ All service workers unregistered');
+        if (removedCount > 0) {
+          console.log(`[SW Cleanup] ✅ Removed ${removedCount} old service worker(s)`);
+        } else {
+          console.log('[SW Cleanup] All service workers are current');
+        }
       } else {
         console.log('[SW Cleanup] No service workers found');
       }
