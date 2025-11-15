@@ -7,11 +7,14 @@ const CLEANUP_FLAG = 'sw_cleanup_completed';
 const CLEANUP_VERSION = '1.0';
 
 export async function cleanupServiceWorkers(): Promise<void> {
+  const startTime = Date.now();
+  console.log('[SW Cleanup] [START] Cleanup initiated at', new Date().toISOString());
+  
   // Check if cleanup already completed
   const cleanupCompleted = localStorage.getItem(CLEANUP_FLAG);
   if (cleanupCompleted === CLEANUP_VERSION) {
-    console.log('[SW Cleanup] Already completed, skipping');
-    return;
+    console.log('[SW Cleanup] Already completed, skipping (took 0ms)');
+    return Promise.resolve();
   }
 
   console.log('[SW Cleanup] Starting service worker and cache cleanup...');
@@ -59,10 +62,15 @@ export async function cleanupServiceWorkers(): Promise<void> {
 
     // Mark cleanup as completed
     localStorage.setItem(CLEANUP_FLAG, CLEANUP_VERSION);
-    console.log('[SW Cleanup] ✅ Cleanup completed successfully');
+    const endTime = Date.now();
+    console.log(`[SW Cleanup] ✅ Cleanup completed successfully in ${endTime - startTime}ms`);
+    console.log('[SW Cleanup] [END] Returning control to main.tsx');
 
   } catch (error) {
-    console.error('[SW Cleanup] ❌ Error during cleanup:', error);
+    const endTime = Date.now();
+    console.error(`[SW Cleanup] ❌ Error during cleanup (after ${endTime - startTime}ms):`, error);
     // Don't throw - allow app to continue loading even if cleanup fails
   }
+  
+  return Promise.resolve();
 }
