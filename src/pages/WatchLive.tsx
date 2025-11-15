@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Radio, Users, Share2, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { StreamOverlayManager } from '@/components/overlays/StreamOverlayManager';
 import Hls from 'hls.js';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -254,6 +255,12 @@ export default function WatchLive() {
                   controls
                   autoPlay
                   playsInline
+                />
+                <StreamOverlayManager
+                  streamId={stream.id}
+                  videoElement={videoRef.current}
+                  hlsInstance={hlsRef.current}
+                  platform="web"
                 />
                 <Badge
                   variant="destructive"

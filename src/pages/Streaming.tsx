@@ -6,6 +6,7 @@ import { useGoLive } from "@/hooks/useGoLive";
 import { StreamSetupForm } from "@/components/StreamSetupForm";
 import { RTMPCredentials } from "@/components/RTMPCredentials";
 import { StreamControls } from "@/components/StreamControls";
+import { StreamOverlayManager } from "@/components/admin/StreamOverlayManager";
 import { UpgradeToTridentCard } from "@/components/UpgradeToTridentCard";
 import { PurchaseMinutesCard } from "@/components/PurchaseMinutesCard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -145,22 +146,25 @@ const Streaming = () => {
         )}
 
         {stream && (streamStatus === 'waiting' || streamStatus === 'live') && (
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-6">
-              <RTMPCredentials
-                rtmpUrl={stream.rtmpUrl}
-                streamKey={stream.streamKey}
-                hlsPlaybackUrl={stream.hlsPlaybackUrl}
-              />
+          <>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="space-y-6">
+                <RTMPCredentials
+                  rtmpUrl={stream.rtmpUrl}
+                  streamKey={stream.streamKey}
+                  hlsPlaybackUrl={stream.hlsPlaybackUrl}
+                />
+              </div>
+              <div>
+                <StreamControls
+                  streamId={stream.streamId}
+                  status={streamStatus}
+                  onEndStream={handleEndStream}
+                />
+              </div>
             </div>
-            <div>
-              <StreamControls
-                streamId={stream.streamId}
-                status={streamStatus}
-                onEndStream={handleEndStream}
-              />
-            </div>
-          </div>
+            <StreamOverlayManager streamId={stream.streamId} />
+          </>
         )}
 
         {streamStatus === 'ended' && (
