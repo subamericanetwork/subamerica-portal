@@ -471,6 +471,8 @@ serve(async (req) => {
             throw new Error('Mux credentials not configured');
           }
           
+          console.log('Creating Mux stream on Subamerica infrastructure with credentials configured');
+          
           // Create Mux stream
           const muxResponse = await fetch('https://api.mux.com/video/v1/live-streams', {
             method: 'POST',
@@ -487,6 +489,12 @@ serve(async (req) => {
           
           if (!muxResponse.ok) {
             const error = await muxResponse.json();
+            console.error('Mux API Error Response:', {
+              status: muxResponse.status,
+              statusText: muxResponse.statusText,
+              error: error
+            });
+            
             let userMessage = 'Failed to create Mux stream';
             let errorType = 'mux_error';
             
@@ -509,31 +517,48 @@ serve(async (req) => {
           }
           
           const muxStream = await muxResponse.json();
+          console.log('Mux stream created successfully:', {
+            streamKey: muxStream.data.stream_key,
+            playbackId: muxStream.data.playback_ids[0]?.id
+          });
           
           // Store with distribution flags
-          const { data: stream } = await supabase
-            .from('artist_live_streams')
-            .insert({
-              artist_id: artistId,
-              user_id: user.id,
-              title,
-              description,
-              streaming_mode: 'subamerica_managed',
-              provider: 'mux',
-              stream_key: muxStream.data.stream_key,
-              rtmp_ingest_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
-              hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
-              hls_tv_feed_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
-              status: scheduledStart ? 'scheduled' : 'ready',
-              scheduled_start: scheduledStart || null,
-              show_on_tv,
-              show_on_web,
-              approval_status: approvalStatus,
-              approved_by: isAdmin ? user.id : null,
-              approved_at: approvalStatus === 'auto_approved' ? new Date().toISOString() : null
-            })
-            .select()
-            .single();
+          let stream;
+          try {
+            const { data: streamData, error: dbError } = await supabase
+              .from('artist_live_streams')
+              .insert({
+                artist_id: artistId,
+                user_id: user.id,
+                title,
+                description,
+                streaming_mode: 'subamerica_managed',
+                provider: 'mux',
+                stream_key: muxStream.data.stream_key,
+                rtmp_ingest_url: `${muxStream.data.rtmps.url}${muxStream.data.stream_key}`,
+                hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+                hls_tv_feed_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
+                status: scheduledStart ? 'scheduled' : 'ready',
+                scheduled_start: scheduledStart || null,
+                show_on_tv,
+                show_on_web,
+                approval_status: approvalStatus,
+                approved_by: isAdmin ? user.id : null,
+                approved_at: approvalStatus === 'auto_approved' ? new Date().toISOString() : null
+              })
+              .select()
+              .single();
+            
+            if (dbError) {
+              console.error('Database insertion error:', dbError);
+              throw dbError;
+            }
+            
+            stream = streamData;
+          } catch (err) {
+            console.error('Failed to insert stream to database:', err);
+            throw err;
+          }
           
           return new Response(
             JSON.stringify({
