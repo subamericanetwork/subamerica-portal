@@ -106,6 +106,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Admin: Verification", href: "/admin/verification", icon: Shield },
     { name: "Admin: Membership", href: "/admin/membership", icon: Users },
     { name: "Admin: Blog", href: "/admin/blog", icon: BookOpen },
+    { name: "Admin: Stream Schedule", href: "/admin/stream-schedule", icon: Radio },
     { name: "Producer Queue", href: "/admin/producer-queue", icon: CheckSquare },
   ];
 
