@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import type { Database } from '@/integrations/supabase/types';
 
 interface StreamCredentials {
   streamId: string;
@@ -29,15 +30,20 @@ export const useGoLive = (artistId: string) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
       
+      // Call has_role with explicit type casting
       const { data: isAdmin, error: adminError } = await supabase.rpc('has_role', {
         _user_id: user.id,
-        _role: 'admin'
+        _role: 'admin' as Database['public']['Enums']['app_role']
       });
       
-      if (adminError) console.error('Admin check error:', adminError);
+      // Log any errors for debugging
+      if (adminError) {
+        console.error('Admin check error:', adminError);
+      }
       
-      // If admin, grant immediate access with unlimited minutes
-      if (isAdmin) {
+      // If admin check succeeded and user is admin, grant immediate access
+      if (isAdmin === true) {
+        console.log('✅ Admin access granted for user:', user.id);
         return {
           canStream: true,
           isAdmin: true,
@@ -45,6 +51,8 @@ export const useGoLive = (artistId: string) => {
           message: 'Admin access granted'
         };
       }
+      
+      console.log('User is not admin, checking artist subscription...');
 
       const { data: artist, error } = await supabase
         .from('artists')
