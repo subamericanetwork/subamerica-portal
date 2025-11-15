@@ -534,6 +534,7 @@ serve(async (req) => {
                 description,
                 streaming_mode: 'subamerica_managed',
                 provider: 'mux',
+                livepush_stream_id: muxStream.data.id,
                 stream_key: muxStream.data.stream_key,
                 rtmp_ingest_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
                 hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
