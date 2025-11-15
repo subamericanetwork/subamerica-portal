@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Compass, Play, ListMusic, User, LogOut, LayoutDashboard, BookOpen } from "lucide-react";
+import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +39,7 @@ export function MemberHeader() {
 
   const memberNavItems = [
     { title: "Discover", url: "/portals", icon: Compass },
+    { title: "Live", url: "/live", icon: Radio },
     { title: "Watch", url: "/watch", icon: Play },
     { title: "Blog", url: "/blog", icon: BookOpen },
     { title: "Playlists", url: "/member/playlists", icon: ListMusic },
