@@ -976,6 +976,65 @@ export type Database = {
           },
         ]
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          is_muted: boolean | null
+          joined_at: string | null
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          is_muted?: boolean | null
+          joined_at?: string | null
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          is_muted?: boolean | null
+          joined_at?: string | null
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          conversation_type: string
+          created_at: string | null
+          id: string
+          last_message_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          conversation_type?: string
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          conversation_type?: string
+          created_at?: string | null
+          id?: string
+          last_message_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       domain_verifications: {
         Row: {
           artist_id: string
@@ -1311,6 +1370,133 @@ export type Database = {
           video_ids?: string[] | null
         }
         Relationships: []
+      }
+      message_attachments: {
+        Row: {
+          attachment_type: string
+          content_id: string | null
+          created_at: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
+          id: string
+          message_id: string
+          mime_type: string | null
+        }
+        Insert: {
+          attachment_type: string
+          content_id?: string | null
+          created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          message_id: string
+          mime_type?: string | null
+        }
+        Update: {
+          attachment_type?: string
+          content_id?: string | null
+          created_at?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
+          id?: string
+          message_id?: string
+          mime_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message_reactions: {
+        Row: {
+          created_at: string | null
+          emoji: string
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          emoji: string
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          emoji?: string
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string | null
+          deleted: boolean | null
+          edited: boolean | null
+          id: string
+          reply_to_id: string | null
+          sender_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string | null
+          deleted?: boolean | null
+          edited?: boolean | null
+          id?: string
+          reply_to_id?: string | null
+          sender_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string | null
+          deleted?: boolean | null
+          edited?: boolean | null
+          id?: string
+          reply_to_id?: string | null
+          sender_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -2669,6 +2855,35 @@ export type Database = {
           },
         ]
       }
+      typing_indicators: {
+        Row: {
+          conversation_id: string
+          id: string
+          started_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          started_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          started_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "typing_indicators_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_profiles: {
         Row: {
           avatar_url: string | null
@@ -2838,6 +3053,7 @@ export type Database = {
         Returns: Json
       }
       can_start_stream: { Args: { p_artist_id: string }; Returns: Json }
+      cleanup_old_typing_indicators: { Args: never; Returns: undefined }
       deduct_streaming_minutes: {
         Args: { p_artist_id: string; p_minutes_used: number }
         Returns: undefined
@@ -2855,6 +3071,10 @@ export type Database = {
       }
       is_artist: { Args: { user_id_param: string }; Returns: boolean }
       is_artist_owner: { Args: { _artist_id: string }; Returns: boolean }
+      is_conversation_participant: {
+        Args: { _conversation_id: string; _user_id: string }
+        Returns: boolean
+      }
       reset_monthly_streaming_usage: { Args: never; Returns: undefined }
       should_auto_approve_content: {
         Args: { artist_id_param: string }
