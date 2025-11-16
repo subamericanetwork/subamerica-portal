@@ -20,6 +20,7 @@ import { Loader2, Shield, Clock, AlertCircle, Zap, Calendar } from "lucide-react
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { toast } from "sonner";
+import { StreamManager } from "@/components/StreamManager";
 
 const Streaming = () => {
   const { user } = useAuth();
@@ -176,6 +177,13 @@ const Streaming = () => {
           </p>
           {isAdmin && <AdminBadge />}
         </div>
+
+        {/* Stream Manager - Show all streams when not actively streaming */}
+        {artistId && !stream && (
+          <div className="mb-6">
+            <StreamManager artistId={artistId} showActions={true} />
+          </div>
+        )}
 
         {isAdmin && (
           <StreamingWebhookSetup />
