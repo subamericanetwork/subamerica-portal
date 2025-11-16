@@ -51,6 +51,7 @@ import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import AdminBlog from "./pages/admin/AdminBlog";
 import AdminStreamSchedule from "./pages/admin/AdminStreamSchedule";
+import AdminDocumentation from "./pages/admin/AdminDocumentation";
 import SocialConsole from "./pages/SocialConsole";
 import SocialAnalytics from "./pages/SocialAnalytics";
 import SubClipLibrary from "./pages/SubClipLibrary";
@@ -153,6 +154,7 @@ const AppRoutes = () => {
           <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
           <Route path="/admin/stream-schedule" element={<AdminRoute><AdminStreamSchedule /></AdminRoute>} />
           <Route path="/admin/producer-queue" element={<AdminRoute><ProducerQueue /></AdminRoute>} />
+          <Route path="/admin/documentation" element={<AdminRoute><AdminDocumentation /></AdminRoute>} />
           
           {/* Blog Routes */}
           <Route path="/blog" element={<Blog />} />
