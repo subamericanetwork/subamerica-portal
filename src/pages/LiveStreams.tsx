@@ -5,10 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Radio, Users, Clock } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Radio, Users, Clock, StopCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from 'sonner';
 
 interface LiveStream {
   id: string;
@@ -18,20 +20,31 @@ interface LiveStream {
   viewer_count: number;
   started_at: string | null;
   artist_id: string;
+  user_id: string;
   artists: {
     display_name: string;
     slug: string;
     brand: any;
+    user_id: string;
   };
 }
 
 export default function LiveStreams() {
   const [liveStreams, setLiveStreams] = useState<LiveStream[]>([]);
   const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [endingStreamId, setEndingStreamId] = useState<string | null>(null);
+  const [showEndDialog, setShowEndDialog] = useState(false);
+  const [selectedStreamId, setSelectedStreamId] = useState<string | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Get current user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUser(user);
+    });
+
     fetchLiveStreams();
     
     // Subscribe to real-time updates
@@ -68,10 +81,12 @@ export default function LiveStreams() {
           viewer_count,
           started_at,
           artist_id,
+          user_id,
           artists!inner(
             display_name,
             slug,
-            brand
+            brand,
+            user_id
           )
         `)
         .eq('status', 'live')
@@ -84,6 +99,44 @@ export default function LiveStreams() {
       console.error('Error fetching live streams:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEndStreamClick = (streamId: string) => {
+    setSelectedStreamId(streamId);
+    setShowEndDialog(true);
+  };
+
+  const handleEndStream = async () => {
+    if (!selectedStreamId) return;
+
+    setEndingStreamId(selectedStreamId);
+    setShowEndDialog(false);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast.error('You must be logged in to end a stream');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('end-mux-stream', {
+        body: { streamId: selectedStreamId },
+      });
+
+      if (error) throw error;
+
+      toast.success('Stream ended successfully');
+      
+      // Refresh the list
+      await fetchLiveStreams();
+    } catch (error) {
+      console.error('Error ending stream:', error);
+      toast.error('Failed to end stream');
+    } finally {
+      setEndingStreamId(null);
+      setSelectedStreamId(null);
     }
   };
 
@@ -143,82 +196,125 @@ export default function LiveStreams() {
             </Card>
           ) : (
             <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 ${isMobile ? 'gap-4' : 'gap-6'}`}>
-              {liveStreams.map((stream) => (
-                <Card
-                  key={stream.id}
-                  className="border-muted hover:border-primary transition-all cursor-pointer group overflow-hidden"
-                  onClick={() => navigate(`/live/${stream.id}`)}
-                >
-                  <div className="relative aspect-video bg-muted">
-                    {stream.thumbnail_url ? (
-                      <img
-                        src={stream.thumbnail_url}
-                        alt={stream.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Radio className="w-16 h-16 text-muted-foreground" />
-                      </div>
-                    )}
-                    <Badge
-                      variant="destructive"
-                      className="absolute top-3 left-3 gap-1 animate-pulse"
-                    >
-                      <Radio className="w-3 h-3" />
-                      LIVE
-                    </Badge>
-                    {stream.viewer_count > 0 && (
-                      <Badge
-                        variant="secondary"
-                        className="absolute top-3 right-3 gap-1 bg-background/80 backdrop-blur"
+              {liveStreams.map((stream) => {
+                const isOwner = currentUser && stream.user_id === currentUser.id;
+                
+                return (
+                  <Card
+                    key={stream.id}
+                    className="border-muted hover:border-primary transition-all group overflow-hidden relative"
+                  >
+                    {isOwner && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-3 right-3 z-10 gap-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEndStreamClick(stream.id);
+                        }}
+                        disabled={endingStreamId === stream.id}
                       >
-                        <Users className="w-3 h-3" />
-                        {stream.viewer_count}
-                      </Badge>
+                        <StopCircle className="w-4 h-4" />
+                        {endingStreamId === stream.id ? 'Ending...' : 'End Stream'}
+                      </Button>
                     )}
-                  </div>
-                  <CardHeader>
-                    <div className="flex items-start gap-3">
-                      {getAvatarUrl(stream) ? (
-                        <img
-                          src={getAvatarUrl(stream)!}
-                          alt={stream.artists.display_name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <span className="text-sm font-bold text-primary">
-                            {stream.artists.display_name.charAt(0)}
-                          </span>
+                    <div 
+                      className="cursor-pointer"
+                      onClick={() => navigate(`/live/${stream.id}`)}
+                    >
+                      <div className="relative aspect-video bg-muted">
+                        {stream.thumbnail_url ? (
+                          <img
+                            src={stream.thumbnail_url}
+                            alt={stream.title}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Radio className="w-16 h-16 text-muted-foreground" />
+                          </div>
+                        )}
+                        <Badge
+                          variant="destructive"
+                          className="absolute top-3 left-3 gap-1 animate-pulse"
+                        >
+                          <Radio className="w-3 h-3" />
+                          LIVE
+                        </Badge>
+                        {stream.viewer_count > 0 && (
+                          <Badge
+                            variant="secondary"
+                            className="absolute bottom-3 right-3 gap-1 bg-background/80 backdrop-blur"
+                          >
+                            <Users className="w-3 h-3" />
+                            {stream.viewer_count}
+                          </Badge>
+                        )}
+                      </div>
+                      <CardHeader>
+                        <div className="flex items-start gap-3">
+                          {getAvatarUrl(stream) ? (
+                            <img
+                              src={getAvatarUrl(stream)!}
+                              alt={stream.artists.display_name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                              <span className="text-sm font-bold text-primary">
+                                {stream.artists.display_name.charAt(0)}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg line-clamp-2 mb-1">
+                              {stream.title}
+                            </CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              {stream.artists.display_name}
+                            </p>
+                          </div>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg line-clamp-2 mb-1">
-                          {stream.title}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          {stream.artists.display_name}
-                        </p>
-                      </div>
+                        {stream.description && (
+                          <CardDescription className="line-clamp-2 mt-2">
+                            {stream.description}
+                          </CardDescription>
+                        )}
+                        {stream.started_at && (
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
+                            <Clock className="w-3 h-3" />
+                            Started {formatDistanceToNow(new Date(stream.started_at), { addSuffix: true })}
+                          </div>
+                        )}
+                      </CardHeader>
                     </div>
-                    {stream.description && (
-                      <CardDescription className="line-clamp-2 mt-2">
-                        {stream.description}
-                      </CardDescription>
-                    )}
-                    {stream.started_at && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-2">
-                        <Clock className="w-3 h-3" />
-                        Started {formatDistanceToNow(new Date(stream.started_at), { addSuffix: true })}
-                      </div>
-                    )}
-                  </CardHeader>
-                </Card>
-              ))}
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>
+
+        <AlertDialog open={showEndDialog} onOpenChange={setShowEndDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>End Live Stream?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will stop your live stream and disconnect OBS. Viewers will no longer be able to watch. This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleEndStream}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                End Stream
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </PublicLayout>
   );
