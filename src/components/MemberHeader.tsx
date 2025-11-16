@@ -161,17 +161,6 @@ export function MemberHeader() {
             </Button>
           )}
           
-          {hasPortalAccess && !activeStream && scheduledCount > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden md:flex gap-2 border-yellow-600 text-yellow-600 hover:bg-yellow-500/10"
-              onClick={() => navigate("/streaming")}
-            >
-              <Clock className="h-4 w-4" />
-              Scheduled ({scheduledCount})
-            </Button>
-          )}
           
           {/* Portal Dashboard Link (Artists/Admins Only - Desktop) */}
           {hasPortalAccess && (
@@ -186,18 +175,6 @@ export function MemberHeader() {
             </Button>
           )}
           
-          {/* Stream Schedule Link (Admins Only - Desktop) */}
-          {isAdmin && (
-            <Button
-              variant={isActive("/admin/stream-schedule") ? "secondary" : "ghost"}
-              size="sm"
-              className="hidden md:flex gap-2"
-              onClick={() => navigate("/admin/stream-schedule")}
-            >
-              <Calendar className="h-4 w-4" />
-              Stream Schedule
-            </Button>
-          )}
           
           {/* Mobile: Icons only */}
           {memberNavItems.map((item) => (
