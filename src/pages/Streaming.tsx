@@ -16,6 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Loader2, Shield, Clock, AlertCircle, Zap, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -178,73 +179,79 @@ const Streaming = () => {
           {isAdmin && <AdminBadge />}
         </div>
 
-        {/* Stream Manager - Show all streams when not actively streaming */}
-        {artistId && !stream && (
-          <div className="mb-6">
-            <StreamManager artistId={artistId} showActions={true} />
-          </div>
-        )}
-
-        {isAdmin && (
-          <StreamingWebhookSetup />
-        )}
-
+        {/* Show tabs when not actively streaming */}
         {!stream && artistId && (
-          <>
-            <StreamSetupForm
-              artistId={artistId}
-              onSubmit={handleCreateStream}
-              loading={creating}
-            />
+          <Tabs defaultValue="my-streams" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="my-streams">My Streams</TabsTrigger>
+              <TabsTrigger value="start-new">Start New Stream</TabsTrigger>
+            </TabsList>
             
-            {/* Admin: Test Stream & Stream Schedule */}
-            {isAdmin && (
-              <div className="space-y-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Testing Tools</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      Create a test stream that's immediately set to live status for testing the streaming workflow.
-                    </p>
-                    <Button 
-                      onClick={handleCreateTestStream} 
-                      variant="outline"
-                      disabled={creatingTest}
-                    >
-                      {creatingTest ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Creating Test Stream...
-                        </>
-                      ) : (
-                        <>
-                          <Zap className="h-4 w-4 mr-2" />
-                          Create Test Stream
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
+            <TabsContent value="my-streams" className="space-y-6">
+              <StreamManager artistId={artistId} showActions={true} />
+            </TabsContent>
+            
+            <TabsContent value="start-new" className="space-y-6">
+              {isAdmin && (
+                <StreamingWebhookSetup />
+              )}
+              
+              <StreamSetupForm
+                artistId={artistId}
+                onSubmit={handleCreateStream}
+                loading={creating}
+              />
+              
+              {/* Admin: Test Stream & Stream Schedule */}
+              {isAdmin && (
+                <div className="space-y-4">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Testing Tools</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Create a test stream that's immediately set to live status for testing the streaming workflow.
+                      </p>
+                      <Button 
+                        onClick={handleCreateTestStream} 
+                        variant="outline"
+                        disabled={creatingTest}
+                      >
+                        {creatingTest ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Creating Test Stream...
+                          </>
+                        ) : (
+                          <>
+                            <Zap className="h-4 w-4 mr-2" />
+                            Create Test Stream
+                          </>
+                        )}
+                      </Button>
+                    </CardContent>
+                  </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Manage Scheduled Streams</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      View all scheduled streams, manage their status, and access stream credentials.
-                    </p>
-                    <Button onClick={() => navigate("/admin/stream-schedule")} variant="outline">
-                      <Calendar className="h-4 w-4 mr-2" />
-                      View All Scheduled Streams
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-          </>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Manage Scheduled Streams</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        onClick={() => navigate('/admin/stream-schedule')}
+                        variant="outline"
+                        className="w-full"
+                      >
+                        <Calendar className="h-4 w-4 mr-2" />
+                        View All Scheduled Streams
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         )}
 
         {stream && (
