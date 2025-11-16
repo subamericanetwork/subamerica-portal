@@ -37,9 +37,10 @@ interface StreamManagerProps {
   artistId: string;
   onStreamClick?: (stream: Stream) => void;
   showActions?: boolean;
+  filter?: 'active' | 'ended' | 'all';
 }
 
-export const StreamManager = ({ artistId, onStreamClick, showActions = true }: StreamManagerProps) => {
+export const StreamManager = ({ artistId, onStreamClick, showActions = true, filter = 'active' }: StreamManagerProps) => {
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [forcingLive, setForcingLive] = useState<string | null>(null);
@@ -72,15 +73,24 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [artistId]);
+  }, [artistId, filter]);
 
   const loadStreams = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('artist_live_streams')
         .select('id, title, status, started_at, scheduled_start, viewer_count, hls_playback_url, rtmp_ingest_url, stream_key, description, thumbnail_url')
-        .eq('artist_id', artistId)
-        .in('status', ['scheduled', 'waiting', 'live'])
+        .eq('artist_id', artistId);
+
+      // Apply filter
+      if (filter === 'active') {
+        query = query.in('status', ['scheduled', 'waiting', 'live']);
+      } else if (filter === 'ended') {
+        query = query.eq('status', 'ended');
+      }
+      // 'all' filter shows everything, so no additional filtering needed
+
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(10);
 
