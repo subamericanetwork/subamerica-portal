@@ -208,7 +208,7 @@ export default function LiveStreams() {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="absolute top-3 right-3 z-10 gap-1"
+                        className="absolute bottom-3 right-3 z-10 gap-1 shadow-lg"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEndStreamClick(stream.id);
