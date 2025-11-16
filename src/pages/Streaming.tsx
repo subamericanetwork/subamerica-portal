@@ -188,7 +188,32 @@ const Streaming = () => {
             </TabsList>
             
             <TabsContent value="my-streams" className="space-y-6">
-              <StreamManager artistId={artistId} showActions={true} />
+              <Card>
+                <CardHeader>
+                  <CardTitle>My Streams</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="live" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="live">Live & Scheduled</TabsTrigger>
+                      <TabsTrigger value="ended">Past Streams</TabsTrigger>
+                      <TabsTrigger value="all">All Streams</TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="live" className="mt-4">
+                      <StreamManager artistId={artistId} showActions={true} filter="active" />
+                    </TabsContent>
+
+                    <TabsContent value="ended" className="mt-4">
+                      <StreamManager artistId={artistId} showActions={false} filter="ended" />
+                    </TabsContent>
+
+                    <TabsContent value="all" className="mt-4">
+                      <StreamManager artistId={artistId} showActions={true} filter="all" />
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
             </TabsContent>
             
             <TabsContent value="start-new" className="space-y-6">

@@ -97,10 +97,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       name: "Go Live", 
       icon: Radio,
       children: [
-        { name: "Stream Controls", href: "/streaming", icon: Radio },
-        { name: "My Streams", href: "/streaming/my-streams", icon: Video },
-        { name: "Schedule Stream", href: "/streaming/schedule", icon: Calendar },
-        { name: "Stream Analytics", href: "/streaming/analytics", icon: BarChart3 },
+        { name: "Go Live", href: "/streaming", icon: Radio },
+        { name: "Analytics", href: "/streaming/analytics", icon: BarChart3 },
         ...(isAdmin ? [{ name: "Approve Streams", href: "/streaming/approve", icon: Shield }] : []),
       ]
     },
