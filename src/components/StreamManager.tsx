@@ -14,9 +14,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { StreamStatusIndicator } from "@/components/StreamStatusIndicator";
-import { Radio, Eye, Clock, Zap, ExternalLink, Square } from "lucide-react";
+import { Radio, Eye, Clock, Zap, ExternalLink, Square, Info } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { StreamDetailsDialog } from "./StreamDetailsDialog";
 
 interface Stream {
   id: string;
@@ -26,6 +27,10 @@ interface Stream {
   scheduled_start: string | null;
   viewer_count: number | null;
   hls_playback_url: string | null;
+  rtmp_ingest_url: string;
+  stream_key: string;
+  description: string | null;
+  thumbnail_url: string | null;
 }
 
 interface StreamManagerProps {
@@ -40,6 +45,8 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
   const [forcingLive, setForcingLive] = useState<string | null>(null);
   const [endingStream, setEndingStream] = useState<string | null>(null);
   const [streamToEnd, setStreamToEnd] = useState<Stream | null>(null);
+  const [detailsStream, setDetailsStream] = useState<Stream | null>(null);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,7 +78,7 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
     try {
       const { data, error } = await supabase
         .from('artist_live_streams')
-        .select('*')
+        .select('id, title, status, started_at, scheduled_start, viewer_count, hls_playback_url, rtmp_ingest_url, stream_key, description, thumbnail_url')
         .eq('artist_id', artistId)
         .in('status', ['scheduled', 'waiting', 'live'])
         .order('created_at', { ascending: false })
@@ -184,6 +191,17 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
                   </div>
                   {showActions && (
                     <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          setDetailsStream(stream);
+                          setDetailsDialogOpen(true);
+                        }}
+                      >
+                        <Info className="h-4 w-4 mr-2" />
+                        Details
+                      </Button>
                       <Button size="sm" onClick={() => handleWatch(stream)}>
                         <ExternalLink className="h-4 w-4 mr-2" />
                         Watch
@@ -222,6 +240,17 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
                   </div>
                   {showActions && (
                     <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        onClick={() => {
+                          setDetailsStream(stream);
+                          setDetailsDialogOpen(true);
+                        }}
+                      >
+                        <Info className="h-4 w-4 mr-2" />
+                        Details
+                      </Button>
                       <Button 
                         size="sm" 
                         variant="outline"
@@ -266,6 +295,13 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <StreamDetailsDialog
+        stream={detailsStream}
+        open={detailsDialogOpen}
+        onOpenChange={setDetailsDialogOpen}
+        onStreamUpdated={loadStreams}
+      />
     </Card>
   );
 };
