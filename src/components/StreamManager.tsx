@@ -104,20 +104,22 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
     
     setEndingStream(streamToEnd.id);
     try {
-      const { error } = await supabase
-        .from('artist_live_streams')
-        .update({ 
-          status: 'ended',
-          ended_at: new Date().toISOString()
-        })
-        .eq('id', streamToEnd.id);
+      const { data, error } = await supabase.functions.invoke('end-mux-stream', {
+        body: { streamId: streamToEnd.id },
+      });
 
       if (error) throw error;
-      toast.success('Stream ended successfully');
-      setStreamToEnd(null);
+
+      if (data?.success) {
+        toast.success('Stream ended successfully');
+        setStreamToEnd(null);
+        loadStreams();
+      } else {
+        throw new Error(data?.error || 'Failed to end stream');
+      }
     } catch (error) {
       console.error('Error ending stream:', error);
-      toast.error('Failed to end stream');
+      toast.error(error instanceof Error ? error.message : 'Failed to end stream');
     } finally {
       setEndingStream(null);
     }
