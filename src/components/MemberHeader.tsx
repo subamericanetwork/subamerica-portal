@@ -1,10 +1,11 @@
-import { useNavigate, useLocation } from "react-router-dom";
-import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar, Clock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
+import { cn } from "@/lib/utils";
 
 interface ActiveStream {
   id: string;
@@ -19,6 +20,8 @@ export function MemberHeader() {
   const [hasPortalAccess, setHasPortalAccess] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
+  const [scheduledCount, setScheduledCount] = useState(0);
+  const [artist, setArtist] = useState<{ id: string } | null>(null);
 
   useEffect(() => {
     const checkPortalAccess = async () => {
@@ -32,60 +35,75 @@ export function MemberHeader() {
         setHasPortalAccess(data === 'artist' || data === 'admin');
         setIsAdmin(data === 'admin');
       }
+
+      // Get artist ID
+      const { data: artistData } = await supabase
+        .from('artists')
+        .select('id')
+        .eq('user_id', user.id)
+        .single();
+      
+      if (artistData) {
+        setArtist(artistData);
+      }
     };
 
     checkPortalAccess();
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
-
-    const checkActiveStream = async () => {
-      const { data: artistData } = await supabase
-        .from('artists')
-        .select('id')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!artistData) return;
-
-      const { data: stream } = await supabase
-        .from('artist_live_streams')
-        .select('id, title, status')
-        .eq('artist_id', artistData.id)
-        .eq('status', 'live')
-        .single();
-
-      setActiveStream(stream);
-    };
-
-    checkActiveStream();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('artist-live-status')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'artist_live_streams'
-        },
-        (payload) => {
-          const newStream = payload.new as ActiveStream;
-          if (newStream.status === 'live') {
-            setActiveStream(newStream);
-          } else {
-            setActiveStream(null);
+    if (artist?.id) {
+      checkActiveStream();
+      
+      const channel = supabase
+        .channel('active-stream')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'artist_live_streams',
+            filter: `artist_id=eq.${artist.id}`
+          },
+          () => {
+            checkActiveStream();
           }
-        }
-      )
-      .subscribe();
+        )
+        .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [artist?.id]);
+
+  const checkActiveStream = async () => {
+    if (!artist?.id) return;
+
+    // Check for live streams
+    const { data: liveData } = await supabase
+      .from('artist_live_streams')
+      .select('id, title, status')
+      .eq('artist_id', artist.id)
+      .eq('status', 'live')
+      .order('started_at', { ascending: false })
+      .limit(1);
+
+    if (liveData && liveData.length > 0) {
+      setActiveStream(liveData[0] as ActiveStream);
+    } else {
+      setActiveStream(null);
+    }
+
+    // Check for scheduled streams
+    const { data: scheduledData } = await supabase
+      .from('artist_live_streams')
+      .select('id')
+      .eq('artist_id', artist.id)
+      .in('status', ['scheduled', 'waiting']);
+
+    setScheduledCount(scheduledData?.length || 0);
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -130,8 +148,8 @@ export function MemberHeader() {
             </Button>
           ))}
           
-          {/* Live Now Button - Desktop */}
-          {activeStream && (
+          {/* Live/Scheduled Status - Desktop */}
+          {hasPortalAccess && activeStream && (
             <Button
               variant="destructive"
               size="sm"
@@ -140,6 +158,18 @@ export function MemberHeader() {
             >
               <Radio className="h-4 w-4" />
               LIVE
+            </Button>
+          )}
+          
+          {hasPortalAccess && !activeStream && scheduledCount > 0 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="hidden md:flex gap-2 border-yellow-600 text-yellow-600 hover:bg-yellow-500/10"
+              onClick={() => navigate("/streaming")}
+            >
+              <Clock className="h-4 w-4" />
+              Scheduled ({scheduledCount})
             </Button>
           )}
           

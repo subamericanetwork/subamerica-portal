@@ -5,8 +5,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { TipDialog } from "@/components/TipDialog";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface ArtistPost {
   title: string;
@@ -44,9 +46,57 @@ const PAGE_SIZE = 6;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
 
 export default function Portals() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [showInstructions, setShowInstructions] = useState(() => {
     return localStorage.getItem('portals-instruction-dismissed') !== 'true';
   });
+  const [streamCount, setStreamCount] = useState({ live: 0, scheduled: 0 });
+  const [isArtist, setIsArtist] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      checkArtistRole();
+      checkStreamStatus();
+    }
+  }, [user]);
+
+  const checkArtistRole = async () => {
+    if (!user) return;
+    
+    const { data } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['artist', 'admin']);
+    
+    setIsArtist(data && data.length > 0);
+  };
+
+  const checkStreamStatus = async () => {
+    if (!user) return;
+
+    const { data: artist } = await supabase
+      .from('artists')
+      .select('id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!artist) return;
+
+    const { data: streams } = await supabase
+      .from('artist_live_streams')
+      .select('status')
+      .eq('artist_id', artist.id)
+      .in('status', ['live', 'scheduled', 'waiting']);
+
+    if (streams) {
+      setStreamCount({
+        live: streams.filter(s => s.status === 'live').length,
+        scheduled: streams.filter(s => s.status === 'scheduled' || s.status === 'waiting').length
+      });
+    }
+  };
 
   const handleDismissInstructions = () => {
     localStorage.setItem('portals-instruction-dismissed', 'true');
@@ -56,6 +106,31 @@ export default function Portals() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <ConditionalHeader />
+      
+      {/* Go Live Floating Button */}
+      {isArtist && (
+        <div className="fixed top-20 right-4 z-50">
+          <Button 
+            onClick={() => navigate('/streaming')}
+            size="lg"
+            className="gap-2 shadow-lg"
+            variant={streamCount.live > 0 ? "destructive" : "default"}
+          >
+            <Radio className={streamCount.live > 0 ? "h-5 w-5 animate-pulse" : "h-5 w-5"} />
+            {streamCount.live > 0 ? (
+              <>🔴 LIVE ({streamCount.live})</>
+            ) : streamCount.scheduled > 0 ? (
+              <>
+                Manage
+                <Badge variant="secondary" className="ml-1">{streamCount.scheduled}</Badge>
+              </>
+            ) : (
+              "Go Live"
+            )}
+          </Button>
+        </div>
+      )}
+      
       <PortalsFeed />
       <FooterRibbon isVisible={showInstructions} onClose={handleDismissInstructions} />
     </div>
