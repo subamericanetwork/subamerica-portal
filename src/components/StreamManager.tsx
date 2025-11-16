@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { StreamStatusIndicator } from "@/components/StreamStatusIndicator";
-import { Radio, Eye, Clock, Zap, ExternalLink, Square, Info } from "lucide-react";
+import { Radio, Eye, Clock, Zap, ExternalLink, Square, Info, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { StreamDetailsDialog } from "./StreamDetailsDialog";
@@ -46,6 +46,8 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
   const [forcingLive, setForcingLive] = useState<string | null>(null);
   const [endingStream, setEndingStream] = useState<string | null>(null);
   const [streamToEnd, setStreamToEnd] = useState<Stream | null>(null);
+  const [cancellingStream, setCancellingStream] = useState<string | null>(null);
+  const [streamToCancel, setStreamToCancel] = useState<Stream | null>(null);
   const [detailsStream, setDetailsStream] = useState<Stream | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -84,9 +86,9 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
 
       // Apply filter
       if (filter === 'active') {
-        query = query.in('status', ['scheduled', 'waiting', 'live']);
+        query = query.in('status', ['live', 'scheduled', 'waiting']);
       } else if (filter === 'ended') {
-        query = query.eq('status', 'ended');
+        query = query.in('status', ['ended', 'cancelled']);
       }
       // 'all' filter shows everything, so no additional filtering needed
 
@@ -134,6 +136,33 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
       setEndingStream(null);
     }
   };
+
+  const handleCancelStream = async () => {
+    if (!streamToCancel) return;
+    
+    setCancellingStream(streamToCancel.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('cancel-stream', {
+        body: { streamId: streamToCancel.id },
+      });
+
+      if (error) throw error;
+
+      if (data?.success) {
+        toast.success('Stream cancelled successfully');
+        setStreamToCancel(null);
+        loadStreams();
+      } else {
+        throw new Error(data?.error || 'Failed to cancel stream');
+      }
+    } catch (error) {
+      console.error('Error cancelling stream:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel stream');
+    } finally {
+      setCancellingStream(null);
+    }
+  };
+
 
   if (loading) {
     return (
@@ -231,24 +260,33 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
                       <StreamStatusIndicator status={stream.status === 'scheduled' ? 'waiting' : 'waiting'} />
                     </div>
                   </div>
-                  {showActions && (
-                    <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => {
-                          setDetailsStream(stream);
-                          setDetailsDialogOpen(true);
-                        }}
-                      >
-                        <Info className="h-4 w-4 mr-2" />
-                        Details
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => handleWatch(stream)}>
-                        <ExternalLink className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
+                    {showActions && (
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="ghost"
+                          onClick={() => {
+                            setDetailsStream(stream);
+                            setDetailsDialogOpen(true);
+                          }}
+                        >
+                          <Info className="h-4 w-4 mr-2" />
+                          Details
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="destructive"
+                          onClick={() => setStreamToCancel(stream)}
+                          disabled={cancellingStream === stream.id}
+                        >
+                          <X className="h-4 w-4 mr-2" />
+                          {cancellingStream === stream.id ? 'Cancelling...' : 'Cancel'}
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => handleWatch(stream)}>
+                          <ExternalLink className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                 </div>
               </div>
             ))}
@@ -275,6 +313,26 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleEndStream} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               End Stream
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!streamToCancel} onOpenChange={(open) => !open && setStreamToCancel(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Scheduled Stream?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel "{streamToCancel?.title}"? This will remove it from your schedule.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Stream</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleCancelStream} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Cancel Stream
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
