@@ -33,7 +33,7 @@ import { SocialMediaReachCard } from "@/components/SocialMediaReachCard";
 import { useSocialStats } from "@/hooks/useSocialStats";
 import { SEOCompleteness } from "@/components/SEOCompleteness";
 import { useToast } from "@/hooks/use-toast";
-import { StreamManager } from "@/components/StreamManager";
+
 
 interface Tip {
   id: string;
@@ -306,11 +306,6 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="p-8 space-y-6">
-        {/* Stream Manager */}
-        {artist && (
-          <StreamManager artistId={artist.id} showActions={true} />
-        )}
-
         {/* Active Stream Alert */}
         {activeStream && (
           <Alert className="border-red-500 bg-red-500/10">

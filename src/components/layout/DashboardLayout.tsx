@@ -24,7 +24,8 @@ import {
   BarChart3,
   Film,
   CheckSquare,
-  Radio
+  Radio,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -44,11 +45,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarProvider,
   SidebarTrigger,
   SidebarInset,
   useSidebar,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
@@ -84,7 +93,17 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigation = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Profile", href: "/profile", icon: User },
-    { name: "Go Live", href: "/streaming", icon: Radio },
+    { 
+      name: "Go Live", 
+      icon: Radio,
+      children: [
+        { name: "Stream Controls", href: "/streaming", icon: Radio },
+        { name: "My Streams", href: "/streaming/my-streams", icon: Video },
+        { name: "Schedule Stream", href: "/streaming/schedule", icon: Calendar },
+        { name: "Stream Analytics", href: "/streaming/analytics", icon: BarChart3 },
+        ...(isAdmin ? [{ name: "Approve Streams", href: "/streaming/approve", icon: Shield }] : []),
+      ]
+    },
     { name: "Videos", href: "/videos", icon: Video },
     { name: "Audio", href: "/audio", icon: Music2 },
     { name: "Social Console", href: "/artist-portal/social-console", icon: Share2 },
@@ -106,7 +125,6 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: "Admin: Verification", href: "/admin/verification", icon: Shield },
     { name: "Admin: Membership", href: "/admin/membership", icon: Users },
     { name: "Admin: Blog", href: "/admin/blog", icon: BookOpen },
-    { name: "Admin: Stream Schedule", href: "/admin/stream-schedule", icon: Radio },
     { name: "Producer Queue", href: "/admin/producer-queue", icon: CheckSquare },
   ];
 
@@ -199,9 +217,49 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     const { state } = useSidebar();
     const collapsed = state === "collapsed";
 
-    const NavItem = ({ item }: { item: typeof navigation[0] }) => {
+    const NavItem = ({ item }: { item: any }) => {
       const Icon = item.icon;
-      const active = isActive(item.href);
+      const active = item.href && isActive(item.href);
+      const hasChildren = item.children && item.children.length > 0;
+      const isChildActive = hasChildren && item.children.some((child: any) => isActive(child.href));
+      const [isOpen, setIsOpen] = useState(isChildActive);
+
+      if (hasChildren) {
+        return (
+          <Collapsible open={isOpen || isChildActive} onOpenChange={setIsOpen}>
+            <CollapsibleTrigger asChild>
+              <SidebarMenuButton className="w-full" isActive={isChildActive}>
+                <Icon className="h-4 w-4 shrink-0" />
+                {!collapsed && (
+                  <>
+                    <span>{item.name}</span>
+                    <ChevronRight className={cn("ml-auto h-4 w-4 transition-transform", (isOpen || isChildActive) && "rotate-90")} />
+                  </>
+                )}
+              </SidebarMenuButton>
+            </CollapsibleTrigger>
+            {!collapsed && (
+              <CollapsibleContent>
+                <SidebarMenuSub>
+                  {item.children.map((child: any) => {
+                    const ChildIcon = child.icon;
+                    return (
+                      <SidebarMenuSubItem key={child.name}>
+                        <SidebarMenuSubButton asChild isActive={isActive(child.href)}>
+                          <Link to={child.href} className="flex items-center gap-2">
+                            <ChildIcon className="h-3 w-3" />
+                            <span>{child.name}</span>
+                          </Link>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    );
+                  })}
+                </SidebarMenuSub>
+              </CollapsibleContent>
+            )}
+          </Collapsible>
+        );
+      }
       
       const button = (
         <SidebarMenuButton asChild isActive={active}>

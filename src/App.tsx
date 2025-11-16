@@ -57,6 +57,10 @@ import SubClipLibrary from "./pages/SubClipLibrary";
 import ProducerQueue from "./pages/ProducerQueue";
 import OAuthCallback from "./pages/OAuthCallback";
 import Streaming from "./pages/Streaming";
+import MyStreams from "./pages/streaming/MyStreams";
+import ScheduleStream from "./pages/streaming/ScheduleStream";
+import StreamAnalytics from "./pages/streaming/StreamAnalytics";
+import ApproveStreams from "./pages/streaming/ApproveStreams";
 import Test from "./pages/Test";
 import { useEffect } from "react";
 import { usePageTracking } from "@/hooks/usePageTracking";
@@ -123,7 +127,11 @@ const AppRoutes = () => {
           <Route path="/videos" element={<ArtistRoute><Videos /></ArtistRoute>} />
           <Route path="/audio" element={<ArtistRoute><Audio /></ArtistRoute>} />
           <Route path="/events" element={<ArtistRoute><Events /></ArtistRoute>} />
-          <Route path="/streaming" element={<ArtistRoute><Streaming /></ArtistRoute>} />
+            <Route path="/streaming" element={<ArtistRoute><Streaming /></ArtistRoute>} />
+            <Route path="/streaming/my-streams" element={<ArtistRoute><MyStreams /></ArtistRoute>} />
+            <Route path="/streaming/schedule" element={<ArtistRoute><ScheduleStream /></ArtistRoute>} />
+            <Route path="/streaming/analytics" element={<ArtistRoute><StreamAnalytics /></ArtistRoute>} />
+            <Route path="/streaming/approve" element={<AdminRoute><ApproveStreams /></AdminRoute>} />
           <Route path="/posts" element={<ArtistRoute><Posts /></ArtistRoute>} />
           <Route path="/merch" element={<ArtistRoute><Merch /></ArtistRoute>} />
           <Route path="/monetization" element={<ArtistRoute><Monetization /></ArtistRoute>} />
