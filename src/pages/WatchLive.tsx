@@ -129,44 +129,68 @@ export default function WatchLive() {
     if (!videoRef.current || !stream?.hls_playback_url) return;
 
     const video = videoRef.current;
+    const hlsUrl = stream.hls_playback_url;
+
+    console.log('🎥 Initializing player with HLS URL:', hlsUrl);
 
     // Check for native HLS support (Safari)
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = stream.hls_playback_url;
-      video.play().catch(err => console.error('Playback error:', err));
+      console.log('✅ Native HLS support detected');
+      video.src = hlsUrl;
+      video.play().catch(err => {
+        console.error('❌ Error playing video:', err);
+        setError('Unable to play stream. Please refresh the page.');
+      });
     } else if (Hls.isSupported()) {
-      // Use HLS.js for other browsers
+      console.log('✅ Using HLS.js for playback');
+      
       const hls = new Hls({
         enableWorker: true,
         lowLatencyMode: true,
         backBufferLength: 90,
       });
 
-      hlsRef.current = hls;
-      hls.loadSource(stream.hls_playback_url);
+      hls.loadSource(hlsUrl);
       hls.attachMedia(video);
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(err => console.error('Playback error:', err));
+        console.log('✅ HLS manifest parsed successfully');
+        video.play().catch(err => {
+          console.error('❌ Error playing video:', err);
+          setError('Unable to play stream. Please refresh the page.');
+        });
       });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
-        console.error('HLS error:', data);
+        console.error('❌ HLS Error:', {
+          type: data.type,
+          details: data.details,
+          fatal: data.fatal,
+          url: hlsUrl
+        });
+        
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
+              console.log('🔄 Network error, attempting recovery...');
               hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
+              console.log('🔄 Media error, attempting recovery...');
               hls.recoverMediaError();
               break;
             default:
-              setError('Stream playback error. Please refresh the page.');
+              console.error('💥 Fatal error, cannot recover');
+              hls.destroy();
+              setError('Unable to load stream. Please refresh the page.');
               break;
           }
         }
       });
+
+      hlsRef.current = hls;
     } else {
+      console.error('❌ HLS is not supported in this browser');
       setError('Your browser does not support live streaming');
     }
   };

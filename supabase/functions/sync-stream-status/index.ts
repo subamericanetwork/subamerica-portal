@@ -78,8 +78,13 @@ serve(async (req) => {
 
     const muxData = await muxResponse.json();
     const muxStatus = muxData.data?.status; // 'active', 'idle', etc.
+    
+    // Get the active playback ID for HLS URL
+    const playbackIds = muxData.data?.playback_ids || [];
+    const activePlaybackId = playbackIds.find((p: any) => p.policy === 'public')?.id || playbackIds[0]?.id;
+    const hlsPlaybackUrl = activePlaybackId ? `https://stream.mux.com/${activePlaybackId}.m3u8` : null;
 
-    console.log(`Stream ${streamId}: Mux status = ${muxStatus}, DB status = ${stream.status}`);
+    console.log(`Stream ${streamId}: Mux status = ${muxStatus}, DB status = ${stream.status}, HLS URL = ${hlsPlaybackUrl}`);
 
     // Sync database status with Mux status
     let newStatus = stream.status;
@@ -89,9 +94,10 @@ serve(async (req) => {
       newStatus = 'live';
       updateData = {
         status: 'live',
-        started_at: stream.started_at || new Date().toISOString()
+        started_at: stream.started_at || new Date().toISOString(),
+        hls_playback_url: hlsPlaybackUrl // Update with correct playback URL
       };
-      console.log(`🔴 Stream ${streamId} is now LIVE!`);
+      console.log(`🔴 Stream ${streamId} is now LIVE with HLS URL: ${hlsPlaybackUrl}`);
     } else if (muxStatus === 'idle' && stream.status === 'live') {
       const endedAt = new Date();
       const startedAt = stream.started_at ? new Date(stream.started_at) : endedAt;
@@ -105,7 +111,13 @@ serve(async (req) => {
       };
       console.log(`⚫ Stream ${streamId} has ended`);
     } else if (muxStatus === 'active' && stream.status === 'live') {
-      console.log(`✅ Stream ${streamId} is still live`);
+      // Verify HLS URL is correct even if already live
+      if (hlsPlaybackUrl && stream.hls_playback_url !== hlsPlaybackUrl) {
+        updateData = { hls_playback_url: hlsPlaybackUrl };
+        console.log(`🔄 Updating HLS URL for stream ${streamId}: ${hlsPlaybackUrl}`);
+      } else {
+        console.log(`✅ Stream ${streamId} is still live`);
+      }
     }
 
     // Update database if status changed
