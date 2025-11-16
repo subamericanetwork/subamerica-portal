@@ -78,6 +78,41 @@ const Streaming = () => {
     checkStreamEligibility();
   }, [artistId]);
 
+  // Poll for status updates when stream is active
+  useEffect(() => {
+    if (!stream?.streamId || streamStatus === 'ended' || streamStatus === 'idle') {
+      return;
+    }
+
+    const pollStatus = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('sync-stream-status', {
+          body: { streamId: stream.streamId },
+        });
+
+        if (error) {
+          console.error('Error polling status:', error);
+          return;
+        }
+
+        if (data?.synced && data.newStatus) {
+          console.log('Status update:', data.oldStatus, '→', data.newStatus);
+          setStreamStatus(data.newStatus);
+        }
+      } catch (error) {
+        console.error('Poll error:', error);
+      }
+    };
+
+    // Poll immediately
+    pollStatus();
+
+    // Then poll every 15 seconds
+    const interval = setInterval(pollStatus, 15000);
+
+    return () => clearInterval(interval);
+  }, [stream?.streamId, streamStatus]);
+
   const handleCreateStream = async (config: any) => {
     if (!artistId) return;
     await createStream(config);

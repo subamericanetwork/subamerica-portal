@@ -28,6 +28,30 @@ export const useGoLive = (artistId: string) => {
   const [streamStatus, setStreamStatus] = useState<'idle' | 'creating' | 'waiting' | 'live' | 'ended'>('idle');
   const { toast } = useToast();
 
+  // Poll stream status every 10 seconds when waiting for stream
+  const pollStreamStatus = async (streamId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-stream-status', {
+        body: { streamId },
+      });
+
+      if (error) throw error;
+
+      if (data?.synced) {
+        console.log('Stream status updated:', data.newStatus);
+        
+        // Update local status
+        if (data.newStatus === 'live') {
+          setStreamStatus('live');
+        } else if (data.newStatus === 'ended') {
+          setStreamStatus('ended');
+        }
+      }
+    } catch (error) {
+      console.error('Error polling stream status:', error);
+    }
+  };
+
   const checkEligibility = async (streamingMode?: 'own_account' | 'subamerica_managed') => {
     try {
       // For own_account mode, just check if credentials exist
@@ -187,6 +211,14 @@ export const useGoLive = (artistId: string) => {
 
       setStream(credentials);
       setStreamStatus('waiting');
+      
+      // Start polling for status changes
+      const pollInterval = setInterval(() => {
+        pollStreamStatus(credentials.streamId);
+      }, 10000); // Poll every 10 seconds
+
+      // Store interval ID so we can clear it later
+      (credentials as any).pollInterval = pollInterval;
 
       toast({
         title: "Stream Created!",
@@ -217,6 +249,11 @@ export const useGoLive = (artistId: string) => {
 
   const endStream = async (streamId: string) => {
     try {
+      // Clear polling interval if it exists
+      if (stream && (stream as any).pollInterval) {
+        clearInterval((stream as any).pollInterval);
+      }
+
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         throw new Error('Not authenticated');
