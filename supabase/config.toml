@@ -71,3 +71,6 @@ verify_jwt = true
 
 [functions.sync-tiktok-stats]
 verify_jwt = false
+
+[functions.end-mux-stream]
+verify_jwt = true
