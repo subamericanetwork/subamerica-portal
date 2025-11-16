@@ -1,9 +1,10 @@
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, Users, Clock, Eye, EyeOff, Copy, ExternalLink, Square } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Calendar, Users, Clock, Eye, EyeOff, Copy, ExternalLink, Square, AlertCircle, RefreshCw, Radio } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -51,6 +52,23 @@ export function StreamDetailsDialog({
   const [showHlsUrl, setShowHlsUrl] = useState(false);
   const [showEndDialog, setShowEndDialog] = useState(false);
   const [isEnding, setIsEnding] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'checking' | 'waiting' | 'connected' | 'disconnected'>('checking');
+
+  // Check connection status based on stream status
+  useEffect(() => {
+    if (!stream) return;
+    
+    if (stream.status === 'live') {
+      setConnectionStatus('connected');
+    } else if (stream.status === 'waiting' || stream.status === 'scheduled') {
+      setConnectionStatus('waiting');
+    } else if (stream.status === 'ended') {
+      setConnectionStatus('disconnected');
+    } else {
+      setConnectionStatus('checking');
+    }
+  }, [stream?.status]);
 
   if (!stream) return null;
 
@@ -114,6 +132,32 @@ HLS Playback URL: ${stream.hls_playback_url || "Not available yet"}`;
     }
   };
 
+  const handleSyncStatus = async () => {
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-stream-status', {
+        body: { streamId: stream.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Status synced",
+        description: "Stream status updated from Mux",
+      });
+      onStreamUpdated?.();
+    } catch (error) {
+      console.error('Error syncing stream status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to sync stream status",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "live":
@@ -137,12 +181,26 @@ HLS Playback URL: ${stream.hls_playback_url || "Not available yet"}`;
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between gap-4">
-              <DialogTitle className="text-2xl">{stream.title}</DialogTitle>
-              <Badge variant={getStatusColor(stream.status)}>
-                {stream.status}
-              </Badge>
+            <div className="flex items-center justify-between gap-2">
+              <DialogTitle className="flex-1">{stream.title}</DialogTitle>
+              <div className="flex items-center gap-2">
+                <Badge variant={getStatusColor(stream.status)}>
+                  {stream.status.toUpperCase()}
+                </Badge>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleSyncStatus}
+                  disabled={syncing}
+                  title="Refresh status from Mux"
+                >
+                  <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+                </Button>
+              </div>
             </div>
+            <DialogDescription>
+              Stream details and RTMP credentials
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6">
@@ -181,9 +239,50 @@ HLS Playback URL: ${stream.hls_playback_url || "Not available yet"}`;
               </div>
             </div>
 
-            <Separator />
+        <Separator />
 
-            {/* RTMP Credentials */}
+        {/* Connection Status */}
+        {connectionStatus === 'waiting' && (
+          <Alert>
+            <Radio className="h-4 w-4 animate-pulse" />
+            <AlertDescription>
+              <strong>Waiting for OBS connection...</strong>
+              <p className="mt-1 text-sm text-muted-foreground">Your stream is ready. Connect OBS using the credentials below to go live.</p>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {connectionStatus === 'connected' && (
+          <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/50">
+            <Radio className="h-4 w-4 text-green-600" />
+            <AlertDescription className="text-green-800 dark:text-green-200">
+              <strong>Connected! Stream is live</strong>
+              <p className="mt-1 text-sm">Your stream is broadcasting successfully.</p>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* OBS Setup Instructions */}
+        <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
+          <h3 className="font-semibold flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            How to Connect OBS
+          </h3>
+          <ol className="space-y-2 text-sm">
+            <li><strong>1.</strong> Open OBS → <strong>Settings</strong> → <strong>Stream</strong></li>
+            <li><strong>2.</strong> Service: Select <strong>"Custom..."</strong></li>
+            <li><strong>3.</strong> Server: Copy the <strong>RTMP URL</strong> below</li>
+            <li><strong>4.</strong> Stream Key: Copy the <strong>Stream Key</strong> below</li>
+            <li><strong>5.</strong> Click <strong>"OK"</strong> then <strong>"Start Streaming"</strong></li>
+          </ol>
+          <p className="text-xs text-muted-foreground">
+            💡 Use RTMP (port 5222) for standard connection or RTMPS (port 443) if port 5222 is blocked.
+          </p>
+        </div>
+
+        <Separator />
+
+        {/* RTMP Credentials */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">RTMP Credentials</h3>
               

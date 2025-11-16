@@ -93,26 +93,7 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
     }
   };
 
-  const handleForceLive = async (streamId: string) => {
-    setForcingLive(streamId);
-    try {
-      const { error } = await supabase
-        .from('artist_live_streams')
-        .update({ 
-          status: 'live',
-          started_at: new Date().toISOString()
-        })
-        .eq('id', streamId);
-
-      if (error) throw error;
-      toast.success('Stream forced to live status');
-    } catch (error) {
-      console.error('Error forcing stream live:', error);
-      toast.error('Failed to update stream status');
-    } finally {
-      setForcingLive(null);
-    }
-  };
+  // Removed Force Live functionality - stream status should only be updated by actual Mux connection
 
   const handleWatch = (stream: Stream) => {
     navigate(`/watch-live/${stream.id}`);
@@ -250,15 +231,6 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
                       >
                         <Info className="h-4 w-4 mr-2" />
                         Details
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        onClick={() => handleForceLive(stream.id)}
-                        disabled={forcingLive === stream.id}
-                      >
-                        <Zap className="h-4 w-4 mr-2" />
-                        Force Live
                       </Button>
                       <Button size="sm" variant="ghost" onClick={() => handleWatch(stream)}>
                         <ExternalLink className="h-4 w-4" />
