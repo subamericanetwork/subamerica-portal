@@ -11,7 +11,7 @@ import { StreamStatusIndicator } from "@/components/StreamStatusIndicator";
 import { UpgradeToTridentCard } from "@/components/UpgradeToTridentCard";
 import { PurchaseMinutesCard } from "@/components/PurchaseMinutesCard";
 import { MobileStreamingGuide } from "@/components/MobileStreamingGuide";
-import { StreamingWebhookSetup } from "@/components/StreamingWebhookSetup";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -217,10 +217,6 @@ const Streaming = () => {
             </TabsContent>
             
             <TabsContent value="start-new" className="space-y-6">
-              {isAdmin && (
-                <StreamingWebhookSetup />
-              )}
-              
               <StreamSetupForm
                 artistId={artistId}
                 onSubmit={handleCreateStream}
