@@ -2,9 +2,19 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { StreamStatusIndicator } from "@/components/StreamStatusIndicator";
-import { Radio, Eye, Clock, Zap, ExternalLink } from "lucide-react";
+import { Radio, Eye, Clock, Zap, ExternalLink, Square } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -28,6 +38,8 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
   const [streams, setStreams] = useState<Stream[]>([]);
   const [loading, setLoading] = useState(true);
   const [forcingLive, setForcingLive] = useState<string | null>(null);
+  const [endingStream, setEndingStream] = useState<string | null>(null);
+  const [streamToEnd, setStreamToEnd] = useState<Stream | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -99,6 +111,30 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
     navigate(`/watch-live/${stream.id}`);
   };
 
+  const handleEndStream = async () => {
+    if (!streamToEnd) return;
+    
+    setEndingStream(streamToEnd.id);
+    try {
+      const { error } = await supabase
+        .from('artist_live_streams')
+        .update({ 
+          status: 'ended',
+          ended_at: new Date().toISOString()
+        })
+        .eq('id', streamToEnd.id);
+
+      if (error) throw error;
+      toast.success('Stream ended successfully');
+      setStreamToEnd(null);
+    } catch (error) {
+      console.error('Error ending stream:', error);
+      toast.error('Failed to end stream');
+    } finally {
+      setEndingStream(null);
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -147,10 +183,21 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
                     </div>
                   </div>
                   {showActions && (
-                    <Button size="sm" onClick={() => handleWatch(stream)}>
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Watch
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={() => handleWatch(stream)}>
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Watch
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="destructive"
+                        onClick={() => setStreamToEnd(stream)}
+                        disabled={endingStream === stream.id}
+                      >
+                        <Square className="h-4 w-4 mr-2" />
+                        End Stream
+                      </Button>
+                    </div>
                   )}
                 </div>
               </div>
@@ -202,6 +249,23 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true }: S
           </Button>
         )}
       </CardContent>
+
+      <AlertDialog open={!!streamToEnd} onOpenChange={(open) => !open && setStreamToEnd(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>End Live Stream?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to end "{streamToEnd?.title}"? This will stop the stream immediately and viewers will no longer be able to watch.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleEndStream} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              End Stream
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
