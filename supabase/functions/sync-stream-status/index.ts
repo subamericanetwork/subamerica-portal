@@ -18,7 +18,8 @@ serve(async (req) => {
     const muxTokenSecret = Deno.env.get('MUX_TOKEN_SECRET')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { streamId } = await req.json();
+    const body = await req.json();
+    const { streamId } = body;
 
     if (!streamId) {
       return new Response(JSON.stringify({ error: 'Stream ID required' }), {
@@ -67,7 +68,8 @@ serve(async (req) => {
     );
 
     if (!muxResponse.ok) {
-      console.error('Mux API error:', await muxResponse.text());
+      const errorText = await muxResponse.text();
+      console.error('Mux API error:', muxResponse.status, errorText);
       return new Response(JSON.stringify({ error: 'Failed to fetch stream from Mux' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -77,7 +79,7 @@ serve(async (req) => {
     const muxData = await muxResponse.json();
     const muxStatus = muxData.data?.status; // 'active', 'idle', etc.
 
-    console.log('Mux stream status:', muxStatus, 'DB status:', stream.status);
+    console.log(`Stream ${streamId}: Mux status = ${muxStatus}, DB status = ${stream.status}`);
 
     // Sync database status with Mux status
     let newStatus = stream.status;
@@ -89,6 +91,7 @@ serve(async (req) => {
         status: 'live',
         started_at: stream.started_at || new Date().toISOString()
       };
+      console.log(`🔴 Stream ${streamId} is now LIVE!`);
     } else if (muxStatus === 'idle' && stream.status === 'live') {
       const endedAt = new Date();
       const startedAt = stream.started_at ? new Date(stream.started_at) : endedAt;
@@ -100,6 +103,9 @@ serve(async (req) => {
         ended_at: endedAt.toISOString(),
         duration_minutes: durationMinutes
       };
+      console.log(`⚫ Stream ${streamId} has ended`);
+    } else if (muxStatus === 'active' && stream.status === 'live') {
+      console.log(`✅ Stream ${streamId} is still live`);
     }
 
     // Update database if status changed
