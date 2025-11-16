@@ -331,7 +331,7 @@ serve(async (req) => {
               streaming_mode: 'own_account',
               provider: 'mux',
               stream_key: muxStream.data.stream_key,
-              rtmp_ingest_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
+              rtmp_ingest_url: `rtmps://global-live.mux.com:443/app`,
               hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: 'ready',
               show_on_tv: false, // Own account streams are private
@@ -345,7 +345,7 @@ serve(async (req) => {
             JSON.stringify({
               success: true,
               stream_id: stream.id,
-              rtmp_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
+              rtmp_url: `rtmps://global-live.mux.com:443/app`,
               stream_key: muxStream.data.stream_key,
               hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: stream.status
@@ -536,7 +536,7 @@ serve(async (req) => {
                 provider: 'mux',
                 livepush_stream_id: muxStream.data.id,
                 stream_key: muxStream.data.stream_key,
-                rtmp_ingest_url: `rtmp://global-live.mux.com:5222/app/${muxStream.data.stream_key}`,
+                rtmp_ingest_url: `rtmp://global-live.mux.com:5222/app`,
                 hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
                 hls_tv_feed_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
                 status: scheduledStart ? 'scheduled' : 'ready',
@@ -565,8 +565,8 @@ serve(async (req) => {
             JSON.stringify({
               success: true,
               stream_id: stream.id,
-              rtmp_url: `rtmp://global-live.mux.com:5222/app/${muxStream.data.stream_key}`,
-              rtmps_url: `rtmps://global-live.mux.com:443/app/${muxStream.data.stream_key}`,
+              rtmp_url: `rtmp://global-live.mux.com:5222/app`,
+              rtmps_url: `rtmps://global-live.mux.com:443/app`,
               stream_key: muxStream.data.stream_key,
               hls_playback_url: `https://stream.mux.com/${muxStream.data.playback_ids[0].id}.m3u8`,
               status: stream.status,
@@ -578,7 +578,7 @@ serve(async (req) => {
         } else {
           // Livepush with Subamerica credentials
           const streamKey = crypto.randomUUID();
-          const rtmpUrl = `rtmp://rtmp.livepush.io/live/${streamKey}`;
+          const rtmpUrl = `rtmp://rtmp.livepush.io/live`;
 
           const accessToken = await getAdminAccessToken();
 
