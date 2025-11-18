@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useRef, useEffect, ReactNode, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 import { detectMediaType } from '@/lib/mediaUtils';
@@ -245,20 +245,20 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
-  const setPlaylist = (id: string) => {
+  const setPlaylist = useCallback((id: string) => {
     setPlaylistIdState(id);
     setCurrentTrackIndex(0);
-  };
+  }, []);
 
-  const playTracks = (newTracks: Track[], startIndex: number = 0) => {
+  const playTracks = useCallback((newTracks: Track[], startIndex: number = 0) => {
     setPlaylistIdState(null); // Clear playlist ID
     setTracks(newTracks);
     setCurrentTrackIndex(startIndex);
     setIsPlaying(true);
     setMiniPlayerVisible(true);
-  };
+  }, []);
 
-  const play = () => {
+  const play = useCallback(() => {
     if (!currentTrack) return;
 
     const mediaType = detectMediaType(currentTrack.video_url);
@@ -299,9 +299,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         playerType: 'jukebox',
       });
     }
-  };
+  }, [currentTrack, viewMode, playlistId, trackPlay]);
 
-  const pause = () => {
+  const pause = useCallback(() => {
     const currentTime = effectiveViewMode === 'video' 
       ? videoRef.current?.currentTime || 0 
       : audioRef.current?.currentTime || 0;
@@ -322,17 +322,17 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         artistName: currentTrack.artist_name,
         contentType: contentType,
         duration: currentTrack.duration,
-        currentTime: currentTime,
         playlistId: playlistId || undefined,
         playerType: 'jukebox',
+        currentTime: currentTime,
       });
     }
-  };
+  }, [currentTrack, contentType, playlistId, effectiveViewMode, trackPause]);
   
-  const setViewMode = (mode: ViewMode) => {
+  const setViewMode = useCallback((mode: ViewMode) => {
     setViewModeState(mode);
     localStorage.setItem('player-view-mode', mode);
-  };
+  }, []);
   
   // Load saved view mode
   useEffect(() => {
@@ -430,7 +430,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     // Handle media playback
     playTrackMediaAtIndex(index);
   };
-  const next = () => {
+  const next = useCallback(() => {
     if (tracks.length === 0) return;
 
     setCurrentTrackIndex(prevIndex => {
@@ -442,9 +442,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       playTrackMediaAtIndex(nextIndex);
       return nextIndex;
     });
-  };
+  }, [tracks.length, shuffle]);
 
-  const previous = () => {
+  const previous = useCallback(() => {
     if (tracks.length === 0) return;
 
     setCurrentTrackIndex(prevIndex => {
@@ -453,9 +453,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       playTrackMediaAtIndex(prevIndexComputed);
       return prevIndexComputed;
     });
-  };
+  }, [tracks.length]);
 
-  const skipTo = (index: number) => {
+  const skipTo = useCallback((index: number) => {
     console.log('[Player] skipTo()', { requestedIndex: index, tracksLength: tracks.length });
     
     if (index < 0 || index >= tracks.length) {
@@ -465,9 +465,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     
     setCurrentTrackIndex(index);
     playTrackMediaAtIndex(index);
-  };
+  }, [tracks.length]);
 
-  const seek = (time: number) => {
+  const seek = useCallback((time: number) => {
     const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
     if (activeMedia && currentTrack) {
       const fromTime = activeMedia.currentTime;
@@ -485,15 +485,15 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         toTime: time,
       });
     }
-  };
+  }, [currentTrack, contentType, effectiveViewMode, trackSeek]);
 
-  const toggleShuffle = () => {
-    setShuffle(!shuffle);
-  };
+  const toggleShuffle = useCallback(() => {
+    setShuffle(prev => !prev);
+  }, []);
 
-  const toggleRepeat = () => {
-    setRepeat(repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off');
-  };
+  const toggleRepeat = useCallback(() => {
+    setRepeat(prev => prev === 'off' ? 'all' : prev === 'all' ? 'one' : 'off');
+  }, []);
 
   // Sync UI state when track changes (playTrackAtIndex handles actual playback)
   useEffect(() => {
@@ -511,7 +511,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [currentTrack]);
 
-  const value: PlayerContextType = {
+  const value: PlayerContextType = useMemo(() => ({
     playlistId,
     tracks,
     currentTrackIndex,
@@ -540,7 +540,32 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     toggleRepeat,
     setViewMode,
     setMiniPlayerVisible,
-  };
+  }), [
+    playlistId,
+    tracks,
+    currentTrackIndex,
+    currentTrack,
+    isPlaying,
+    progress,
+    duration,
+    loading,
+    shuffle,
+    repeat,
+    viewMode,
+    contentType,
+    miniPlayerVisible,
+    setPlaylist,
+    playTracks,
+    play,
+    pause,
+    next,
+    previous,
+    skipTo,
+    seek,
+    toggleShuffle,
+    toggleRepeat,
+    setViewMode,
+  ]);
 
   return (
     <PlayerContext.Provider value={value}>

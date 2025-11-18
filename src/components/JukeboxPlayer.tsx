@@ -68,6 +68,15 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     }
   }, [playlistId, setPlaylist]);
 
+  // Debug logging for currentTrack changes
+  useEffect(() => {
+    console.log('[JukeboxPlayer] currentTrack changed:', {
+      id: currentTrack?.id,
+      title: currentTrack?.title,
+      artist: currentTrack?.artist_name,
+    });
+  }, [currentTrack]);
+
   // Sync local video ref to context's visible video ref
   useEffect(() => {
     if (localVideoRef.current && visibleVideoRef) {
