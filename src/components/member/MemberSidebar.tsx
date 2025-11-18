@@ -90,7 +90,7 @@ export function MemberSidebar() {
                 key={playlist.id}
                 variant="ghost"
                 className="w-full justify-start text-sm"
-                onClick={() => navigate(`/jukebox/${playlist.id}`)}
+                onClick={() => navigate(`/member/playlists/${playlist.id}/jukebox`)}
               >
                 <ListMusic className="h-4 w-4 mr-3" />
                 <span className="truncate">{playlist.name}</span>
