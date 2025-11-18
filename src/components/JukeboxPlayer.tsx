@@ -51,6 +51,13 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
     setViewMode,
   } = usePlayer();
   
+  console.log('[JukeboxPlayer] render', {
+    playlistId,
+    currentTrackIndex,
+    currentTrackTitle: currentTrack?.title,
+    tracksLength: tracks.length,
+  });
+  
   const localVideoRef = useRef<HTMLVideoElement>(null);
   const effectiveViewMode = viewMode === 'auto' ? contentType : viewMode;
 
@@ -277,7 +284,14 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
             {tracks.map((track, index) => (
               <button
                 key={track.id}
-                onClick={() => skipTo(index)}
+                onClick={() => {
+                  console.log('[JukeboxPlayer] queue click', { 
+                    index, 
+                    trackId: track.id, 
+                    title: track.title 
+                  });
+                  skipTo(index);
+                }}
                 className={cn(
                   "queue-card",
                   index === currentTrackIndex && "active"
