@@ -74,7 +74,7 @@ export function NowPlayingPanel() {
                 <button
                   onClick={() => {
                     if (currentTrack.artist_slug) {
-                      navigate(`/port/${currentTrack.artist_slug}`);
+                      navigate(`/${currentTrack.artist_slug}`);
                     }
                   }}
                   className="text-sm text-muted-foreground hover:text-foreground truncate block disabled:cursor-not-allowed"
@@ -146,7 +146,7 @@ export function NowPlayingPanel() {
             className="p-0 h-auto"
             onClick={() => {
               if (currentTrack.artist_slug) {
-                navigate(`/port/${currentTrack.artist_slug}`);
+                navigate(`/${currentTrack.artist_slug}`);
               }
             }}
             disabled={!currentTrack.artist_slug}

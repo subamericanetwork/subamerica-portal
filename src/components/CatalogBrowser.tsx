@@ -406,7 +406,7 @@ export const CatalogBrowser = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (item.artist_slug) {
-                        navigate(`/port/${item.artist_slug}`);
+                        navigate(`/${item.artist_slug}`);
                       }
                     }}
                     className="text-xs text-muted-foreground hover:text-foreground truncate mb-2 text-left w-full disabled:cursor-not-allowed disabled:opacity-50"

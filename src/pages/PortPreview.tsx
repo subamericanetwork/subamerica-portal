@@ -299,12 +299,12 @@ const PortPreview = () => {
               <p>
                 <strong>Your Port is live!</strong> It&apos;s publicly accessible at{" "}
                 <a 
-                  href={`https://subamerica.net/port/${artist.slug}`}
+                  href={`https://subamerica.net/${artist.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-primary underline hover:text-primary/80"
                 >
-                  subamerica.net/port/{artist.slug}
+                  subamerica.net/{artist.slug}
                 </a>
                 . Any changes you make will appear immediately.
               </p>

@@ -82,7 +82,7 @@ export function SearchBar() {
                       <button
                         key={artist.id}
                         onClick={() => {
-                          navigate(`/port/${artist.slug}`);
+                          navigate(`/${artist.slug}`);
                           setShowResults(false);
                           setQuery('');
                         }}

@@ -121,7 +121,7 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
                 onClick={(e) => {
                   e.stopPropagation();
                   if (item.artist?.slug) {
-                    navigate(`/port/${item.artist.slug}`);
+                    navigate(`/${item.artist.slug}`);
                   }
                 }}
                 className="text-sm text-muted-foreground hover:text-foreground truncate text-left w-full disabled:cursor-not-allowed disabled:opacity-50"

@@ -32,7 +32,7 @@ export const VideoFeedControls = ({ videoId, artistId, artistSlug }: VideoFeedCo
 
   const handleArtistClick = () => {
     if (artistSlug) {
-      navigate(`/port/${artistSlug}`);
+      navigate(`/${artistSlug}`);
     }
   };
 
