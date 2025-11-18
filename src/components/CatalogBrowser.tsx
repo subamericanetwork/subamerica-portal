@@ -73,7 +73,7 @@ export const CatalogBrowser = ({
             video_url,
             duration,
             artist_id,
-            artists!inner (
+            artists!fk_videos_artist (
               display_name,
               slug,
               scene,
@@ -133,7 +133,7 @@ export const CatalogBrowser = ({
             duration,
             artist_id,
             published_at,
-            artists!inner (
+            artists!fk_audio_tracks_artist (
               display_name,
               slug,
               scene,
@@ -142,7 +142,7 @@ export const CatalogBrowser = ({
               )
             )
           `)
-          .eq('status', 'ready')
+          .eq('status', 'active')
           .not('published_at', 'is', null)
           .eq('artists.port_settings.publish_status', 'published');
 
