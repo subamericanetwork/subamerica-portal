@@ -51,6 +51,7 @@ export default function MemberHome() {
         .eq('artists.port_settings.publish_status', 'published')
         .order('view_count', { ascending: false })
         .limit(10);
+      console.log('🔍 Popular videos raw data:', popular);
       setPopularVideos(popular || []);
 
       // New releases
@@ -62,6 +63,7 @@ export default function MemberHome() {
         .eq('artists.port_settings.publish_status', 'published')
         .order('published_at', { ascending: false })
         .limit(10);
+      console.log('🔍 New releases raw data:', newItems);
       setNewReleases(newItems || []);
 
       // Verified artists
@@ -81,6 +83,11 @@ export default function MemberHome() {
 
   const formatContentItems = (items: any[]) => {
     return items.map(item => {
+      console.log('🔍 Formatting item:', {
+        raw: item,
+        artists: item.artists,
+        hasSlug: !!item.artists?.slug
+      });
       const hasVideoUrl = !!item.video_url;
       return {
         id: item.id,
