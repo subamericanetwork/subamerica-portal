@@ -45,9 +45,10 @@ export default function MemberHome() {
       // Popular videos
       const { data: popular } = await supabase
         .from('videos')
-        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug)')
+        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug, port_settings!inner(publish_status))')
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
+        .eq('artists.port_settings.publish_status', 'published')
         .order('view_count', { ascending: false })
         .limit(10);
       setPopularVideos(popular || []);
@@ -55,9 +56,10 @@ export default function MemberHome() {
       // New releases
       const { data: newItems } = await supabase
         .from('videos')
-        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug)')
+        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug, port_settings!inner(publish_status))')
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
+        .eq('artists.port_settings.publish_status', 'published')
         .order('published_at', { ascending: false })
         .limit(10);
       setNewReleases(newItems || []);
