@@ -28,8 +28,6 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
   const { playTracks } = usePlayer();
   const navigate = useNavigate();
 
-  console.log('🔍 ContentCarousel received items:', items);
-
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
       const scrollAmount = 300;
@@ -122,12 +120,6 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('🔍 Artist button clicked:', {
-                    artist: item.artist,
-                    slug: item.artist?.slug,
-                    hasSlug: !!item.artist?.slug,
-                    fullItem: item
-                  });
                   if (item.artist?.slug) {
                     navigate(`/port/${item.artist.slug}`);
                   }
