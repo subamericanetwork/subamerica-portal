@@ -259,20 +259,41 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const play = () => {
-    if (currentTrack) {
-      if (effectiveViewMode === 'video' && videoRef.current) {
-        videoRef.current.play();
-      } else if (audioRef.current) {
-        audioRef.current.play();
-      }
+    if (!currentTrack) return;
+
+    const mediaType = detectMediaType(currentTrack.video_url);
+    const mode = viewMode === 'auto' ? mediaType : viewMode;
+    const media = mode === 'video' ? videoRef.current : audioRef.current;
+
+    if (!media) return;
+
+    const playPromise = media.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+          trackPlay({
+            contentId: currentTrack.id,
+            title: currentTrack.title,
+            artistName: currentTrack.artist_name,
+            contentType: mediaType,
+            duration: currentTrack.duration,
+            playlistId: playlistId || undefined,
+            playerType: 'jukebox',
+          });
+        })
+        .catch((error) => {
+          console.error('[Player] playback error in play():', error);
+          setIsPlaying(false);
+        });
+    } else {
       setIsPlaying(true);
-      
-      // Track play event
       trackPlay({
         contentId: currentTrack.id,
         title: currentTrack.title,
         artistName: currentTrack.artist_name,
-        contentType: contentType,
+        contentType: mediaType,
         duration: currentTrack.duration,
         playlistId: playlistId || undefined,
         playerType: 'jukebox',
@@ -355,8 +376,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     setProgress(0);
     setDuration(track.duration || 0);
 
-    // Load and play
-    media.load();
+    // Just play; no explicit load() call
     const playPromise = media.play();
 
     if (playPromise !== undefined) {
@@ -526,12 +546,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     <PlayerContext.Provider value={value}>
       <audio
         ref={audioRef}
-        src={effectiveViewMode === 'audio' ? currentTrack?.video_url : undefined}
         className="hidden"
       />
       <video
         ref={videoRef}
-        src={effectiveViewMode === 'video' ? currentTrack?.video_url : undefined}
         className="hidden"
         playsInline
       />
