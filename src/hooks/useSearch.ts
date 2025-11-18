@@ -39,7 +39,7 @@ export function useSearch() {
       // Search videos
       const { data: videosData } = await supabase
         .from('videos')
-        .select('*, artists(*)')
+        .select('*, artists!fk_videos_artist(*)')
         .ilike('title', searchPattern)
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
@@ -48,7 +48,7 @@ export function useSearch() {
       // Search audio
       const { data: audioData } = await supabase
         .from('audio_tracks')
-        .select('*, artists(*)')
+        .select('*, artists!fk_audio_tracks_artist(*)')
         .ilike('title', searchPattern)
         .eq('moderation_status', 'approved')
         .limit(5);
