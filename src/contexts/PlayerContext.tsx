@@ -35,6 +35,7 @@ interface PlayerContextType {
   videoRef: React.RefObject<HTMLVideoElement>;
   visibleVideoRef: React.RefObject<HTMLVideoElement>;
   setPlaylist: (playlistId: string) => void;
+  playTracks: (tracks: Track[], startIndex?: number) => void;
   play: () => void;
   pause: () => void;
   next: () => void;
@@ -240,6 +241,15 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const setPlaylist = (id: string) => {
     setPlaylistIdState(id);
+    setCurrentTrackIndex(0);
+  };
+
+  const playTracks = (newTracks: Track[], startIndex: number = 0) => {
+    setPlaylistIdState(null); // Clear playlist ID
+    setTracks(newTracks);
+    setCurrentTrackIndex(startIndex);
+    setIsPlaying(true);
+    setMiniPlayerVisible(true);
   };
 
   const play = () => {
@@ -397,6 +407,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     videoRef,
     visibleVideoRef,
     setPlaylist,
+    playTracks,
     play,
     pause,
     next,
