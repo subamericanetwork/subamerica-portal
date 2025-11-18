@@ -107,7 +107,7 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
   }
 
   return (
-    <div className={cn("jukebox-container", className)}>
+    <div className={cn("jukebox-container", className)} key={`jukebox-${currentTrackIndex}`}>
       {/* Top Section - Now Playing */}
       <div className="jukebox-top">
         {/* Main playback area */}
