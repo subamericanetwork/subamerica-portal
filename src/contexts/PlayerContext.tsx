@@ -323,25 +323,29 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     console.log('[Player] playTrackAtIndex', index, track.id, track.title);
 
+    // Update state first so UI (title, highlight, progress) reacts immediately
+    setCurrentTrackIndex(index);
+    setProgress(0);
+    setDuration(track.duration || 0);
+
     // Determine which media element to use
     const mediaType = detectMediaType(track.video_url);
     const mode = viewMode === 'auto' ? mediaType : viewMode;
     const media = mode === 'video' ? videoRef.current : audioRef.current;
 
-    if (!media) return;
-
     // Pause both media elements to avoid overlap
     if (videoRef.current) videoRef.current.pause();
     if (audioRef.current) audioRef.current.pause();
 
+    // If no media element is available yet, just update state and exit
+    if (!media) {
+      setIsPlaying(false);
+      return;
+    }
+
     // Set the source and reset position
     media.src = track.video_url || '';
     media.currentTime = 0;
-
-    // Update state
-    setCurrentTrackIndex(index);
-    setProgress(0);
-    setDuration(track.duration || 0);
 
     // Load and play
     media.load();
@@ -380,7 +384,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       });
     }
   };
-
   const next = () => {
     if (tracks.length === 0) return;
     
