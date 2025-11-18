@@ -24,7 +24,7 @@ export function useFeaturedContent() {
       
       const { data, error } = await supabase
         .from('featured_content')
-        .select('*, artists(*)')
+        .select('*, artists!featured_content_artist_id_fkey(*)')
         .lte('featured_from', now)
         .gte('featured_until', now)
         .order('priority', { ascending: false });

@@ -39,13 +39,9 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
   };
 
   const handleItemClick = (item: ContentItem, index: number) => {
-    console.log('🎬 ContentCarousel - Item clicked:', item);
-    console.log('👤 Artist data:', item.artist);
-    
     if (onItemClick) {
       onItemClick(item);
     } else {
-      // Convert all carousel items to Track format
       const tracks = items.map(i => ({
         id: i.id,
         title: i.title,
@@ -57,8 +53,6 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
         duration: i.duration || 0,
       }));
       
-      console.log('🎵 Track to play:', tracks[index]);
-      // Play starting from clicked track
       playTracks(tracks, index);
     }
   };
@@ -126,16 +120,8 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  console.log('🔗 Artist button clicked:', {
-                    artistName: item.artist.display_name,
-                    slug: item.artist?.slug,
-                    willNavigate: !!item.artist?.slug,
-                    fullArtist: item.artist
-                  });
                   if (item.artist?.slug) {
                     navigate(`/port/${item.artist.slug}`);
-                  } else {
-                    console.error('❌ No artist slug available!', item.artist);
                   }
                 }}
                 className="text-sm text-muted-foreground hover:text-foreground truncate text-left w-full disabled:cursor-not-allowed disabled:opacity-50"

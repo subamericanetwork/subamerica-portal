@@ -123,7 +123,7 @@ export function useFollows() {
     try {
       const { data, error } = await supabase
         .from('user_follows')
-        .select('artist_id, artists(*)')
+        .select('artist_id, artists!user_follows_artist_id_fkey(*)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
