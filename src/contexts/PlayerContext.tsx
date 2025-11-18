@@ -373,14 +373,28 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   // Auto-play when track changes
   useEffect(() => {
-    if (currentTrack && isPlaying) {
-      if (effectiveViewMode === 'video' && videoRef.current) {
-        videoRef.current.play();
-      } else if (audioRef.current) {
-        audioRef.current.play();
+    if (!currentTrack) return;
+
+    const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
+    if (!activeMedia) return;
+
+    // Reset progress when track changes
+    setProgress(0);
+    setDuration(0);
+
+    // Load and play if needed
+    if (isPlaying) {
+      activeMedia.load();
+      
+      const playPromise = activeMedia.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error('Playback failed:', error);
+          setIsPlaying(false);
+        });
       }
     }
-  }, [currentTrack, effectiveViewMode]);
+  }, [currentTrack, effectiveViewMode, isPlaying]);
 
   // Auto-show mini-player when a new track plays
   useEffect(() => {
