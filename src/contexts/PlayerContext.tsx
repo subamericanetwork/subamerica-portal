@@ -209,8 +209,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       }
       
       if (repeat === 'one') {
-        activeMedia.currentTime = 0;
-        activeMedia.play();
+        playTrackAtIndex(currentTrackIndex);
       } else if (repeat === 'all' || currentTrackIndex < tracks.length - 1) {
         next();
       } else {
@@ -315,47 +314,92 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
+  // Helper function to play a specific track by index
+  const playTrackAtIndex = (index: number) => {
+    if (index < 0 || index >= tracks.length) return;
+
+    const track = tracks[index];
+    if (!track) return;
+
+    console.log('[Player] playTrackAtIndex', index, track.id, track.title);
+
+    // Determine which media element to use
+    const mediaType = detectMediaType(track.video_url);
+    const mode = viewMode === 'auto' ? mediaType : viewMode;
+    const media = mode === 'video' ? videoRef.current : audioRef.current;
+
+    if (!media) return;
+
+    // Pause both media elements to avoid overlap
+    if (videoRef.current) videoRef.current.pause();
+    if (audioRef.current) audioRef.current.pause();
+
+    // Set the source and reset position
+    media.src = track.video_url || '';
+    media.currentTime = 0;
+
+    // Update state
+    setCurrentTrackIndex(index);
+    setProgress(0);
+    setDuration(track.duration || 0);
+
+    // Load and play
+    media.load();
+    const playPromise = media.play();
+    
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+          // Track play event
+          trackPlay({
+            contentId: track.id,
+            title: track.title,
+            artistName: track.artist_name,
+            contentType: mediaType,
+            duration: track.duration,
+            playlistId: playlistId || undefined,
+            playerType: 'jukebox',
+          });
+        })
+        .catch((error) => {
+          console.error('[Player] playTrackAtIndex failed', error);
+          setIsPlaying(false);
+        });
+    } else {
+      setIsPlaying(true);
+      // Track play event
+      trackPlay({
+        contentId: track.id,
+        title: track.title,
+        artistName: track.artist_name,
+        contentType: mediaType,
+        duration: track.duration,
+        playlistId: playlistId || undefined,
+        playerType: 'jukebox',
+      });
+    }
+  };
+
   const next = () => {
     if (tracks.length === 0) return;
     
-    // Pause current media before switching
-    if (videoRef.current) videoRef.current.pause();
-    if (audioRef.current) audioRef.current.pause();
+    const nextIndex = shuffle
+      ? Math.floor(Math.random() * tracks.length)
+      : (currentTrackIndex + 1) % tracks.length;
     
-    let nextIndex: number;
-    if (shuffle) {
-      nextIndex = Math.floor(Math.random() * tracks.length);
-    } else {
-      nextIndex = (currentTrackIndex + 1) % tracks.length;
-    }
-    
-    setCurrentTrackIndex(nextIndex);
-    // Let the track-change effect handle starting playback
+    playTrackAtIndex(nextIndex);
   };
 
   const previous = () => {
     if (tracks.length === 0) return;
     
-    // Pause current media before switching
-    if (videoRef.current) videoRef.current.pause();
-    if (audioRef.current) audioRef.current.pause();
-    
     const prevIndex = currentTrackIndex === 0 ? tracks.length - 1 : currentTrackIndex - 1;
-    setCurrentTrackIndex(prevIndex);
-    // Let the track-change effect handle starting playback
+    playTrackAtIndex(prevIndex);
   };
 
   const skipTo = (index: number) => {
-    if (index >= 0 && index < tracks.length) {
-      console.log('[Player] skipTo', index, tracks[index]?.id);
-      
-      // Pause current media before switching
-      if (videoRef.current) videoRef.current.pause();
-      if (audioRef.current) audioRef.current.pause();
-      
-      setCurrentTrackIndex(index);
-      // Let the track-change effect handle starting playback
-    }
+    playTrackAtIndex(index);
   };
 
   const seek = (time: number) => {
@@ -386,36 +430,14 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     setRepeat(repeat === 'off' ? 'all' : repeat === 'all' ? 'one' : 'off');
   };
 
-  // Auto-play when track changes
+  // Sync UI state when track changes (playTrackAtIndex handles actual playback)
   useEffect(() => {
     if (!currentTrack) return;
-
-    const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
-    if (!activeMedia) return;
-
-    console.log('[Player] Auto-playing track', currentTrack.id, currentTrack.title);
-
-    // Reset progress when track changes
-    setProgress(0);
-    setDuration(0);
-
-    // Always load and play the new track
-    activeMedia.load();
     
-    const playPromise = activeMedia.play();
-    if (playPromise !== undefined) {
-      playPromise
-        .then(() => {
-          setIsPlaying(true);
-        })
-        .catch((error) => {
-          console.error('[Player] Playback failed:', error);
-          setIsPlaying(false);
-        });
-    } else {
-      setIsPlaying(true);
-    }
-  }, [currentTrack, effectiveViewMode]);
+    // Just ensure progress/duration are in sync with current track
+    setProgress(0);
+    setDuration(currentTrack.duration || 0);
+  }, [currentTrack]);
 
   // Auto-show mini-player when a new track plays
   useEffect(() => {
