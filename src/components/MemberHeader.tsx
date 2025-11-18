@@ -115,6 +115,7 @@ export function MemberHeader() {
   };
 
   const memberNavItems = [
+    { title: "Home", url: "/member/home", icon: Home },
     { title: "Discover", url: "/portals", icon: Compass },
     { title: "Live", url: "/live", icon: Radio },
     { title: "Watch", url: "/watch", icon: Play },
