@@ -343,7 +343,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   // Helper to handle only media element playback (no state updates)
-  const playTrackMediaAtIndex = (index: number) => {
+  const playTrackMediaAtIndex = useCallback((index: number) => {
     const track = tracks[index];
     if (!track) {
       console.warn('[Player] playTrackMediaAtIndex: no track at index', index);
@@ -413,7 +413,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         playerType: 'jukebox',
       });
     }
-  };
+  }, [tracks, viewMode, playlistId, trackPlay]);
 
   // Helper function to play a specific track by index
   const playTrackAtIndex = (index: number) => {
@@ -442,7 +442,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       playTrackMediaAtIndex(nextIndex);
       return nextIndex;
     });
-  }, [tracks.length, shuffle]);
+  }, [tracks.length, shuffle, playTrackMediaAtIndex]);
 
   const previous = useCallback(() => {
     if (tracks.length === 0) return;
@@ -453,7 +453,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
       playTrackMediaAtIndex(prevIndexComputed);
       return prevIndexComputed;
     });
-  }, [tracks.length]);
+  }, [tracks.length, playTrackMediaAtIndex]);
 
   const skipTo = useCallback((index: number) => {
     console.log('[Player] skipTo()', { requestedIndex: index, tracksLength: tracks.length });
@@ -465,7 +465,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     
     setCurrentTrackIndex(index);
     playTrackMediaAtIndex(index);
-  }, [tracks.length]);
+  }, [tracks.length, playTrackMediaAtIndex]);
 
   const seek = useCallback((time: number) => {
     const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
