@@ -1186,6 +1186,47 @@ export type Database = {
           },
         ]
       }
+      featured_content: {
+        Row: {
+          artist_id: string | null
+          content_id: string | null
+          content_type: string | null
+          created_at: string | null
+          featured_from: string
+          featured_until: string
+          id: string
+          priority: number | null
+        }
+        Insert: {
+          artist_id?: string | null
+          content_id?: string | null
+          content_type?: string | null
+          created_at?: string | null
+          featured_from: string
+          featured_until: string
+          id?: string
+          priority?: number | null
+        }
+        Update: {
+          artist_id?: string | null
+          content_id?: string | null
+          content_type?: string | null
+          created_at?: string | null
+          featured_from?: string
+          featured_until?: string
+          id?: string
+          priority?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_content_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       livepush_artist_permissions: {
         Row: {
           artist_id: string
@@ -1562,6 +1603,41 @@ export type Database = {
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      playback_history: {
+        Row: {
+          artist_id: string | null
+          content_id: string
+          content_type: string
+          id: string
+          played_at: string | null
+          user_id: string
+        }
+        Insert: {
+          artist_id?: string | null
+          content_id: string
+          content_type: string
+          id?: string
+          played_at?: string | null
+          user_id: string
+        }
+        Update: {
+          artist_id?: string | null
+          content_id?: string
+          content_type?: string
+          id?: string
+          played_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "playback_history_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
             referencedColumns: ["id"]
           },
         ]
@@ -2883,6 +2959,59 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_follows: {
+        Row: {
+          artist_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          artist_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          artist_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_follows_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_likes: {
+        Row: {
+          content_id: string
+          content_type: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          content_id: string
+          content_type: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          content_id?: string
+          content_type?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_profiles: {
         Row: {

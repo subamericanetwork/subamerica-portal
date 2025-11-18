@@ -45,6 +45,7 @@ import BecomeArtist from "./pages/BecomeArtist";
 import ApplicationStatus from "./pages/ApplicationStatus";
 import MemberDashboard from "./pages/MemberDashboard";
 import MemberProfile from "./pages/MemberProfile";
+import MemberHome from "./pages/MemberHome";
 import LiveStreams from "./pages/LiveStreams";
 import WatchLive from "./pages/WatchLive";
 import Blog from "./pages/Blog";
@@ -114,11 +115,12 @@ const AppRoutes = () => {
           <Route path="/auth" element={<Auth />} />
           <Route path="/test" element={<Test />} />
           
-          {/* Member Routes */}
-          <Route path="/member/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
-          <Route path="/member/profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
-          <Route path="/become-artist" element={<ProtectedRoute><BecomeArtist /></ProtectedRoute>} />
-          <Route path="/application-status" element={<ProtectedRoute><ApplicationStatus /></ProtectedRoute>} />
+        {/* Member Routes */}
+        <Route path="/member/home" element={<ProtectedRoute><MemberHome /></ProtectedRoute>} />
+        <Route path="/member/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
+        <Route path="/member/profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />
+        <Route path="/become-artist" element={<ProtectedRoute><BecomeArtist /></ProtectedRoute>} />
+        <Route path="/application-status" element={<ProtectedRoute><ApplicationStatus /></ProtectedRoute>} />
           
           {/* Artist Routes */}
           <Route path="/dashboard" element={<ArtistRoute><Dashboard /></ArtistRoute>} />
