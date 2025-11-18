@@ -103,7 +103,7 @@ export function usePlaybackHistory() {
       if (videoIds.length > 0) {
         const { data: videos } = await supabase
           .from('videos')
-          .select('id, title, thumb_url, video_url, duration, artist_id, artists(id, display_name, slug)')
+          .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug)')
           .in('id', videoIds);
         
         if (videos) results.push(...videos);
@@ -113,7 +113,7 @@ export function usePlaybackHistory() {
       if (audioIds.length > 0) {
         const { data: audio } = await supabase
           .from('audio_tracks')
-          .select('id, title, thumb_url: thumbnail_url, audio_url, duration, artist_id, artists(id, display_name, slug)')
+          .select('id, title, thumb_url: thumbnail_url, audio_url, duration, artist_id, artists!fk_audio_tracks_artist(id, display_name, slug)')
           .in('id', audioIds);
         
         if (audio) results.push(...audio);
