@@ -78,9 +78,18 @@ export default function MemberHome() {
   };
 
   const formatContentItems = (items: any[]) => {
+    console.log('🔍 formatContentItems - Raw items:', items);
+    
     return items.map(item => {
+      console.log('📦 Processing item:', {
+        id: item.id,
+        title: item.title,
+        artists: item.artists,
+        hasVideoUrl: !!item.video_url
+      });
+      
       const hasVideoUrl = !!item.video_url;
-      return {
+      const formatted = {
         id: item.id,
         title: item.title,
         type: (hasVideoUrl ? 'video' : 'audio') as 'video' | 'audio',
@@ -90,6 +99,9 @@ export default function MemberHome() {
         audio_url: item.audio_url,
         duration: item.duration,
       };
+      
+      console.log('✅ Formatted item:', formatted);
+      return formatted;
     });
   };
 
