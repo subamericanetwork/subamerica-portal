@@ -1,5 +1,5 @@
 import { usePlayer } from '@/contexts/PlayerContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -11,6 +11,7 @@ import { useState, useEffect, useRef } from 'react';
 export const MiniPlayer = () => {
   const { currentTrack, isPlaying, contentType, viewMode, videoRef, visibleVideoRef, miniPlayerVisible, play, pause, next, previous, setViewMode, setMiniPlayerVisible } = usePlayer();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [position, setPosition] = useState({ x: 0, y: 64 });
   const [isDragging, setIsDragging] = useState(false);
@@ -84,7 +85,10 @@ export const MiniPlayer = () => {
     };
   }, [isDragging, dragStart, position]);
 
-  if (!currentTrack || !miniPlayerVisible) return null;
+  // Hide mini-player on jukebox page to avoid confusion with full player
+  const isOnJukeboxPage = location.pathname.includes('/jukebox');
+  
+  if (!currentTrack || !miniPlayerVisible || isOnJukeboxPage) return null;
 
   const handleNavigateToPlaylists = () => {
     navigate('/member/playlists');
