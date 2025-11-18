@@ -10,6 +10,7 @@ import { Loader2, Music, Search } from 'lucide-react';
 import { AddToPlaylistButton } from './AddToPlaylistButton';
 import { useToast } from '@/hooks/use-toast';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { useNavigate } from 'react-router-dom';
 
 interface CatalogItem {
   id: string;
@@ -51,6 +52,7 @@ export const CatalogBrowser = ({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { toast } = useToast();
   const { playTracks } = usePlayer();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchCatalog();
@@ -113,8 +115,8 @@ export const CatalogBrowser = ({
           video_url: video.video_url,
           duration: video.duration,
           artist_id: video.artist_id,
-          artist_name: video.artists.display_name,
-          artist_slug: video.artists.slug,
+          artist_name: video.artists?.display_name || 'Unknown Artist',
+          artist_slug: video.artists?.slug || '',
           content_type: 'video' as const
         })) || [];
 
@@ -168,8 +170,8 @@ export const CatalogBrowser = ({
           audio_url: audio.audio_url,
           duration: audio.duration,
           artist_id: audio.artist_id,
-          artist_name: audio.artists.display_name,
-          artist_slug: audio.artists.slug,
+          artist_name: audio.artists?.display_name || 'Unknown Artist',
+          artist_slug: audio.artists?.slug || '',
           content_type: 'audio' as const
         })) || [];
 
@@ -256,6 +258,12 @@ export const CatalogBrowser = ({
   };
 
   const handleItemClick = (item: CatalogItem, index: number) => {
+    console.log('Item clicked:', { 
+      title: item.title, 
+      artist_name: item.artist_name,
+      artist_slug: item.artist_slug 
+    });
+    
     if (mode === 'standalone') {
       // Convert all items to Track format
       const tracks = items.map(i => ({
@@ -268,6 +276,8 @@ export const CatalogBrowser = ({
         video_url: i.video_url || i.audio_url || '',
         duration: i.duration || 0,
       }));
+      
+      console.log('Tracks to play:', tracks[index]);
       
       // Play starting from clicked track
       playTracks(tracks, index);
@@ -392,9 +402,18 @@ export const CatalogBrowser = ({
                   <h3 className="font-semibold text-sm truncate mb-1">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-muted-foreground truncate mb-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (item.artist_slug) {
+                        navigate(`/port/${item.artist_slug}`);
+                      }
+                    }}
+                    className="text-xs text-muted-foreground hover:text-foreground truncate mb-2 text-left w-full disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={!item.artist_slug}
+                  >
                     {item.artist_name}
-                  </p>
+                  </button>
 
                   <div className="flex items-center justify-between">
                     <div className="flex gap-2">

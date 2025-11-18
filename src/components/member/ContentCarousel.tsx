@@ -4,6 +4,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRef } from 'react';
 import { LikeButton } from './LikeButton';
 import { usePlayer } from '@/contexts/PlayerContext';
+import { useNavigate } from 'react-router-dom';
 
 interface ContentItem {
   id: string;
@@ -25,6 +26,7 @@ interface ContentCarouselProps {
 export function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { playTracks } = usePlayer();
+  const navigate = useNavigate();
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -117,9 +119,18 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
               {item.title}
             </h3>
             {item.artist && (
-              <p className="text-sm text-muted-foreground truncate">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (item.artist?.slug) {
+                    navigate(`/port/${item.artist.slug}`);
+                  }
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground truncate text-left w-full disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!item.artist?.slug}
+              >
                 {item.artist.display_name}
-              </p>
+              </button>
             )}
           </div>
         ))}
