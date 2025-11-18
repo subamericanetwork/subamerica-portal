@@ -58,7 +58,7 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
               thumb_url,
               duration,
               artist_id,
-              artists!inner (
+              artists!fk_videos_artist (
                 display_name,
                 slug
               )
@@ -87,7 +87,7 @@ export const VerticalVideoFeed = ({ playlistId, mode = 'catalog' }: VerticalVide
               thumb_url,
               duration,
               artist_id,
-              artists!inner (
+              artists!fk_audio_tracks_artist (
                 display_name,
                 slug
               )

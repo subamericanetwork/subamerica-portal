@@ -768,6 +768,13 @@ export type Database = {
             referencedRelation: "artist_live_streams"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "fk_audio_tracks_artist"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
         ]
       }
       audit: {
@@ -1633,6 +1640,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_playback_history_artist"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "playback_history_artist_id_fkey"
             columns: ["artist_id"]
@@ -3156,6 +3170,13 @@ export type Database = {
           video_url?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_videos_artist"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "artists"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "videos_artist_id_fkey"
             columns: ["artist_id"]

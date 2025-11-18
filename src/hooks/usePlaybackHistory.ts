@@ -74,15 +74,52 @@ export function usePlaybackHistory() {
     if (!user) return [];
 
     try {
-      const { data, error } = await supabase
+      // Get unique content IDs from history
+      const { data: historyData, error: historyError } = await supabase
         .from('playback_history')
-        .select('*, artists(*)')
+        .select('content_id, content_type, artist_id')
         .eq('user_id', user.id)
         .order('played_at', { ascending: false })
-        .limit(limit);
+        .limit(limit * 2); // Get more to account for duplicates
 
-      if (error) throw error;
-      return data || [];
+      if (historyError) throw historyError;
+      
+      // Separate video and audio IDs
+      const videoIds = [...new Set(
+        historyData
+          ?.filter(h => h.content_type === 'video')
+          .map(h => h.content_id) || []
+      )].slice(0, limit);
+      
+      const audioIds = [...new Set(
+        historyData
+          ?.filter(h => h.content_type === 'audio')
+          .map(h => h.content_id) || []
+      )].slice(0, limit);
+
+      const results = [];
+
+      // Fetch video details with artist data
+      if (videoIds.length > 0) {
+        const { data: videos } = await supabase
+          .from('videos')
+          .select('id, title, thumb_url, video_url, duration, artist_id, artists(id, display_name, slug)')
+          .in('id', videoIds);
+        
+        if (videos) results.push(...videos);
+      }
+
+      // Fetch audio details with artist data
+      if (audioIds.length > 0) {
+        const { data: audio } = await supabase
+          .from('audio_tracks')
+          .select('id, title, thumb_url: thumbnail_url, audio_url, duration, artist_id, artists(id, display_name, slug)')
+          .in('id', audioIds);
+        
+        if (audio) results.push(...audio);
+      }
+
+      return results;
     } catch (error) {
       console.error('Error fetching recently played:', error);
       return [];

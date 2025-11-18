@@ -78,16 +78,19 @@ export default function MemberHome() {
   };
 
   const formatContentItems = (items: any[]) => {
-    return items.map(item => ({
-      id: item.id,
-      title: item.title,
-      type: 'video' as const,
-      thumbnail: item.thumb_url,
-      artist: item.artists,
-      video_url: item.video_url,
-      audio_url: item.audio_url,
-      duration: item.duration,
-    }));
+    return items.map(item => {
+      const hasVideoUrl = !!item.video_url;
+      return {
+        id: item.id,
+        title: item.title,
+        type: (hasVideoUrl ? 'video' : 'audio') as 'video' | 'audio',
+        thumbnail: item.thumb_url,
+        artist: item.artists,
+        video_url: item.video_url,
+        audio_url: item.audio_url,
+        duration: item.duration,
+      };
+    });
   };
 
   return (

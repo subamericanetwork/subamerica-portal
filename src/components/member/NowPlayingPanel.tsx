@@ -72,8 +72,13 @@ export function NowPlayingPanel() {
               <div className="flex-1 min-w-0">
                 <h4 className="font-semibold truncate">{currentTrack.title}</h4>
                 <button
-                  onClick={() => navigate(`/port/${currentTrack.artist_slug}`)}
-                  className="text-sm text-muted-foreground hover:text-foreground truncate block"
+                  onClick={() => {
+                    if (currentTrack.artist_slug) {
+                      navigate(`/port/${currentTrack.artist_slug}`);
+                    }
+                  }}
+                  className="text-sm text-muted-foreground hover:text-foreground truncate block disabled:cursor-not-allowed"
+                  disabled={!currentTrack.artist_slug}
                 >
                   {currentTrack.artist_name || 'Unknown Artist'}
                 </button>
@@ -139,7 +144,12 @@ export function NowPlayingPanel() {
             variant="link"
             size="sm"
             className="p-0 h-auto"
-            onClick={() => navigate(`/port/${currentTrack.artist_slug}`)}
+            onClick={() => {
+              if (currentTrack.artist_slug) {
+                navigate(`/port/${currentTrack.artist_slug}`);
+              }
+            }}
+            disabled={!currentTrack.artist_slug}
           >
             View Full Profile
           </Button>
