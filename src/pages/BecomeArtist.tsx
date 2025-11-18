@@ -245,7 +245,7 @@ const BecomeArtist = () => {
                   {slugAvailable === false && <XCircle className="h-4 w-4 text-red-500" />}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Your Port will be: <span className="font-mono text-primary">subamerica.net/port/{slug || "your-port"}</span>
+                  Your Port will be: <span className="font-mono text-primary">subamerica.net/{slug || "your-port"}</span>
                 </p>
                 {slugAvailable === false && (
                   <p className="text-xs text-red-500">This URL is already taken</p>

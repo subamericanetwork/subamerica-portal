@@ -51,7 +51,6 @@ export default function MemberHome() {
         .eq('artists.port_settings.publish_status', 'published')
         .order('view_count', { ascending: false })
         .limit(10);
-      console.log('📊 Sample popular video:', popular?.[0]);
       setPopularVideos(popular || []);
 
       // New releases
@@ -63,7 +62,6 @@ export default function MemberHome() {
         .eq('artists.port_settings.publish_status', 'published')
         .order('published_at', { ascending: false })
         .limit(10);
-      console.log('📊 Sample new release:', newItems?.[0]);
       setNewReleases(newItems || []);
 
       // Verified artists
@@ -87,7 +85,6 @@ export default function MemberHome() {
       
       // Extract artist data - handle nested port_settings structure
       let artistData = item.artists;
-      console.log('📊 Artists object:', artistData);
       
       // If artists is an object with port_settings array, clean it up
       if (artistData && Array.isArray(artistData.port_settings)) {
@@ -156,11 +153,11 @@ export default function MemberHome() {
                     <h2 className="text-2xl font-bold">Verified Artists</h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {verifiedArtists.map(artist => (
-                        <a
-                          key={artist.id}
-                          href={`/port/${artist.slug}`}
-                          className="group"
-                        >
+              <a
+                key={artist.id}
+                href={`/${artist.slug}`}
+                className="group"
+              >
                           <div className="aspect-square rounded-full bg-muted mb-2 overflow-hidden">
                             <div className="w-full h-full flex items-center justify-center text-4xl group-hover:scale-105 transition-transform">
                               🎤

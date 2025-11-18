@@ -35,7 +35,7 @@ export function FeaturedArtistHero({ artist }: FeaturedArtistHeroProps) {
           <div className="flex items-center gap-3">
             <Button
               size="lg"
-              onClick={() => navigate(`/port/${artist.slug}`)}
+              onClick={() => navigate(`/${artist.slug}`)}
               className="rounded-full"
             >
               <Play className="h-5 w-5 mr-2" />
