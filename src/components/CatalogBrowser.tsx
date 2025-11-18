@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Loader2, Music, Search } from 'lucide-react';
 import { AddToPlaylistButton } from './AddToPlaylistButton';
 import { useToast } from '@/hooks/use-toast';
+import { usePlayer } from '@/contexts/PlayerContext';
 
 interface CatalogItem {
   id: string;
@@ -20,6 +21,8 @@ interface CatalogItem {
   artist_name: string;
   artist_slug: string;
   content_type: 'video' | 'audio';
+  video_url?: string;
+  audio_url?: string;
 }
 
 interface CatalogBrowserProps {
@@ -28,6 +31,7 @@ interface CatalogBrowserProps {
   excludeVideoIds?: string[];
   multiSelect?: boolean;
   contentFilter?: 'all' | 'video' | 'audio';
+  sceneFilter?: string;
 }
 
 export const CatalogBrowser = ({
@@ -35,7 +39,8 @@ export const CatalogBrowser = ({
   onSelect,
   excludeVideoIds = [],
   multiSelect = true,
-  contentFilter = 'all'
+  contentFilter = 'all',
+  sceneFilter
 }: CatalogBrowserProps) => {
   const [items, setItems] = useState<CatalogItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,10 +50,11 @@ export const CatalogBrowser = ({
   const [sortBy, setSortBy] = useState<string>('newest');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { toast } = useToast();
+  const { playTracks } = usePlayer();
 
   useEffect(() => {
     fetchCatalog();
-  }, [searchQuery, typeFilter, kindFilter, sortBy]);
+  }, [searchQuery, typeFilter, kindFilter, sortBy, sceneFilter]);
 
   const fetchCatalog = async () => {
     setLoading(true);
@@ -64,11 +70,13 @@ export const CatalogBrowser = ({
             title,
             kind,
             thumb_url,
+            video_url,
             duration,
             artist_id,
             artists!inner (
               display_name,
               slug,
+              scene,
               port_settings!inner (
                 publish_status
               )
@@ -77,6 +85,11 @@ export const CatalogBrowser = ({
           .eq('status', 'ready')
           .not('published_at', 'is', null)
           .eq('artists.port_settings.publish_status', 'published');
+
+        // Apply scene filter
+        if (sceneFilter) {
+          videoQuery = videoQuery.eq('artists.scene', sceneFilter);
+        }
 
         // Apply search filter
         if (searchQuery.trim()) {
@@ -97,6 +110,7 @@ export const CatalogBrowser = ({
           title: video.title,
           kind: video.kind,
           thumb_url: video.thumb_url,
+          video_url: video.video_url,
           duration: video.duration,
           artist_id: video.artist_id,
           artist_name: video.artists.display_name,
@@ -115,12 +129,14 @@ export const CatalogBrowser = ({
             id,
             title,
             thumb_url,
+            audio_url,
             duration,
             artist_id,
             published_at,
             artists!inner (
               display_name,
               slug,
+              scene,
               port_settings!inner (
                 publish_status
               )
@@ -129,6 +145,11 @@ export const CatalogBrowser = ({
           .eq('status', 'ready')
           .not('published_at', 'is', null)
           .eq('artists.port_settings.publish_status', 'published');
+
+        // Apply scene filter
+        if (sceneFilter) {
+          audioQuery = audioQuery.eq('artists.scene', sceneFilter);
+        }
 
         // Apply search filter
         if (searchQuery.trim()) {
@@ -144,6 +165,7 @@ export const CatalogBrowser = ({
           title: audio.title,
           kind: 'audio',
           thumb_url: audio.thumb_url,
+          audio_url: audio.audio_url,
           duration: audio.duration,
           artist_id: audio.artist_id,
           artist_name: audio.artists.display_name,
@@ -233,6 +255,25 @@ export const CatalogBrowser = ({
     return labels[kind] || kind;
   };
 
+  const handleItemClick = (item: CatalogItem, index: number) => {
+    if (mode === 'standalone') {
+      // Convert all items to Track format
+      const tracks = items.map(i => ({
+        id: i.id,
+        title: i.title,
+        artist_name: i.artist_name,
+        artist_id: i.artist_id,
+        artist_slug: i.artist_slug,
+        thumbnail_url: i.thumb_url || '',
+        video_url: i.video_url || i.audio_url || '',
+        duration: i.duration || 0,
+      }));
+      
+      // Play starting from clicked track
+      playTracks(tracks, index);
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
@@ -316,14 +357,15 @@ export const CatalogBrowser = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2">
-          {items.map((item) => (
+          {items.map((item, index) => (
             <Card
               key={item.id}
-              className={`p-4 hover:shadow-md transition-shadow ${
-                mode === 'selection' && selectedIds.includes(item.id)
-                  ? 'ring-2 ring-primary'
-                  : ''
+              className={`p-4 transition-all ${
+                mode === 'selection' 
+                  ? selectedIds.includes(item.id) ? 'ring-2 ring-primary' : ''
+                  : 'cursor-pointer hover:shadow-lg hover:scale-[1.02]'
               }`}
+              onClick={() => mode === 'standalone' && handleItemClick(item, index)}
             >
               <div className="flex gap-3">
                 {mode === 'selection' && (
@@ -367,12 +409,14 @@ export const CatalogBrowser = ({
                     </div>
 
                     {mode === 'standalone' && (
-                      <AddToPlaylistButton
-                        videoId={item.content_type === 'video' ? item.id : undefined}
-                        audioId={item.content_type === 'audio' ? item.id : undefined}
-                        variant="inline"
-                        className="h-7 text-xs px-2"
-                      />
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <AddToPlaylistButton
+                          videoId={item.content_type === 'video' ? item.id : undefined}
+                          audioId={item.content_type === 'audio' ? item.id : undefined}
+                          variant="inline"
+                          className="h-7 text-xs px-2"
+                        />
+                      </div>
                     )}
                   </div>
                 </div>
