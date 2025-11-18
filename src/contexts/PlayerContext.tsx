@@ -317,8 +317,12 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
   const next = () => {
     if (tracks.length === 0) return;
-    let nextIndex: number;
     
+    // Pause current media before switching
+    if (videoRef.current) videoRef.current.pause();
+    if (audioRef.current) audioRef.current.pause();
+    
+    let nextIndex: number;
     if (shuffle) {
       nextIndex = Math.floor(Math.random() * tracks.length);
     } else {
@@ -326,20 +330,31 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     }
     
     setCurrentTrackIndex(nextIndex);
-    setIsPlaying(true);
+    // Let the track-change effect handle starting playback
   };
 
   const previous = () => {
     if (tracks.length === 0) return;
+    
+    // Pause current media before switching
+    if (videoRef.current) videoRef.current.pause();
+    if (audioRef.current) audioRef.current.pause();
+    
     const prevIndex = currentTrackIndex === 0 ? tracks.length - 1 : currentTrackIndex - 1;
     setCurrentTrackIndex(prevIndex);
-    setIsPlaying(true);
+    // Let the track-change effect handle starting playback
   };
 
   const skipTo = (index: number) => {
     if (index >= 0 && index < tracks.length) {
+      console.log('[Player] skipTo', index, tracks[index]?.id);
+      
+      // Pause current media before switching
+      if (videoRef.current) videoRef.current.pause();
+      if (audioRef.current) audioRef.current.pause();
+      
       setCurrentTrackIndex(index);
-      setIsPlaying(true);
+      // Let the track-change effect handle starting playback
     }
   };
 
@@ -378,23 +393,29 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
     const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
     if (!activeMedia) return;
 
+    console.log('[Player] Auto-playing track', currentTrack.id, currentTrack.title);
+
     // Reset progress when track changes
     setProgress(0);
     setDuration(0);
 
-    // Load and play if needed
-    if (isPlaying) {
-      activeMedia.load();
-      
-      const playPromise = activeMedia.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.error('Playback failed:', error);
+    // Always load and play the new track
+    activeMedia.load();
+    
+    const playPromise = activeMedia.play();
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          setIsPlaying(true);
+        })
+        .catch((error) => {
+          console.error('[Player] Playback failed:', error);
           setIsPlaying(false);
         });
-      }
+    } else {
+      setIsPlaying(true);
     }
-  }, [currentTrack, effectiveViewMode, isPlaying]);
+  }, [currentTrack, effectiveViewMode]);
 
   // Auto-show mini-player when a new track plays
   useEffect(() => {
