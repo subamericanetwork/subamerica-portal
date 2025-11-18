@@ -388,8 +388,6 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
             playlistId: playlistId || undefined,
             playerType: 'jukebox',
           });
-
-          setIsPlaying(true);
         })
         .catch((error) => {
           console.error('[Player] auto-play error:', error);
@@ -406,9 +404,8 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
         playlistId: playlistId || undefined,
         playerType: 'jukebox',
       });
-      setIsPlaying(true);
     }
-  }, [currentTrack, viewMode, isPlaying, trackPlay, playlistId]);
+  }, [currentTrack, viewMode, trackPlay, playlistId]);
   const next = useCallback(() => {
     if (tracks.length === 0) return;
 
