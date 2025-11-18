@@ -2,8 +2,8 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { LikeButton } from './LikeButton';
+import { usePlayer } from '@/contexts/PlayerContext';
 
 interface ContentItem {
   id: string;
@@ -11,6 +11,9 @@ interface ContentItem {
   type: 'video' | 'audio';
   thumbnail?: string;
   artist?: any;
+  video_url?: string;
+  audio_url?: string;
+  duration?: number;
 }
 
 interface ContentCarouselProps {
@@ -21,7 +24,7 @@ interface ContentCarouselProps {
 
 export function ContentCarousel({ title, items, onItemClick }: ContentCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
+  const { playTracks } = usePlayer();
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -33,11 +36,24 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
     }
   };
 
-  const handleItemClick = (item: ContentItem) => {
+  const handleItemClick = (item: ContentItem, index: number) => {
     if (onItemClick) {
       onItemClick(item);
-    } else if (item.type === 'video') {
-      navigate(`/watch/${item.id}`);
+    } else {
+      // Convert all carousel items to Track format
+      const tracks = items.map(i => ({
+        id: i.id,
+        title: i.title,
+        artist_name: i.artist?.display_name || 'Unknown Artist',
+        artist_id: i.artist?.id || '',
+        artist_slug: i.artist?.slug || '',
+        thumbnail_url: i.thumbnail || '',
+        video_url: i.video_url || i.audio_url || '',
+        duration: i.duration || 0,
+      }));
+      
+      // Play starting from clicked track
+      playTracks(tracks, index);
     }
   };
 
@@ -71,11 +87,11 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
         ref={scrollRef}
         className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
       >
-        {items.map((item) => (
+        {items.map((item, index) => (
           <div
             key={item.id}
             className="flex-shrink-0 w-48 cursor-pointer group"
-            onClick={() => handleItemClick(item)}
+            onClick={() => handleItemClick(item, index)}
           >
             <div className="relative aspect-square rounded-lg bg-muted mb-3 overflow-hidden">
               {item.thumbnail ? (

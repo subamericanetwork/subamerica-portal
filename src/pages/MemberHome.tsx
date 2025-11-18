@@ -45,7 +45,7 @@ export default function MemberHome() {
       // Popular videos
       const { data: popular } = await supabase
         .from('videos')
-        .select('*, artists(*)')
+        .select('id, title, thumb_url, video_url, duration, artist_id, artists(id, display_name, slug)')
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
         .order('view_count', { ascending: false })
@@ -55,7 +55,7 @@ export default function MemberHome() {
       // New releases
       const { data: newItems } = await supabase
         .from('videos')
-        .select('*, artists(*)')
+        .select('id, title, thumb_url, video_url, duration, artist_id, artists(id, display_name, slug)')
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
         .order('published_at', { ascending: false })
@@ -84,6 +84,9 @@ export default function MemberHome() {
       type: 'video' as const,
       thumbnail: item.thumb_url,
       artist: item.artists,
+      video_url: item.video_url,
+      audio_url: item.audio_url,
+      duration: item.duration,
     }));
   };
 
