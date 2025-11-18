@@ -45,23 +45,25 @@ export default function MemberHome() {
       // Popular videos
       const { data: popular } = await supabase
         .from('videos')
-        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug)')
+        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug, port_settings!inner(publish_status))')
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
         .eq('artists.port_settings.publish_status', 'published')
         .order('view_count', { ascending: false })
         .limit(10);
+      console.log('📊 Sample popular video:', popular?.[0]);
       setPopularVideos(popular || []);
 
       // New releases
       const { data: newItems } = await supabase
         .from('videos')
-        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug)')
+        .select('id, title, thumb_url, video_url, duration, artist_id, artists!fk_videos_artist(id, display_name, slug, port_settings!inner(publish_status))')
         .eq('moderation_status', 'approved')
         .eq('status', 'ready')
         .eq('artists.port_settings.publish_status', 'published')
         .order('published_at', { ascending: false })
         .limit(10);
+      console.log('📊 Sample new release:', newItems?.[0]);
       setNewReleases(newItems || []);
 
       // Verified artists
@@ -82,12 +84,26 @@ export default function MemberHome() {
   const formatContentItems = (items: any[]) => {
     return items.map(item => {
       const hasVideoUrl = !!item.video_url;
+      
+      // Extract artist data - handle nested port_settings structure
+      let artistData = item.artists;
+      console.log('📊 Artists object:', artistData);
+      
+      // If artists is an object with port_settings array, clean it up
+      if (artistData && Array.isArray(artistData.port_settings)) {
+        artistData = {
+          id: artistData.id,
+          display_name: artistData.display_name,
+          slug: artistData.slug
+        };
+      }
+      
       return {
         id: item.id,
         title: item.title,
         type: (hasVideoUrl ? 'video' : 'audio') as 'video' | 'audio',
         thumbnail: item.thumb_url,
-        artist: item.artists,
+        artist: artistData,
         video_url: item.video_url,
         audio_url: item.audio_url,
         duration: item.duration,
