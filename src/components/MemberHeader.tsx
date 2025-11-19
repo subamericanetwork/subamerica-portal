@@ -1,5 +1,5 @@
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar, Clock } from "lucide-react";
+import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar, Clock, Music } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -176,6 +176,18 @@ export function MemberHeader() {
             </Button>
           )}
           
+          {/* Become an Artist Link - Desktop (Only for non-artists) */}
+          {!hasPortalAccess && (
+            <Button
+              variant={isActive("/become-artist") ? "secondary" : "ghost"}
+              size="sm"
+              className="hidden md:flex gap-2 !text-orange-500 hover:!text-orange-500 hover:!bg-orange-50/10"
+              onClick={() => navigate("/become-artist")}
+            >
+              <Music className="h-4 w-4" />
+              Become an Artist
+            </Button>
+          )}
           
           {/* Mobile: Icons only */}
           {memberNavItems.map((item) => (
@@ -211,6 +223,18 @@ export function MemberHeader() {
               onClick={() => navigate("/dashboard")}
             >
               <LayoutDashboard className="h-4 w-4" />
+            </Button>
+          )}
+          
+          {/* Become an Artist Link - Mobile (Only for non-artists) */}
+          {!hasPortalAccess && (
+            <Button
+              variant={isActive("/become-artist") ? "secondary" : "ghost"}
+              size="sm"
+              className="md:hidden !text-orange-500 hover:!text-orange-500"
+              onClick={() => navigate("/become-artist")}
+            >
+              <Music className="h-4 w-4" />
             </Button>
           )}
           
