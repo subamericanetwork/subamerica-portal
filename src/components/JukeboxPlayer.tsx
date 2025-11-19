@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
+import {
   Play, 
   Pause, 
   SkipForward, 
@@ -288,8 +287,8 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
 
       {/* Bottom Section - Queue */}
       <div className="jukebox-bottom">
-        <ScrollArea className="queue-scroll-container">
-          <div className="flex gap-6 pb-4 px-2">
+        <div className="overflow-x-auto overflow-y-hidden scrollbar-hide">
+          <div className="flex flex-nowrap gap-6 pb-4 px-2">
             {tracks.map((track, index) => (
               <button
                 key={track.id}
@@ -302,42 +301,35 @@ export const JukeboxPlayer = ({ playlistId, className }: JukeboxPlayerProps) => 
                   skipTo(index);
                 }}
                 className={cn(
-                  "queue-card",
+                  "queue-card flex-none",
                   index === currentTrackIndex && "active"
                 )}
               >
-                <img
-                  src={track.thumbnail_url || 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400'}
-                  alt={track.title}
-                  className="queue-thumbnail"
-                  onError={(e) => {
-                    e.currentTarget.src = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400';
-                  }}
-                />
-                <div className="queue-info">
-                  <h4 className="queue-title">
-                    {track.title}
-                  </h4>
-                  <p className="queue-artist">
-                    {track.artist_name}
-                  </p>
-                  <div className="queue-chevron">›</div>
-                </div>
-                <div className="progress-dots">
-                  {[...Array(3)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={cn(
-                        "dot",
-                        i === 0 && index === currentTrackIndex && "active"
-                      )}
-                    />
-                  ))}
+                <div className="queue-card-content">
+                  {/* Track thumbnail */}
+                  <div className="queue-thumb">
+                    {track.thumbnail_url ? (
+                      <img 
+                        src={track.thumbnail_url} 
+                        alt={track.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center">
+                        <Menu className="w-6 h-6 text-muted-foreground" />
+                      </div>
+                    )}
+                  </div>
+                  {/* Track info */}
+                  <div className="queue-info">
+                    <div className="queue-title">{track.title}</div>
+                    <div className="queue-artist">{track.artist_name}</div>
+                  </div>
                 </div>
               </button>
             ))}
           </div>
-        </ScrollArea>
+        </div>
       </div>
     </div>
   );
