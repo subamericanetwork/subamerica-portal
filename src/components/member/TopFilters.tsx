@@ -21,7 +21,7 @@ export function TopFilters({ activeFilter, onFilterChange }: TopFiltersProps) {
 
   return (
     <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border py-2">
-      <div className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide px-4 touch-pan-x">
+      <div className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide px-4 touch-pan-x webkit-overflow-scrolling-touch">
         {filters.map((filter) => (
           <Button
             key={filter.value}
