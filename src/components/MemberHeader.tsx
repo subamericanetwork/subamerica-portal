@@ -181,7 +181,7 @@ export function MemberHeader() {
             <Button
               variant={isActive("/become-artist") ? "secondary" : "ghost"}
               size="sm"
-              className="hidden md:flex gap-2 !text-orange-500 hover:!text-orange-500 hover:!bg-orange-50/10"
+              className="hidden md:flex gap-2 !text-coral hover:!text-coral hover:!bg-coral/10"
               onClick={() => navigate("/become-artist")}
             >
               <Music className="h-4 w-4" />
@@ -231,7 +231,7 @@ export function MemberHeader() {
             <Button
               variant={isActive("/become-artist") ? "secondary" : "ghost"}
               size="sm"
-              className="md:hidden !text-orange-500 hover:!text-orange-500"
+              className="md:hidden !text-coral hover:!text-coral"
               onClick={() => navigate("/become-artist")}
             >
               <Music className="h-4 w-4" />
