@@ -39,7 +39,7 @@ export function SceneCategories() {
       <h2 className="text-2xl font-bold">Browse by Scene</h2>
       
       <div className={isMobile 
-        ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide" 
+        ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide touch-pan-x webkit-overflow-scrolling-touch" 
         : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
       }>
         {scenes.map((scene) => (

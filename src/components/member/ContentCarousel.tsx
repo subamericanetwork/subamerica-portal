@@ -85,12 +85,12 @@ export function ContentCarousel({ title, items, onItemClick }: ContentCarouselPr
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth"
+        className="flex gap-4 overflow-x-auto scrollbar-hide scroll-smooth touch-pan-x snap-x snap-mandatory webkit-overflow-scrolling-touch"
       >
         {items.map((item, index) => (
           <div
             key={item.id}
-            className="flex-shrink-0 w-48 cursor-pointer group"
+            className="flex-shrink-0 w-48 cursor-pointer group snap-start"
             onClick={() => handleItemClick(item, index)}
           >
             <div className="relative aspect-square rounded-lg bg-muted mb-3 overflow-hidden">
