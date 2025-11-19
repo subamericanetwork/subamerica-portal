@@ -40,9 +40,9 @@ export function MobilePlayer() {
 
   return (
     <>
-      {/* Mini Player Bar - Fixed Bottom */}
+      {/* Mini Player Bar - Fixed Above Bottom Nav */}
       <div 
-        className="fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg"
+        className="fixed bottom-16 left-0 right-0 z-50 bg-card/95 backdrop-blur-lg border-t border-border"
         onClick={() => setIsExpanded(true)}
       >
         <div className="flex items-center gap-3 p-3">
