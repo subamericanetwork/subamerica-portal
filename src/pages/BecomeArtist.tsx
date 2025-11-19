@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Music, CheckCircle, XCircle, Info } from "lucide-react";
 import logo from "@/assets/subamerica-logo.jpg";
 import { z } from "zod";
+import { useScenes } from "@/hooks/useScenes";
 
 const artistNameSchema = z.string().trim().min(1, "Artist name required").max(100, "Name too long");
 const slugSchema = z.string().trim().min(1, "Port URL required").max(50, "Slug too long").regex(/^[a-z0-9-]+$/, "Only lowercase letters, numbers, and hyphens allowed");
@@ -22,6 +24,7 @@ const sceneSchema = z.string().trim().max(100, "Scene too long");
 const BecomeArtist = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { scenes, loading: scenesLoading } = useScenes();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [existingApplication, setExistingApplication] = useState<any>(null);
@@ -254,12 +257,28 @@ const BecomeArtist = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="scene">Music Scene/Genre</Label>
-                <Input
-                  id="scene"
-                  value={scene}
-                  onChange={(e) => setScene(e.target.value)}
-                  placeholder="e.g. Indie Rock, Electronic, Hip-Hop"
-                />
+                <Select value={scene} onValueChange={setScene}>
+                  <SelectTrigger id="scene">
+                    <SelectValue placeholder="Select your music scene" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {scenesLoading ? (
+                      <SelectItem value="loading" disabled>Loading scenes...</SelectItem>
+                    ) : scenes.length > 0 ? (
+                      scenes.map((s) => (
+                        <SelectItem key={s.name} value={s.name}>
+                          {s.emoji} {s.name}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="other" disabled>No scenes available</SelectItem>
+                    )}
+                    <SelectItem value="Other">🎵 Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose the scene that best represents your music
+                </p>
               </div>
 
               <div className="space-y-2">
