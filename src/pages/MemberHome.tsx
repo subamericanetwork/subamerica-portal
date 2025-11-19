@@ -150,7 +150,7 @@ export default function MemberHome() {
 
                 {verifiedArtists.length > 0 && (
                   <div className="space-y-4">
-                    <h2 className="text-2xl font-bold">Verified Artists</h2>
+                    <h2 className="text-2xl font-bold">Browse by Artist</h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                       {verifiedArtists.map(artist => (
               <a
@@ -159,9 +159,17 @@ export default function MemberHome() {
                 className="group"
               >
                           <div className="aspect-square rounded-full bg-muted mb-2 overflow-hidden">
-                            <div className="w-full h-full flex items-center justify-center text-4xl group-hover:scale-105 transition-transform">
-                              🎤
-                            </div>
+                            {artist.brand?.profile_photo ? (
+                              <img 
+                                src={artist.brand.profile_photo} 
+                                alt={artist.display_name}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-4xl font-bold bg-gradient-to-br from-primary/20 to-primary/10 group-hover:scale-105 transition-transform">
+                                {artist.display_name.charAt(0).toUpperCase()}
+                              </div>
+                            )}
                           </div>
                           <p className="font-medium text-center truncate group-hover:text-primary transition-colors">
                             {artist.display_name}
