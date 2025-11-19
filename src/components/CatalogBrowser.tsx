@@ -90,7 +90,7 @@ export const CatalogBrowser = ({
 
         // Apply scene filter
         if (sceneFilter) {
-          videoQuery = videoQuery.eq('artists.scene', sceneFilter);
+          videoQuery = videoQuery.ilike('artists.scene', `%${sceneFilter}%`);
         }
 
         // Apply search filter
@@ -150,7 +150,7 @@ export const CatalogBrowser = ({
 
         // Apply scene filter
         if (sceneFilter) {
-          audioQuery = audioQuery.eq('artists.scene', sceneFilter);
+          audioQuery = audioQuery.ilike('artists.scene', `%${sceneFilter}%`);
         }
 
         // Apply search filter
