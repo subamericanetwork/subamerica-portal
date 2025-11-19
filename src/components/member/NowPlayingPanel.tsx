@@ -5,8 +5,10 @@ import { Slider } from '@/components/ui/slider';
 import { Play, Pause, SkipBack, SkipForward, Volume2, Maximize2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LikeButton } from './LikeButton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function NowPlayingPanel() {
+  const isMobile = useIsMobile();
   const {
     currentTrack,
     isPlaying,
@@ -19,6 +21,11 @@ export function NowPlayingPanel() {
   } = usePlayer();
 
   const navigate = useNavigate();
+
+  // Don't render on mobile - MobilePlayer handles it
+  if (isMobile) {
+    return null;
+  }
 
   if (!currentTrack) {
     return (
