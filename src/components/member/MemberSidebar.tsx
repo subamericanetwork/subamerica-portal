@@ -5,13 +5,24 @@ import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
 import { usePlaylist } from '@/hooks/usePlaylist';
 import { SearchBar } from './SearchBar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-export function MemberSidebar() {
+interface MemberSidebarProps {
+  onNavigate?: () => void;
+}
+
+export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { playlists } = usePlaylist();
 
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    onNavigate?.();
+  };
+
   return (
-    <div className="w-80 border-r bg-card flex flex-col h-full">
+    <div className={isMobile ? "w-full" : "w-80 border-r"} style={{ backgroundColor: 'hsl(var(--card))' }} data-class="bg-card flex flex-col h-full">
       <div className="p-4 space-y-4">
         <SearchBar />
 
@@ -19,7 +30,7 @@ export function MemberSidebar() {
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => navigate('/member/playlists')}
+            onClick={() => handleNavigation('/member/playlists')}
           >
             <ListMusic className="h-4 w-4 mr-3" />
             Your Playlists
@@ -56,7 +67,7 @@ export function MemberSidebar() {
           <Button
             variant="default"
             className="w-full justify-start"
-            onClick={() => navigate('/member/playlists')}
+            onClick={() => handleNavigation('/member/playlists')}
           >
             <Plus className="h-4 w-4 mr-3" />
             Create Playlist
@@ -65,7 +76,7 @@ export function MemberSidebar() {
           <Button
             variant="outline"
             className="w-full justify-start"
-            onClick={() => navigate('/browse')}
+            onClick={() => handleNavigation('/browse')}
           >
             <Compass className="h-4 w-4 mr-3" />
             Browse Catalog
@@ -86,11 +97,11 @@ export function MemberSidebar() {
             </p>
           ) : (
             playlists.map((playlist) => (
-              <Button
+                <Button
                 key={playlist.id}
                 variant="ghost"
                 className="w-full justify-start text-sm"
-                onClick={() => navigate(`/member/playlists/${playlist.id}/jukebox`)}
+                onClick={() => handleNavigation(`/member/playlists/${playlist.id}/jukebox`)}
               >
                 <ListMusic className="h-4 w-4 mr-3" />
                 <span className="truncate">{playlist.name}</span>

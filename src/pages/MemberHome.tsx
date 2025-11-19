@@ -5,13 +5,16 @@ import { FeaturedArtistHero } from '@/components/member/FeaturedArtistHero';
 import { ContentCarousel } from '@/components/member/ContentCarousel';
 import { SceneCategories } from '@/components/member/SceneCategories';
 import { NowPlayingPanel } from '@/components/member/NowPlayingPanel';
+import { MobilePlayer } from '@/components/member/MobilePlayer';
 import { useFeaturedContent } from '@/hooks/useFeaturedContent';
 import { usePlaybackHistory } from '@/hooks/usePlaybackHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function MemberHome() {
+  const isMobile = useIsMobile();
   const { getFeaturedArtist } = useFeaturedContent();
   const { getRecentlyPlayed } = usePlaybackHistory();
   const [featuredArtist, setFeaturedArtist] = useState<any>(null);
@@ -110,11 +113,11 @@ export default function MemberHome() {
 
   return (
     <MemberLayout>
-      <div className="flex h-[calc(100vh-64px)]">
-        <MemberSidebar />
+      <div className={isMobile ? "flex flex-col" : "flex h-[calc(100vh-64px)]"}>
+        {!isMobile && <MemberSidebar />}
 
         <ScrollArea className="flex-1">
-          <div className="container mx-auto p-6 space-y-8 pb-24">
+          <div className={`container mx-auto p-6 space-y-8 ${isMobile ? 'pb-32' : 'pb-24'}`}>
             {loading ? (
               <>
                 <Skeleton className="h-96 w-full rounded-lg" />
@@ -151,12 +154,15 @@ export default function MemberHome() {
                 {verifiedArtists.length > 0 && (
                   <div className="space-y-4">
                     <h2 className="text-2xl font-bold">Browse by Artist</h2>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <div className={isMobile 
+                      ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide" 
+                      : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+                    }>
                       {verifiedArtists.map(artist => (
               <a
                 key={artist.id}
                 href={`/${artist.slug}`}
-                className="group"
+                className={isMobile ? "flex-shrink-0 w-32 snap-start group" : "group"}
               >
                           <div className="aspect-square rounded-full bg-muted mb-2 overflow-hidden">
                             {artist.brand?.profile_photo ? (
@@ -184,8 +190,10 @@ export default function MemberHome() {
           </div>
         </ScrollArea>
 
-        <NowPlayingPanel />
+        {!isMobile && <NowPlayingPanel />}
       </div>
+      
+      {isMobile && <MobilePlayer />}
     </MemberLayout>
   );
 }

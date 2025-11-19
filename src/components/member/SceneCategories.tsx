@@ -3,10 +3,12 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useNavigate } from 'react-router-dom';
 import { useScenes } from '@/hooks/useScenes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function SceneCategories() {
   const navigate = useNavigate();
   const { scenes, loading } = useScenes();
+  const isMobile = useIsMobile();
 
   if (loading) {
     return (
@@ -36,12 +38,17 @@ export function SceneCategories() {
     <div className="space-y-4">
       <h2 className="text-2xl font-bold">Browse by Scene</h2>
       
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className={isMobile 
+        ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide" 
+        : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
+      }>
         {scenes.map((scene) => (
           <Button
             key={scene.name}
             variant="outline"
-            className="h-24 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 relative"
+            className={`h-24 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 relative ${
+              isMobile ? 'flex-shrink-0 w-32 snap-start' : ''
+            }`}
             onClick={() => navigate(`/browse?scene=${encodeURIComponent(scene.name)}`)}
           >
             <Badge 

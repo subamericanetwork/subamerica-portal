@@ -1,11 +1,14 @@
 import { useNavigate, useLocation, Link } from "react-router-dom";
-import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar, Clock, Music } from "lucide-react";
+import { Home, Compass, Play, Radio, ListMusic, User, LogOut, LayoutDashboard, BookOpen, Calendar, Clock, Music, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { MemberSidebar } from "@/components/member/MemberSidebar";
 
 interface ActiveStream {
   id: string;
@@ -17,11 +20,13 @@ export function MemberHeader() {
   const navigate = useNavigate();
   const location = useLocation();
   const { signOut, user } = useAuth();
+  const isMobile = useIsMobile();
   const [hasPortalAccess, setHasPortalAccess] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [activeStream, setActiveStream] = useState<ActiveStream | null>(null);
   const [scheduledCount, setScheduledCount] = useState(0);
   const [artist, setArtist] = useState<{ id: string } | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const checkPortalAccess = async () => {
@@ -127,6 +132,20 @@ export function MemberHeader() {
   return (
     <header className="fixed top-0 z-40 w-full border-b border-border bg-background/20 backdrop-blur-md supports-[backdrop-filter]:bg-background/10">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+        {/* Hamburger Menu - Mobile Only */}
+        {isMobile && (
+          <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden mr-2">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-80 p-0">
+              <MemberSidebar onNavigate={() => setSidebarOpen(false)} />
+            </SheetContent>
+          </Sheet>
+        )}
+
         {/* Left: Logo + "Subamerica" */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
           <img src={subamericaLogo} alt="Subamerica" className="h-8" />
