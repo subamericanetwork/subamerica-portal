@@ -6,15 +6,19 @@ import { ContentCarousel } from '@/components/member/ContentCarousel';
 import { SceneCategories } from '@/components/member/SceneCategories';
 import { NowPlayingPanel } from '@/components/member/NowPlayingPanel';
 import { MobilePlayer } from '@/components/member/MobilePlayer';
+import { MobileBottomNav } from '@/components/member/MobileBottomNav';
+import { TopFilters } from '@/components/member/TopFilters';
 import { useFeaturedContent } from '@/hooks/useFeaturedContent';
 import { usePlaybackHistory } from '@/hooks/usePlaybackHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 export default function MemberHome() {
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
   const { getFeaturedArtist } = useFeaturedContent();
   const { getRecentlyPlayed } = usePlaybackHistory();
   const [featuredArtist, setFeaturedArtist] = useState<any>(null);
@@ -23,6 +27,7 @@ export default function MemberHome() {
   const [newReleases, setNewReleases] = useState<any[]>([]);
   const [verifiedArtists, setVerifiedArtists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'music' | 'videos' | 'live' | 'playlists'>('all');
 
   useEffect(() => {
     loadContent();
@@ -82,6 +87,14 @@ export default function MemberHome() {
     }
   };
 
+  const handleFilterChange = (filter: 'all' | 'music' | 'videos' | 'live' | 'playlists') => {
+    if (filter === 'playlists') {
+      navigate('/member/playlists');
+      return;
+    }
+    setActiveFilter(filter);
+  };
+
   const formatContentItems = (items: any[]) => {
     return items.map(item => {
       const hasVideoUrl = !!item.video_url;
@@ -111,13 +124,23 @@ export default function MemberHome() {
     });
   };
 
+  const filterContent = (items: any[]) => {
+    if (activeFilter === 'all') return items;
+    if (activeFilter === 'music') return items.filter(item => !item.video_url);
+    if (activeFilter === 'videos') return items.filter(item => item.video_url);
+    if (activeFilter === 'live') return []; // Can be expanded for live streams
+    return items;
+  };
+
   return (
     <MemberLayout>
-      <div className={isMobile ? "flex flex-col" : "flex h-[calc(100vh-64px)]"}>
+      <div className={isMobile ? "flex flex-col min-h-screen" : "flex h-[calc(100vh-64px)]"}>
         {!isMobile && <MemberSidebar />}
 
         <ScrollArea className="flex-1">
-          <div className={`container mx-auto p-6 space-y-8 ${isMobile ? 'pb-32' : 'pb-24'}`}>
+          <TopFilters activeFilter={activeFilter} onFilterChange={handleFilterChange} />
+          
+          <div className={`container mx-auto p-6 space-y-8 ${isMobile ? 'pb-44' : 'pb-24'}`}>
             {loading ? (
               <>
                 <Skeleton className="h-96 w-full rounded-lg" />
@@ -131,21 +154,21 @@ export default function MemberHome() {
                 {recentlyPlayed.length > 0 && (
                   <ContentCarousel
                     title="Recently Played"
-                    items={formatContentItems(recentlyPlayed)}
+                    items={formatContentItems(filterContent(recentlyPlayed))}
                   />
                 )}
 
                 {popularVideos.length > 0 && (
                   <ContentCarousel
                     title="Popular on Subamerica"
-                    items={formatContentItems(popularVideos)}
+                    items={formatContentItems(filterContent(popularVideos))}
                   />
                 )}
 
                 {newReleases.length > 0 && (
                   <ContentCarousel
                     title="New Releases"
-                    items={formatContentItems(newReleases)}
+                    items={formatContentItems(filterContent(newReleases))}
                   />
                 )}
 
@@ -193,7 +216,12 @@ export default function MemberHome() {
         {!isMobile && <NowPlayingPanel />}
       </div>
       
-      {isMobile && <MobilePlayer />}
+      {isMobile && (
+        <>
+          <MobilePlayer />
+          <MobileBottomNav />
+        </>
+      )}
     </MemberLayout>
   );
 }
