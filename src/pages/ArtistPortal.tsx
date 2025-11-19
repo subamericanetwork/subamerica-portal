@@ -18,9 +18,18 @@ import {
   Ticket
 } from "lucide-react";
 import logoSmall from "@/assets/subamerica-logo-small.jpg";
+import { useAuth } from "@/contexts/AuthContext";
+import { useEffect } from "react";
 
 const ArtistPortal = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/member/home", { replace: true });
+    }
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen bg-background">
