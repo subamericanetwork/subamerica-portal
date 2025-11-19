@@ -178,14 +178,14 @@ export default function MemberHome() {
                   <div className="space-y-4">
                     <h2 className="text-2xl font-bold">Browse by Artist</h2>
                     <div className={isMobile 
-                      ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide touch-scroll-horizontal" 
+                      ? "flex flex-nowrap overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide" 
                       : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
                     }>
                       {verifiedArtists.map(artist => (
               <a
                 key={artist.id}
                 href={`/${artist.slug}`}
-                className={isMobile ? "flex-shrink-0 w-32 snap-start group touch-allow-scroll" : "group"}
+                className={isMobile ? "flex-none w-32 snap-start group" : "group"}
               >
                           <div className="aspect-square rounded-full bg-muted mb-2 overflow-hidden">
                             {artist.brand?.profile_photo ? (

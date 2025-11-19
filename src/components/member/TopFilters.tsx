@@ -21,14 +21,14 @@ export function TopFilters({ activeFilter, onFilterChange }: TopFiltersProps) {
 
   return (
     <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border py-2">
-      <div className="flex gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide px-4 touch-scroll-horizontal">
+      <div className="flex flex-nowrap gap-2 overflow-x-auto scroll-smooth snap-x snap-mandatory scrollbar-hide px-4">
         {filters.map((filter) => (
           <Button
             key={filter.value}
             onClick={() => onFilterChange(filter.value)}
             variant={activeFilter === filter.value ? 'default' : 'secondary'}
             size="sm"
-            className="rounded-full px-4 py-2 flex-shrink-0 snap-start touch-allow-scroll"
+            className="rounded-full px-4 py-2 flex-none snap-start"
           >
             {filter.label}
           </Button>

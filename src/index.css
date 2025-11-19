@@ -188,16 +188,7 @@ All colors MUST be HSL.
     display: none;
   }
 
-  /* Touch scrolling utilities */
-  .touch-scroll-horizontal {
-    touch-action: pan-x;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .touch-allow-scroll {
-    touch-action: manipulation;
-  }
-
+  /* iOS smooth scrolling */
   .webkit-overflow-scrolling-touch {
     -webkit-overflow-scrolling: touch;
   }
