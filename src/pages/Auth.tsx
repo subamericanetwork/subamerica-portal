@@ -61,7 +61,7 @@ const Auth = () => {
       toast.error(error.message || "Login failed. Please try again.");
     } else {
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      navigate("/member/home");
     }
     
     setIsLoading(false);
@@ -188,7 +188,7 @@ const Auth = () => {
       toast.error(error.message);
     } else {
       toast.success("Password updated successfully!");
-      navigate("/dashboard");
+      navigate("/member/home");
     }
     
     setIsLoading(false);
