@@ -11,7 +11,6 @@ import { TopFilters } from '@/components/member/TopFilters';
 import { useFeaturedContent } from '@/hooks/useFeaturedContent';
 import { usePlaybackHistory } from '@/hooks/usePlaybackHistory';
 import { supabase } from '@/integrations/supabase/client';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
@@ -137,7 +136,7 @@ export default function MemberHome() {
       <div className={isMobile ? "flex flex-col min-h-screen" : "flex h-[calc(100vh-64px)]"}>
         {!isMobile && <MemberSidebar />}
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <TopFilters activeFilter={activeFilter} onFilterChange={handleFilterChange} />
           
           <div className={`container mx-auto p-6 space-y-8 ${isMobile ? 'pb-44' : 'pb-24'}`}>
@@ -211,7 +210,7 @@ export default function MemberHome() {
               </>
             )}
           </div>
-        </ScrollArea>
+        </div>
 
         {!isMobile && <NowPlayingPanel />}
       </div>
