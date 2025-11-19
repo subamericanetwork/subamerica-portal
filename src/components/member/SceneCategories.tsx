@@ -39,7 +39,7 @@ export function SceneCategories() {
       <h2 className="text-2xl font-bold">Browse by Scene</h2>
       
       <div className={isMobile 
-        ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide touch-pan-x webkit-overflow-scrolling-touch" 
+        ? "flex overflow-x-auto scroll-smooth snap-x snap-mandatory gap-4 pb-2 scrollbar-hide touch-scroll-horizontal" 
         : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
       }>
         {scenes.map((scene) => (
@@ -47,7 +47,7 @@ export function SceneCategories() {
             key={scene.name}
             variant="outline"
             className={`h-24 flex flex-col items-center justify-center gap-2 hover:bg-primary/10 relative ${
-              isMobile ? 'flex-shrink-0 w-32 snap-start' : ''
+              isMobile ? 'flex-shrink-0 w-32 snap-start touch-allow-scroll' : ''
             }`}
             onClick={() => navigate(`/browse?scene=${encodeURIComponent(scene.name)}`)}
           >
