@@ -191,7 +191,7 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   // Handle audio/video events
   useEffect(() => {
     const audio = audioRef.current;
-    const video = videoRef.current;
+    const video = visibleVideoRef.current || videoRef.current; // Use visible video if available
     const activeMedia = effectiveViewMode === 'video' ? video : audio;
     
     if (!activeMedia) return;
@@ -270,7 +270,9 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
 
     const mediaType = detectMediaType(currentTrack.video_url);
     const mode = viewMode === 'auto' ? mediaType : viewMode;
-    const media = mode === 'video' ? videoRef.current : audioRef.current;
+    const media = mode === 'video' 
+      ? (visibleVideoRef.current || videoRef.current) // Use visible video if available
+      : audioRef.current;
 
     if (!media) return;
 
@@ -291,10 +293,15 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   }, [currentTrack, viewMode]);
 
   const pause = useCallback(() => {
-    const currentTime = effectiveViewMode === 'video' 
-      ? videoRef.current?.currentTime || 0 
-      : audioRef.current?.currentTime || 0;
+    const activeVideo = effectiveViewMode === 'video' 
+      ? (visibleVideoRef.current || videoRef.current) // Use visible video if available
+      : null;
+    const currentTime = activeVideo?.currentTime || audioRef.current?.currentTime || 0;
       
+    // Pause all media elements
+    if (visibleVideoRef.current) {
+      visibleVideoRef.current.pause();
+    }
     if (videoRef.current) {
       videoRef.current.pause();
     }
@@ -447,7 +454,10 @@ export const PlayerProvider = ({ children }: { children: ReactNode }) => {
   }, [tracks.length]);
 
   const seek = useCallback((time: number) => {
-    const activeMedia = effectiveViewMode === 'video' ? videoRef.current : audioRef.current;
+    const activeVideo = effectiveViewMode === 'video'
+      ? (visibleVideoRef.current || videoRef.current) // Use visible video if available
+      : null;
+    const activeMedia = activeVideo || audioRef.current;
     if (activeMedia && currentTrack) {
       const fromTime = activeMedia.currentTime;
       activeMedia.currentTime = time;
