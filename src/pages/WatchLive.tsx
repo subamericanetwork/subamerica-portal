@@ -161,6 +161,7 @@ export default function WatchLive() {
         return;
       }
 
+      setError(null); // Clear any previous error messages
       setStream(data as StreamData);
     } catch (error) {
       console.error('Error fetching stream:', error);
