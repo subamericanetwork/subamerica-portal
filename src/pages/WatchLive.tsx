@@ -40,6 +40,9 @@ export default function WatchLive() {
   const [stream, setStream] = useState<StreamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [playerState, setPlayerState] = useState<'idle' | 'loading' | 'ready' | 'playing' | 'error' | 'blocked'>('idle');
+  const [playerError, setPlayerError] = useState<string | null>(null);
+  const [requiresInteraction, setRequiresInteraction] = useState(false);
   const isMobile = useIsMobile();
 
   useEffect(() => {
@@ -178,20 +181,39 @@ export default function WatchLive() {
     const hlsUrl = stream.hls_playback_url;
 
     console.log('🎥 Initializing player with HLS URL:', hlsUrl);
+    setPlayerState('loading');
+    setPlayerError(null);
 
     // Check for native HLS support (Safari)
     if (video.canPlayType('application/vnd.apple.mpegurl')) {
       console.log('✅ Native HLS support detected');
       video.src = hlsUrl;
+      
+      video.addEventListener('loadstart', () => {
+        console.log('📡 Loading stream...');
+        setPlayerState('loading');
+      });
+      
+      video.addEventListener('canplay', () => {
+        console.log('✅ Stream ready to play');
+        setPlayerState('ready');
+      });
+      
+      video.addEventListener('playing', () => {
+        console.log('▶️ Playing');
+        setPlayerState('playing');
+        setRequiresInteraction(false);
+      });
+      
       video.play().catch(err => {
         console.error('❌ Error playing video:', err);
         if (err.name === 'NotAllowedError') {
-          toast({
-            title: 'Click to play',
-            description: 'Your browser requires interaction to start playback',
-          });
+          setPlayerState('blocked');
+          setPlayerError('Click to start playback');
+          setRequiresInteraction(true);
         } else {
-          setError('Unable to play stream. Please refresh the page.');
+          setPlayerState('error');
+          setPlayerError('Unable to load stream');
         }
       });
     } else if (Hls.isSupported()) {
@@ -205,19 +227,33 @@ export default function WatchLive() {
 
       hls.loadSource(hlsUrl);
       hls.attachMedia(video);
+      
+      hls.on(Hls.Events.MANIFEST_LOADING, () => {
+        console.log('📡 Loading HLS manifest...');
+        setPlayerState('loading');
+        setPlayerError('Connecting to stream...');
+      });
 
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
         console.log('✅ HLS manifest parsed successfully');
+        setPlayerState('ready');
+        setPlayerError(null);
+        
+        video.addEventListener('playing', () => {
+          console.log('▶️ Playing');
+          setPlayerState('playing');
+          setRequiresInteraction(false);
+        });
+        
         video.play().catch(err => {
           console.error('❌ Error playing video:', err);
-          // Distinguish between autoplay errors and stream errors
           if (err.name === 'NotAllowedError') {
-            toast({
-              title: 'Click to play',
-              description: 'Your browser requires interaction to start playback',
-            });
+            setPlayerState('blocked');
+            setPlayerError('Click to start playback');
+            setRequiresInteraction(true);
           } else {
-            setError('Unable to play stream. Please refresh the page.');
+            setPlayerState('error');
+            setPlayerError('Playback failed');
           }
         });
       });
@@ -231,26 +267,32 @@ export default function WatchLive() {
         });
         
         if (data.fatal) {
+          setPlayerState('error');
+          
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
                 console.log('❌ Manifest load error - stream may not be ready or has ended');
+                setPlayerError('Cannot load stream manifest. Stream may not be ready.');
                 // Re-check stream status
                 fetchStreamData();
-                setError('Waiting for the broadcast to begin...');
+              } else if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_TIMEOUT) {
+                setPlayerError('Connection timeout. Check your internet connection.');
               } else {
                 console.log('🔄 Network error, attempting recovery...');
+                setPlayerError('Network error, reconnecting...');
                 hls.startLoad();
               }
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               console.log('🔄 Media error, attempting recovery...');
+              setPlayerError('Media error, attempting recovery...');
               hls.recoverMediaError();
               break;
             default:
               console.error('💥 Fatal error, cannot recover');
+              setPlayerError('Stream connection failed. Stream may have ended.');
               hls.destroy();
-              setError('Stream connection lost. The stream may have ended.');
               break;
           }
         }
@@ -259,7 +301,17 @@ export default function WatchLive() {
       hlsRef.current = hls;
     } else {
       console.error('❌ HLS is not supported in this browser');
-      setError('Your browser does not support live streaming');
+      setPlayerState('error');
+      setPlayerError('Your browser does not support HLS playback');
+    }
+  };
+  
+  const handleManualPlay = () => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(err => {
+        console.error('Manual play failed:', err);
+        setPlayerError('Failed to start playback');
+      });
     }
   };
 
@@ -365,12 +417,67 @@ export default function WatchLive() {
                   LIVE
                 </Badge>
                 
-                {/* Debug overlay - shows stream status */}
+                {/* Player state overlays */}
+                {(playerState === 'loading' || playerState === 'error' || requiresInteraction) && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                    <div className="text-center p-6 max-w-md">
+                      {playerState === 'loading' && (
+                        <>
+                          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                          <p className="text-white text-lg font-medium">
+                            {playerError || 'Connecting to stream...'}
+                          </p>
+                        </>
+                      )}
+                      
+                      {playerState === 'error' && !requiresInteraction && (
+                        <>
+                          <div className="w-16 h-16 rounded-full bg-destructive/20 flex items-center justify-center mx-auto mb-4">
+                            <span className="text-3xl">⚠️</span>
+                          </div>
+                          <p className="text-white text-lg font-medium mb-2">
+                            {playerError || 'Unable to load stream'}
+                          </p>
+                          <p className="text-white/70 text-sm mb-4">
+                            Check the HLS URL and ensure the stream is broadcasting
+                          </p>
+                          <Button onClick={() => window.location.reload()} variant="secondary">
+                            Refresh Page
+                          </Button>
+                        </>
+                      )}
+                      
+                      {requiresInteraction && (
+                        <>
+                          <div className="w-20 h-20 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4 cursor-pointer hover:bg-primary/30 transition-colors" onClick={handleManualPlay}>
+                            <span className="text-5xl text-primary">▶</span>
+                          </div>
+                          <p className="text-white text-lg font-medium mb-2">
+                            Click to Play
+                          </p>
+                          <p className="text-white/70 text-sm">
+                            Your browser requires interaction to start playback
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Enhanced debug overlay */}
                 {process.env.NODE_ENV === 'development' && stream && (
                   <div className="absolute top-2 right-2 bg-black/90 text-white text-xs p-2 rounded font-mono max-w-xs">
                     <div><strong>ID:</strong> {stream.id.slice(0, 8)}...</div>
-                    <div><strong>Status:</strong> {stream.status}</div>
-                    <div><strong>HLS:</strong> {stream.hls_playback_url ? '✓' : '✗'}</div>
+                    <div><strong>DB Status:</strong> {stream.status}</div>
+                    <div><strong>Player:</strong> {playerState}</div>
+                    <div><strong>HLS URL:</strong> {stream.hls_playback_url ? '✓' : '✗'}</div>
+                    {playerError && <div className="text-yellow-400"><strong>Error:</strong> {playerError}</div>}
+                    {videoRef.current && (
+                      <>
+                        <div><strong>Paused:</strong> {videoRef.current.paused ? 'Yes' : 'No'}</div>
+                        <div><strong>ReadyState:</strong> {videoRef.current.readyState}</div>
+                      </>
+                    )}
                     <div><strong>Time:</strong> {new Date().toLocaleTimeString()}</div>
                   </div>
                 )}
