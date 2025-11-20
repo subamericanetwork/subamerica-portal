@@ -18,6 +18,7 @@ import { Radio, Eye, Clock, Zap, ExternalLink, Square, Info, X } from "lucide-re
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { StreamDetailsDialog } from "./StreamDetailsDialog";
+import { StreamOverlayDialog } from "./StreamOverlayDialog";
 
 interface Stream {
   id: string;
@@ -50,6 +51,8 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
   const [streamToCancel, setStreamToCancel] = useState<Stream | null>(null);
   const [detailsStream, setDetailsStream] = useState<Stream | null>(null);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [overlayStream, setOverlayStream] = useState<Stream | null>(null);
+  const [overlayDialogOpen, setOverlayDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -212,7 +215,7 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
                     </div>
                   </div>
                   {showActions && (
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button 
                         size="sm" 
                         variant="ghost"
@@ -223,6 +226,17 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
                       >
                         <Info className="h-4 w-4 mr-2" />
                         Details
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => {
+                          setOverlayStream(stream);
+                          setOverlayDialogOpen(true);
+                        }}
+                      >
+                        <Zap className="h-4 w-4 mr-2" />
+                        Manage Overlays
                       </Button>
                       <Button size="sm" onClick={() => handleWatch(stream)}>
                         <ExternalLink className="h-4 w-4 mr-2" />
@@ -344,6 +358,15 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
         onOpenChange={setDetailsDialogOpen}
         onStreamUpdated={loadStreams}
       />
+
+      {overlayStream && (
+        <StreamOverlayDialog
+          open={overlayDialogOpen}
+          onClose={() => setOverlayDialogOpen(false)}
+          streamId={overlayStream.id}
+          streamTitle={overlayStream.title}
+        />
+      )}
     </Card>
   );
 };
