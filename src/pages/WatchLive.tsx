@@ -62,7 +62,16 @@ export default function WatchLive() {
           filter: `id=eq.${streamId}`
         },
         (payload) => {
-          setStream(prev => prev ? { ...prev, ...payload.new } as StreamData : null);
+          console.log('🔄 Stream updated:', payload.new);
+          const newData = payload.new as StreamData;
+          
+          // If stream ended or went to waiting, show error
+          if (newData.status !== 'live' && stream?.status === 'live') {
+            console.log('Stream has ended, showing error');
+            setError('This stream has ended');
+          }
+          
+          setStream(prev => prev ? { ...prev, ...newData } as StreamData : newData as StreamData);
         }
       )
       .subscribe();
@@ -83,6 +92,12 @@ export default function WatchLive() {
 
   const fetchStreamData = async () => {
     try {
+      // First, sync stream status with Mux to ensure we have the latest data
+      console.log('🔄 Syncing stream status with Mux...');
+      await supabase.functions.invoke('sync-stream-status', {
+        body: { streamId }
+      });
+
       const { data, error } = await supabase
         .from('artist_live_streams')
         .select(`
@@ -92,6 +107,7 @@ export default function WatchLive() {
           hls_playback_url,
           viewer_count,
           started_at,
+          scheduled_start,
           status,
           artist_id,
           artists!inner(
@@ -111,8 +127,32 @@ export default function WatchLive() {
         return;
       }
 
-      if (data.status !== 'live') {
+      console.log('📺 Stream data:', { status: data.status, hls_url: data.hls_playback_url });
+
+      // Handle different stream statuses with clear messages
+      if (data.status === 'ended' || data.status === 'cancelled') {
         setError('This stream has ended');
+        setStream(data as StreamData);
+        return;
+      }
+      
+      if (data.status === 'waiting' || data.status === 'ready') {
+        setError('This stream is not live yet. The broadcaster needs to start streaming.');
+        setStream(data as StreamData);
+        return;
+      }
+      
+      if (data.status === 'scheduled') {
+        const scheduledTime = data.scheduled_start ? new Date(data.scheduled_start) : null;
+        const timeUntil = scheduledTime ? formatDistanceToNow(scheduledTime, { addSuffix: true }) : '';
+        setError(`This stream is scheduled to start ${timeUntil}`);
+        setStream(data as StreamData);
+        return;
+      }
+      
+      if (data.status !== 'live') {
+        setError('This stream is not available');
+        setStream(data as StreamData);
         return;
       }
 
@@ -139,7 +179,14 @@ export default function WatchLive() {
       video.src = hlsUrl;
       video.play().catch(err => {
         console.error('❌ Error playing video:', err);
-        setError('Unable to play stream. Please refresh the page.');
+        if (err.name === 'NotAllowedError') {
+          toast({
+            title: 'Click to play',
+            description: 'Your browser requires interaction to start playback',
+          });
+        } else {
+          setError('Unable to play stream. Please refresh the page.');
+        }
       });
     } else if (Hls.isSupported()) {
       console.log('✅ Using HLS.js for playback');
@@ -157,7 +204,15 @@ export default function WatchLive() {
         console.log('✅ HLS manifest parsed successfully');
         video.play().catch(err => {
           console.error('❌ Error playing video:', err);
-          setError('Unable to play stream. Please refresh the page.');
+          // Distinguish between autoplay errors and stream errors
+          if (err.name === 'NotAllowedError') {
+            toast({
+              title: 'Click to play',
+              description: 'Your browser requires interaction to start playback',
+            });
+          } else {
+            setError('Unable to play stream. Please refresh the page.');
+          }
         });
       });
 
@@ -172,8 +227,15 @@ export default function WatchLive() {
         if (data.fatal) {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
-              console.log('🔄 Network error, attempting recovery...');
-              hls.startLoad();
+              if (data.details === Hls.ErrorDetails.MANIFEST_LOAD_ERROR) {
+                console.log('❌ Manifest load error - stream may not be ready or has ended');
+                // Re-check stream status
+                fetchStreamData();
+                setError('Waiting for the broadcast to begin...');
+              } else {
+                console.log('🔄 Network error, attempting recovery...');
+                hls.startLoad();
+              }
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               console.log('🔄 Media error, attempting recovery...');
@@ -182,7 +244,7 @@ export default function WatchLive() {
             default:
               console.error('💥 Fatal error, cannot recover');
               hls.destroy();
-              setError('Unable to load stream. Please refresh the page.');
+              setError('Stream connection lost. The stream may have ended.');
               break;
           }
         }
@@ -296,6 +358,16 @@ export default function WatchLive() {
                   <Radio className={`${isMobile ? 'w-2.5 h-2.5' : 'w-3 h-3'}`} />
                   LIVE
                 </Badge>
+                
+                {/* Debug overlay - shows stream status */}
+                {process.env.NODE_ENV === 'development' && stream && (
+                  <div className="absolute top-2 right-2 bg-black/90 text-white text-xs p-2 rounded font-mono max-w-xs">
+                    <div><strong>ID:</strong> {stream.id.slice(0, 8)}...</div>
+                    <div><strong>Status:</strong> {stream.status}</div>
+                    <div><strong>HLS:</strong> {stream.hls_playback_url ? '✓' : '✗'}</div>
+                    <div><strong>Time:</strong> {new Date().toLocaleTimeString()}</div>
+                  </div>
+                )}
               </div>
 
               <Card className="border-muted">

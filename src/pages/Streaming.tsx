@@ -163,6 +163,34 @@ const Streaming = () => {
     }
   };
 
+  const handleTestStream = async () => {
+    if (!stream?.streamId) return;
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('sync-stream-status', {
+        body: { streamId: stream.streamId }
+      });
+      
+      if (error) throw error;
+      
+      console.log('Test stream result:', data);
+      
+      if (data?.newStatus === 'live' || data?.oldStatus === 'live') {
+        toast.success('✅ Stream is receiving video! You are live!');
+      } else if (data?.newStatus === 'waiting' || data?.oldStatus === 'waiting') {
+        toast.error(
+          '❌ Stream is not receiving video. Make sure you are streaming to the RTMP URL with the correct stream key.',
+          { duration: 5000 }
+        );
+      } else {
+        toast.info(`Stream status: ${data?.newStatus || data?.oldStatus || 'unknown'}`);
+      }
+    } catch (error) {
+      console.error('Test stream error:', error);
+      toast.error('Failed to test stream');
+    }
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -331,6 +359,43 @@ const Streaming = () => {
               streamKey={stream.streamKey}
               hlsPlaybackUrl={stream.hlsPlaybackUrl}
             />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <StreamStatusIndicator status={streamStatus} />
+                  Stream Status: {streamStatus}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {streamStatus === 'waiting' && (
+                  <Alert>
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>
+                      Your stream is ready! Start streaming using the RTMP credentials above.
+                      Use OBS Studio or another streaming software to begin broadcasting.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {streamStatus === 'live' && (
+                  <Alert className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
+                    <AlertCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <AlertDescription className="text-green-800 dark:text-green-200">
+                      You are live! Your stream is broadcasting.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
+                <Button 
+                  onClick={handleTestStream}
+                  variant="outline"
+                  className="w-full"
+                >
+                  <Zap className="h-4 w-4 mr-2" />
+                  Test Stream Connection
+                </Button>
+              </CardContent>
+            </Card>
 
             <MobileStreamingGuide />
 
