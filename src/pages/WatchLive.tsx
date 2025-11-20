@@ -69,6 +69,11 @@ export default function WatchLive() {
           if (newData.status !== 'live' && stream?.status === 'live') {
             console.log('Stream has ended, showing error');
             setError('This stream has ended');
+          } 
+          // If stream went live, clear any error
+          else if (newData.status === 'live' && stream?.status !== 'live') {
+            console.log('🎉 Stream went live, clearing error');
+            setError(null);
           }
           
           setStream(prev => prev ? { ...prev, ...newData } as StreamData : newData as StreamData);
