@@ -44,9 +44,11 @@ const ArtistPortal = () => {
             />
             <span className="text-xl font-bold">Subamerica</span>
           </div>
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="hidden md:flex items-center gap-4">
             <Button variant="ghost" onClick={() => navigate("/")}>Home</Button>
-            <Button variant="ghost" onClick={() => navigate("/watch")}>Watch</Button>
+            <Button variant="ghost" onClick={() => navigate("/watch")}>Watch TV</Button>
+            <Button variant="ghost" onClick={() => navigate("/live")}>Live</Button>
+            <Button variant="ghost" onClick={() => navigate("/blog")}>Blog</Button>
             <Button variant="ghost" onClick={() => navigate("/features")}>Features</Button>
             <Button variant="ghost" onClick={() => navigate("/auth")}>Login</Button>
             <Button onClick={() => navigate("/auth")}>Get Started</Button>
