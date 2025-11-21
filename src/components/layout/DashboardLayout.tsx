@@ -25,7 +25,8 @@ import {
   Film,
   CheckSquare,
   Radio,
-  ChevronRight
+  ChevronRight,
+  Home
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -91,7 +92,8 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }, [user]);
 
   const navigation = [
-    { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+    { name: "Discover", href: "/member", icon: Home },
+    { name: "Portal Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Profile", href: "/profile", icon: User },
     { 
       name: "Go Live", 
