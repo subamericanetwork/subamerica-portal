@@ -120,13 +120,10 @@ export function MemberHeader() {
   };
 
   const memberNavItems = [
-    { title: "Home", url: "/member/home", icon: Home },
-    { title: "Discover", url: "/portals", icon: Compass },
-    { title: "Live", url: "/live", icon: Radio },
-    { title: "Watch", url: "/watch", icon: Play },
-    { title: "Blog", url: "/blog", icon: BookOpen },
+    { title: "Discover", url: "/member", icon: Home },
+    { title: "Live", url: "/member/live", icon: Radio },
+    { title: "Watch TV", url: "/watch", icon: Play },
     { title: "Playlists", url: "/member/playlists", icon: ListMusic },
-    { title: "Profile", url: "/member/profile", icon: User },
   ];
 
   return (
@@ -153,132 +150,95 @@ export function MemberHeader() {
         </div>
         
         {/* Right: Navigation Links */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-1 justify-center md:justify-end">
           {/* Desktop Navigation */}
-          {memberNavItems.map((item) => (
+          <div className="hidden md:flex items-center gap-2 flex-1 justify-center">
+            {memberNavItems.map((item) => (
+              <Button
+                key={item.title}
+                variant={isActive(item.url) ? "secondary" : "ghost"}
+                size="sm"
+                className="gap-2"
+                onClick={() => navigate(item.url)}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.title}
+              </Button>
+            ))}
+            
+            {/* Live/Scheduled Status - Desktop */}
+            {hasPortalAccess && activeStream && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="gap-2 animate-pulse bg-red-600 hover:bg-red-700"
+                onClick={() => navigate("/streaming")}
+              >
+                <Radio className="h-4 w-4" />
+                LIVE
+              </Button>
+            )}
+            
+            {/* Portal Dashboard Link (Artists/Admins Only - Desktop) */}
+            {hasPortalAccess && (
+              <Button
+                variant={isActive("/dashboard") ? "secondary" : "ghost"}
+                size="sm"
+                className="gap-2 !text-teal-500 hover:!text-teal-500 hover:!bg-teal-50/10"
+                onClick={() => navigate("/dashboard")}
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Portal Dashboard
+              </Button>
+            )}
+            
+            {/* Become an Artist Link - Desktop (Only for non-artists) */}
+            {!hasPortalAccess && (
+              <Button
+                variant={isActive("/become-artist") ? "secondary" : "ghost"}
+                size="sm"
+                className="gap-2 !text-coral hover:!text-coral hover:!bg-coral/10"
+                onClick={() => navigate("/become-artist")}
+              >
+                <Music className="h-4 w-4" />
+                Become an Artist
+              </Button>
+            )}
+          </div>
+
+          {/* Desktop Right Section - Profile & Logout */}
+          <div className="hidden md:flex items-center gap-2">
             <Button
-              key={item.title}
-              variant={isActive(item.url) ? "secondary" : "ghost"}
+              variant={isActive("/member/profile") ? "secondary" : "ghost"}
               size="sm"
-              className="hidden md:flex gap-2"
-              onClick={() => navigate(item.url)}
+              className="gap-2"
+              onClick={() => navigate("/member/profile")}
             >
-              <item.icon className="h-4 w-4" />
-              {item.title}
+              <User className="h-4 w-4" />
+              Profile
             </Button>
-          ))}
-          
-          {/* Live/Scheduled Status - Desktop */}
-          {hasPortalAccess && activeStream && (
+            
             <Button
-              variant="destructive"
+              variant="ghost"
               size="sm"
-              className="hidden md:flex gap-2 animate-pulse bg-red-600 hover:bg-red-700"
-              onClick={() => navigate("/streaming")}
+              className="gap-2"
+              onClick={handleLogout}
             >
-              <Radio className="h-4 w-4" />
-              LIVE
+              <LogOut className="h-4 w-4" />
+              Logout
             </Button>
-          )}
-          
-          
-          {/* Portal Dashboard Link (Artists/Admins Only - Desktop) */}
-          {hasPortalAccess && (
+          </div>
+
+          {/* Mobile Right Section - Logout Only */}
+          <div className="flex md:hidden items-center gap-2">
             <Button
-              variant={isActive("/dashboard") ? "secondary" : "ghost"}
+              variant="ghost"
               size="sm"
-              className="hidden md:flex gap-2 !text-teal-500 hover:!text-teal-500 hover:!bg-teal-50/10"
-              onClick={() => navigate("/dashboard")}
+              onClick={handleLogout}
             >
-              <LayoutDashboard className="h-4 w-4" />
-              Portal Dashboard
+              <LogOut className="h-4 w-4" />
             </Button>
-          )}
-          
-          {/* Become an Artist Link - Desktop (Only for non-artists) */}
-          {!hasPortalAccess && (
-            <Button
-              variant={isActive("/become-artist") ? "secondary" : "ghost"}
-              size="sm"
-              className="hidden md:flex gap-2 !text-coral hover:!text-coral hover:!bg-coral/10"
-              onClick={() => navigate("/become-artist")}
-            >
-              <Music className="h-4 w-4" />
-              Become an Artist
-            </Button>
-          )}
-          
-          {/* Mobile: Icons only */}
-          {memberNavItems.map((item) => (
-            <Button
-              key={`mobile-${item.title}`}
-              variant={isActive(item.url) ? "secondary" : "ghost"}
-              size="sm"
-              className="md:hidden"
-              onClick={() => navigate(item.url)}
-            >
-              <item.icon className="h-4 w-4" />
-            </Button>
-          ))}
-          
-          {/* Live Now Button - Mobile */}
-          {activeStream && (
-            <Button
-              variant="destructive"
-              size="sm"
-              className="md:hidden animate-pulse bg-red-600 hover:bg-red-700"
-              onClick={() => navigate("/streaming")}
-            >
-              <Radio className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* Mobile Portal Dashboard Icon */}
-          {hasPortalAccess && (
-            <Button
-              variant={isActive("/dashboard") ? "secondary" : "ghost"}
-              size="sm"
-              className="md:hidden !text-teal-500 hover:!text-teal-500"
-              onClick={() => navigate("/dashboard")}
-            >
-              <LayoutDashboard className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* Become an Artist Link - Mobile (Only for non-artists) */}
-          {!hasPortalAccess && (
-            <Button
-              variant={isActive("/become-artist") ? "secondary" : "ghost"}
-              size="sm"
-              className="md:hidden !text-coral hover:!text-coral"
-              onClick={() => navigate("/become-artist")}
-            >
-              <Music className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* Mobile Stream Schedule Icon */}
-          {isAdmin && (
-            <Button
-              variant={isActive("/admin/stream-schedule") ? "secondary" : "ghost"}
-              size="sm"
-              className="md:hidden"
-              onClick={() => navigate("/admin/stream-schedule")}
-            >
-              <Calendar className="h-4 w-4" />
-            </Button>
-          )}
-          
-          {/* Logout Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            <span className="hidden md:inline">Logout</span>
-          </Button>
+          </div>
         </div>
       </div>
     </header>

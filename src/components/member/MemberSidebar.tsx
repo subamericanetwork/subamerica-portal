@@ -1,4 +1,4 @@
-import { ListMusic, Heart, UserCheck, Clock, Plus, Compass } from 'lucide-react';
+import { ListMusic, Heart, UserCheck, Clock, Plus, Compass, Home, Radio, Play, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { usePlaylist } from '@/hooks/usePlaylist';
 import { SearchBar } from './SearchBar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface MemberSidebarProps {
   onNavigate?: () => void;
@@ -15,9 +16,16 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { playlists } = usePlaylist();
+  const { signOut } = useAuth();
 
   const handleNavigation = (path: string) => {
     navigate(path);
+    onNavigate?.();
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate('/');
     onNavigate?.();
   };
 
@@ -26,16 +34,55 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
       <div className="p-4 space-y-4">
         <SearchBar />
 
+        <Separator />
+
         <div className="space-y-2">
+          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Navigation
+          </h3>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/member')}
+          >
+            <Home className="h-4 w-4 mr-3" />
+            Discover
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/member/live')}
+          >
+            <Radio className="h-4 w-4 mr-3" />
+            Live
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/watch')}
+          >
+            <Play className="h-4 w-4 mr-3" />
+            Watch TV
+          </Button>
+
           <Button
             variant="ghost"
             className="w-full justify-start"
             onClick={() => handleNavigation('/member/playlists')}
           >
             <ListMusic className="h-4 w-4 mr-3" />
-            Your Playlists
+            Playlists
           </Button>
+        </div>
 
+        <Separator />
+
+        <div className="space-y-2">
+          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Library
+          </h3>
           <Button
             variant="ghost"
             className="w-full justify-start"
@@ -80,6 +127,31 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           >
             <Compass className="h-4 w-4 mr-3" />
             Browse Catalog
+          </Button>
+        </div>
+
+        <Separator />
+
+        <div className="space-y-2">
+          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            Account
+          </h3>
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/member/profile')}
+          >
+            <User className="h-4 w-4 mr-3" />
+            Profile
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-4 w-4 mr-3" />
+            Logout
           </Button>
         </div>
       </div>
