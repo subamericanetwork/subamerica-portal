@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { PublicLayout } from '@/components/layout/PublicLayout';
+import { UniversalLayout } from '@/components/layout/UniversalLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -149,7 +149,7 @@ export default function LiveStreams() {
 
   if (loading) {
     return (
-      <PublicLayout>
+      <UniversalLayout>
         <div className="min-h-screen bg-background">
           <div className="container mx-auto px-4 py-8">
             <div className="mb-8">
@@ -163,12 +163,12 @@ export default function LiveStreams() {
             </div>
           </div>
         </div>
-      </PublicLayout>
+      </UniversalLayout>
     );
   }
 
   return (
-    <PublicLayout>
+    <UniversalLayout>
       <div className="min-h-screen bg-background">
         <div className={`container mx-auto ${isMobile ? 'px-3 py-6' : 'px-4 py-8'}`}>
           <div className={`${isMobile ? 'mb-6' : 'mb-8'}`}>
@@ -316,6 +316,6 @@ export default function LiveStreams() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </PublicLayout>
+    </UniversalLayout>
   );
 }

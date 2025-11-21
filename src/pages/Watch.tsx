@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tv, MonitorPlay, ExternalLink, Radio } from "lucide-react";
-import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { UniversalLayout } from "@/components/layout/UniversalLayout";
 
 const Watch = () => {
   const navigate = useNavigate();
@@ -103,8 +103,8 @@ const Watch = () => {
   };
 
   return (
-    <div className="min-h-screen gradient-hero">
-      <ConditionalHeader />
+    <UniversalLayout>
+      <div className="min-h-screen gradient-hero">
 
       <main className="container mx-auto px-4 py-8 md:py-16 pt-[80px]">
         {/* Hero Section with Live Player */}
@@ -289,7 +289,8 @@ const Watch = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </UniversalLayout>
   );
 };
 
