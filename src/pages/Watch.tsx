@@ -6,11 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Tv, MonitorPlay, ExternalLink, Radio } from "lucide-react";
 import { UniversalLayout } from "@/components/layout/UniversalLayout";
+import { MemberLayout } from "@/components/layout/MemberLayout";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Watch = () => {
   const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const hlsRef = useRef<any>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     document.title = "Watch Subamerica Live - Indie Underground 24/7 Stream";
@@ -102,8 +105,10 @@ const Watch = () => {
     appleTv: "https://apps.apple.com/us/app/subamerica/idXXXXXX"
   };
 
+  const Layout = user ? MemberLayout : UniversalLayout;
+
   return (
-    <UniversalLayout>
+    <Layout>
       <div className="min-h-screen gradient-hero">
 
       <main className="container mx-auto px-4 py-8 md:py-16 pt-[80px]">
@@ -290,7 +295,7 @@ const Watch = () => {
         </div>
       </footer>
       </div>
-    </UniversalLayout>
+    </Layout>
   );
 };
 
