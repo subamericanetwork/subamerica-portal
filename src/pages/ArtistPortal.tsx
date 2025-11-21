@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FeaturedArtists } from "@/components/FeaturedArtists";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { AnonymousHeader } from "@/components/AnonymousHeader";
 import { 
   Tv, 
   CreditCard, 
@@ -17,7 +18,6 @@ import {
   Film,
   Ticket
 } from "lucide-react";
-import logoSmall from "@/assets/subamerica-logo-small.jpg";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect } from "react";
 
@@ -33,28 +33,7 @@ const ArtistPortal = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img 
-              src={logoSmall} 
-              alt="Subamerica Logo" 
-              className="h-10 w-10 rounded-full"
-            />
-            <span className="text-xl font-bold">Subamerica</span>
-          </div>
-          <nav className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")}>Home</Button>
-            <Button variant="ghost" onClick={() => navigate("/watch")}>Watch TV</Button>
-            <Button variant="ghost" onClick={() => navigate("/live")}>Live</Button>
-            <Button variant="ghost" onClick={() => navigate("/blog")}>Blog</Button>
-            <Button variant="ghost" onClick={() => navigate("/features")}>Features</Button>
-            <Button variant="ghost" onClick={() => navigate("/auth")}>Login</Button>
-            <Button onClick={() => navigate("/auth")}>Get Started</Button>
-          </nav>
-        </div>
-      </header>
+      <AnonymousHeader />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
