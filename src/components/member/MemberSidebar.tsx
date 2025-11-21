@@ -1,4 +1,4 @@
-import { ListMusic, Heart, UserCheck as UserPlus, Clock, Plus, Compass, Home as Sparkles, Radio, Play, User, LogOut } from 'lucide-react';
+import { ListMusic, Heart, UserCheck as UserPlus, Clock, Plus, Compass, Home as Sparkles, Radio, Play, User, LogOut, LayoutDashboard, Grid3x3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -83,6 +83,24 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           >
             <ListMusic className="h-4 w-4 mr-3" />
             Playlists
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/dashboard')}
+          >
+            <LayoutDashboard className="h-4 w-4 mr-3" />
+            Dashboard
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="w-full justify-start"
+            onClick={() => handleNavigation('/portals')}
+          >
+            <Grid3x3 className="h-4 w-4 mr-3" />
+            Portals
           </Button>
         </div>
 
