@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { MemberLayout } from '@/components/layout/MemberLayout';
-import { MemberSidebar } from '@/components/member/MemberSidebar';
 import { FeaturedArtistHero } from '@/components/member/FeaturedArtistHero';
 import { ContentCarousel } from '@/components/member/ContentCarousel';
 import { SceneCategories } from '@/components/member/SceneCategories';
@@ -133,9 +132,7 @@ export default function MemberHome() {
 
   return (
     <MemberLayout>
-      <div className={isMobile ? "flex flex-col min-h-screen" : "flex h-[calc(100vh-64px)]"}>
-        {!isMobile && <MemberSidebar />}
-
+      <div className={isMobile ? "flex flex-col min-h-screen" : "flex h-full"}>
         <div className="flex-1 overflow-y-auto">
           <TopFilters activeFilter={activeFilter} onFilterChange={handleFilterChange} />
           
