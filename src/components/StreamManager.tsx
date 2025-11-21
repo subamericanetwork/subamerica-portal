@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { StreamDetailsDialog } from "./StreamDetailsDialog";
 import { StreamOverlayDialog } from "./StreamOverlayDialog";
+import { EndedStreamCard } from "./EndedStreamCard";
 
 interface Stream {
   id: string;
@@ -26,12 +27,18 @@ interface Stream {
   status: string;
   started_at: string | null;
   scheduled_start: string | null;
+  ended_at: string | null;
+  duration_minutes: number | null;
   viewer_count: number | null;
   hls_playback_url: string | null;
   rtmp_ingest_url: string;
   stream_key: string;
   description: string | null;
   thumbnail_url: string | null;
+  cloudinary_vod_url: string | null;
+  cloudinary_public_id: string | null;
+  converted_to_track: boolean | null;
+  converted_track_id: string | null;
 }
 
 interface StreamManagerProps {
@@ -84,7 +91,7 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
     try {
       let query = supabase
         .from('artist_live_streams')
-        .select('id, title, status, started_at, scheduled_start, viewer_count, hls_playback_url, rtmp_ingest_url, stream_key, description, thumbnail_url')
+        .select('id, title, status, started_at, scheduled_start, ended_at, duration_minutes, viewer_count, hls_playback_url, rtmp_ingest_url, stream_key, description, thumbnail_url, cloudinary_vod_url, cloudinary_public_id, converted_to_track, converted_track_id')
         .eq('artist_id', artistId);
 
       // Apply filter
@@ -183,6 +190,7 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
 
   const liveStreams = streams.filter(s => s.status === 'live');
   const scheduledStreams = streams.filter(s => s.status === 'scheduled' || s.status === 'waiting');
+  const endedStreams = streams.filter(s => s.status === 'ended');
 
   return (
     <Card>
@@ -303,6 +311,22 @@ export const StreamManager = ({ artistId, onStreamClick, showActions = true, fil
                     )}
                 </div>
               </div>
+            ))}
+          </div>
+        )}
+
+        {endedStreams.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              Past Streams ({endedStreams.length})
+            </h3>
+            {endedStreams.map((stream) => (
+              <EndedStreamCard
+                key={stream.id}
+                stream={stream}
+                onDeleted={loadStreams}
+              />
             ))}
           </div>
         )}
