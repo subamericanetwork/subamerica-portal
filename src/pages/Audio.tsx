@@ -17,6 +17,7 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 import { AudioPlayer } from "@/components/AudioPlayer";
 import { extractThumbnailFromVideo } from "@/lib/thumbnailExtractor";
 import { ShareToTikTok } from "@/components/ShareToTikTok";
+import { LikeButton } from "@/components/member/LikeButton";
 
 interface AudioTrack {
   id: string;
@@ -456,6 +457,11 @@ export default function Audio() {
                   </div>
 
                   <div className="flex gap-2 pt-2">
+                    <LikeButton
+                      contentId={track.id}
+                      contentType="audio"
+                      size="sm"
+                    />
                     <Button
                       variant="outline"
                       size="sm"
