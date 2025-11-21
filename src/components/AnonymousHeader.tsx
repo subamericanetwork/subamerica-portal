@@ -21,7 +21,7 @@ export function AnonymousHeader() {
         </div>
         
         {/* Right: Navigation Links */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 flex-wrap">
           {/* Mobile Hamburger Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -91,25 +91,25 @@ export function AnonymousHeader() {
           </Sheet>
 
           {/* Desktop Navigation */}
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/")}>
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/")}>
             <Home className="h-4 w-4" />
-            Home
+            <span className="ml-1">Home</span>
           </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/watch")}>
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/watch")}>
             <Play className="h-4 w-4" />
-            Watch TV
+            <span className="ml-1">Watch TV</span>
           </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/live")}>
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/live")}>
             <Radio className="h-4 w-4" />
-            Live
+            <span className="ml-1">Live</span>
           </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/blog")}>
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/blog")}>
             <BookOpen className="h-4 w-4" />
-            Blog
+            <span className="ml-1">Blog</span>
           </Button>
-          <Button variant="ghost" size="sm" className="hidden md:flex" onClick={() => navigate("/features")}>
+          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/features")}>
             <Sparkles className="h-4 w-4" />
-            Features
+            <span className="ml-1">Features</span>
           </Button>
           
           {/* Mobile + Desktop */}
