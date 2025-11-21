@@ -31,6 +31,11 @@ const ArtistPortal = () => {
     }
   }, [user, navigate]);
 
+  // Don't render the full page if user is logged in (redirect in progress)
+  if (user) {
+    return null;
+  }
+
   return (
     <UniversalLayout>
       <div className="min-h-screen bg-background">
