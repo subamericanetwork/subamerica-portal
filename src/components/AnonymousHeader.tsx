@@ -21,7 +21,7 @@ export function AnonymousHeader() {
         </div>
         
         {/* Right: Navigation Links */}
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-2">
           {/* Mobile Hamburger Menu */}
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
@@ -90,37 +90,41 @@ export function AnonymousHeader() {
             </SheetContent>
           </Sheet>
 
-          {/* Desktop Navigation */}
-          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/")}>
-            <Home className="h-4 w-4" />
-            <span className="ml-1">Home</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/watch")}>
-            <Play className="h-4 w-4" />
-            <span className="ml-1">Watch TV</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/live")}>
-            <Radio className="h-4 w-4" />
-            <span className="ml-1">Live</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/blog")}>
-            <BookOpen className="h-4 w-4" />
-            <span className="ml-1">Blog</span>
-          </Button>
-          <Button variant="ghost" size="sm" className="hidden md:inline-flex px-2" onClick={() => navigate("/features")}>
-            <Sparkles className="h-4 w-4" />
-            <span className="ml-1">Features</span>
-          </Button>
+          {/* Desktop Navigation Links */}
+          <nav className="hidden md:flex items-center gap-1">
+            <Button variant="ghost" size="sm" className="px-2" onClick={() => navigate("/")}>
+              <Home className="h-4 w-4" />
+              <span className="ml-1">Home</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="px-2" onClick={() => navigate("/watch")}>
+              <Play className="h-4 w-4" />
+              <span className="ml-1">Watch TV</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="px-2" onClick={() => navigate("/live")}>
+              <Radio className="h-4 w-4" />
+              <span className="ml-1">Live</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="px-2" onClick={() => navigate("/blog")}>
+              <BookOpen className="h-4 w-4" />
+              <span className="ml-1">Blog</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="px-2" onClick={() => navigate("/features")}>
+              <Sparkles className="h-4 w-4" />
+              <span className="ml-1">Features</span>
+            </Button>
+          </nav>
           
-          {/* Mobile + Desktop */}
-          <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
-            <LogIn className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Login</span>
-          </Button>
-          <Button size="sm" className="glow-primary" onClick={() => navigate("/auth?tab=signup")}>
-            Get Started
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-1 ml-2">
+            <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+              <LogIn className="h-4 w-4 md:mr-2" />
+              <span className="hidden md:inline">Login</span>
+            </Button>
+            <Button size="sm" className="glow-primary" onClick={() => navigate("/auth?tab=signup")}>
+              Get Started
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </header>
