@@ -18,6 +18,7 @@ import { extractThumbnailFromVideo } from "@/lib/thumbnailExtractor";
 import { VideoThumbnailGenerator } from "@/components/VideoThumbnailGenerator";
 import { SubClipGenerator } from "@/components/SubClipGenerator";
 import { ShareToTikTok } from "@/components/ShareToTikTok";
+import { LikeButton } from "@/components/member/LikeButton";
 
 const Videos = () => {
   const { artist, videos, loading } = useArtistData();
@@ -428,6 +429,11 @@ const Videos = () => {
                         </div>
 
                         <div className="flex items-center gap-2">
+                          <LikeButton
+                            contentId={video.id}
+                            contentType="video"
+                            size="sm"
+                          />
                           {video.status === "ready" ? (
                             <Badge variant="outline" className="border-green-500/50 text-green-500">
                               <CheckCircle className="h-3 w-3 mr-1" />

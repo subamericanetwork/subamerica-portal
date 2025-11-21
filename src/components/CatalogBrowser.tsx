@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Music, Search } from 'lucide-react';
 import { AddToPlaylistButton } from './AddToPlaylistButton';
+import { LikeButton } from './member/LikeButton';
 import { useToast } from '@/hooks/use-toast';
 import { usePlayer } from '@/contexts/PlayerContext';
 import { useNavigate } from 'react-router-dom';
@@ -428,7 +429,12 @@ export const CatalogBrowser = ({
                     </div>
 
                     {mode === 'standalone' && (
-                      <div onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                        <LikeButton
+                          contentId={item.id}
+                          contentType={item.content_type}
+                          size="sm"
+                        />
                         <AddToPlaylistButton
                           videoId={item.content_type === 'video' ? item.id : undefined}
                           audioId={item.content_type === 'audio' ? item.id : undefined}

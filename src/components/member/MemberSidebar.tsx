@@ -1,4 +1,4 @@
-import { ListMusic, Heart, UserCheck, Clock, Plus, Compass, Home, Radio, Play, User, LogOut } from 'lucide-react';
+import { ListMusic, Heart, UserCheck as UserPlus, Clock, Plus, Compass, Home as Sparkles, Radio, Play, User, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -35,7 +35,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
       <div className="p-4 space-y-4">
         <div 
           className="flex items-center gap-3 px-2 py-3 cursor-pointer hover:opacity-80 transition-opacity"
-          onClick={() => handleNavigation('/member')}
+          onClick={() => handleNavigation('/member/home')}
         >
           <img src={subamericaLogo} alt="Subamerica" className="h-10 w-10 rounded-md object-cover" />
           <span className="text-xl font-bold">Subamerica</span>
@@ -52,16 +52,16 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => handleNavigation('/member')}
+            onClick={() => handleNavigation('/member/home')}
           >
-            <Home className="h-4 w-4 mr-3" />
+            <Sparkles className="h-4 w-4 mr-3" />
             Discover
           </Button>
 
           <Button
             variant="ghost"
             className="w-full justify-start"
-            onClick={() => handleNavigation('/member/live')}
+            onClick={() => handleNavigation('/live')}
           >
             <Radio className="h-4 w-4 mr-3" />
             Live
@@ -95,6 +95,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           <Button
             variant="ghost"
             className="w-full justify-start"
+            onClick={() => handleNavigation('/member/liked')}
           >
             <Heart className="h-4 w-4 mr-3" />
             Liked Content
@@ -103,14 +104,16 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           <Button
             variant="ghost"
             className="w-full justify-start"
+            onClick={() => handleNavigation('/member/following')}
           >
-            <UserCheck className="h-4 w-4 mr-3" />
+            <UserPlus className="h-4 w-4 mr-3" />
             Following
           </Button>
 
           <Button
             variant="ghost"
             className="w-full justify-start"
+            onClick={() => handleNavigation('/member/recent')}
           >
             <Clock className="h-4 w-4 mr-3" />
             Recently Played
