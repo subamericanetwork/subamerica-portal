@@ -149,64 +149,9 @@ export function MemberHeader() {
           <span className="text-lg font-semibold">Subamerica</span>
         </div>
         
-        {/* Right: Navigation Links */}
-        <div className="flex items-center gap-2 flex-1 justify-center md:justify-end">
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-2 flex-1 justify-center">
-            {memberNavItems.map((item) => (
-              <Button
-                key={item.title}
-                variant={isActive(item.url) ? "secondary" : "ghost"}
-                size="sm"
-                className="gap-2"
-                onClick={() => navigate(item.url)}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.title}
-              </Button>
-            ))}
-            
-            {/* Live/Scheduled Status - Desktop */}
-            {hasPortalAccess && activeStream && (
-              <Button
-                variant="destructive"
-                size="sm"
-                className="gap-2 animate-pulse bg-red-600 hover:bg-red-700"
-                onClick={() => navigate("/streaming")}
-              >
-                <Radio className="h-4 w-4" />
-                LIVE
-              </Button>
-            )}
-            
-            {/* Portal Dashboard Link (Artists/Admins Only - Desktop) */}
-            {hasPortalAccess && (
-              <Button
-                variant={isActive("/dashboard") ? "secondary" : "ghost"}
-                size="sm"
-                className="gap-2 !text-teal-500 hover:!text-teal-500 hover:!bg-teal-50/10"
-                onClick={() => navigate("/dashboard")}
-              >
-                <LayoutDashboard className="h-4 w-4" />
-                Portal Dashboard
-              </Button>
-            )}
-            
-            {/* Become an Artist Link - Desktop (Only for non-artists) */}
-            {!hasPortalAccess && (
-              <Button
-                variant={isActive("/become-artist") ? "secondary" : "ghost"}
-                size="sm"
-                className="gap-2 !text-coral hover:!text-coral hover:!bg-coral/10"
-                onClick={() => navigate("/become-artist")}
-              >
-                <Music className="h-4 w-4" />
-                Become an Artist
-              </Button>
-            )}
-          </div>
-
-          {/* Desktop Right Section - Profile & Logout */}
+        {/* Right: User Controls */}
+        <div className="flex items-center gap-2">
+          {/* Desktop - Profile & Logout */}
           <div className="hidden md:flex items-center gap-2">
             <Button
               variant={isActive("/member/profile") ? "secondary" : "ghost"}
@@ -229,7 +174,7 @@ export function MemberHeader() {
             </Button>
           </div>
 
-          {/* Mobile Right Section - Logout Only */}
+          {/* Mobile - Logout Only */}
           <div className="flex md:hidden items-center gap-2">
             <Button
               variant="ghost"
