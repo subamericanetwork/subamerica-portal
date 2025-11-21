@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, BookOpen } from "lucide-react";
-import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { UniversalLayout } from "@/components/layout/UniversalLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
@@ -61,8 +61,8 @@ export default function Blog() {
   });
 
   return (
-    <div className="min-h-screen bg-background">
-      <ConditionalHeader />
+    <UniversalLayout>
+      <div className="min-h-screen bg-background">
       
       <main className="pt-[80px] pb-20">
         <div className="container max-w-6xl mx-auto px-4">
@@ -179,6 +179,7 @@ export default function Blog() {
           )}
         </div>
       </main>
-    </div>
+      </div>
+    </UniversalLayout>
   );
 }

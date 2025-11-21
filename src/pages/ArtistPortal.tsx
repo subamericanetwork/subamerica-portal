@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { FeaturedArtists } from "@/components/FeaturedArtists";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { AnonymousHeader } from "@/components/AnonymousHeader";
+import { UniversalLayout } from "@/components/layout/UniversalLayout";
 import { 
   Tv, 
   CreditCard, 
@@ -32,8 +32,8 @@ const ArtistPortal = () => {
   }, [user, navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <AnonymousHeader />
+    <UniversalLayout>
+      <div className="min-h-screen bg-background">
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -397,7 +397,8 @@ const ArtistPortal = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </UniversalLayout>
   );
 };
 

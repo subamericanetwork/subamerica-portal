@@ -7,14 +7,14 @@ import {
   BarChart3, Shield, Zap, Users, TrendingUp, CheckCircle2, X, Play, Sparkles
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { ConditionalHeader } from "@/components/ConditionalHeader";
+import { UniversalLayout } from "@/components/layout/UniversalLayout";
 
 const Features = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
-      <ConditionalHeader />
+    <UniversalLayout>
+      <div className="min-h-screen bg-background">
 
       {/* Hero Section */}
       <section className="section-spacing gradient-hero pt-[80px]">
@@ -141,7 +141,8 @@ const Features = () => {
           </div>
         </div>
       </footer>
-    </div>
+      </div>
+    </UniversalLayout>
   );
 };
 
