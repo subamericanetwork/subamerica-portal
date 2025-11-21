@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { UniversalLayout } from '@/components/layout/UniversalLayout';
+import { MemberLayout } from '@/components/layout/MemberLayout';
+import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -38,6 +40,7 @@ export default function LiveStreams() {
   const [selectedStreamId, setSelectedStreamId] = useState<string | null>(null);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user } = useAuth();
 
   useEffect(() => {
     // Get current user
@@ -147,9 +150,11 @@ export default function LiveStreams() {
     return null;
   };
 
+  const Layout = user ? MemberLayout : UniversalLayout;
+
   if (loading) {
     return (
-      <UniversalLayout>
+      <Layout>
         <div className="min-h-screen bg-background">
           <div className="container mx-auto px-4 py-8">
             <div className="mb-8">
@@ -163,12 +168,12 @@ export default function LiveStreams() {
             </div>
           </div>
         </div>
-      </UniversalLayout>
+      </Layout>
     );
   }
 
   return (
-    <UniversalLayout>
+    <Layout>
       <div className="min-h-screen bg-background">
         <div className={`container mx-auto ${isMobile ? 'px-3 py-6' : 'px-4 py-8'}`}>
           <div className={`${isMobile ? 'mb-6' : 'mb-8'}`}>
@@ -316,6 +321,6 @@ export default function LiveStreams() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-    </UniversalLayout>
+    </Layout>
   );
 }
