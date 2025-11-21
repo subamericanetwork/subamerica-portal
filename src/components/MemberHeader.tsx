@@ -120,7 +120,7 @@ export function MemberHeader() {
   };
 
   const memberNavItems = [
-    { title: "Discover", url: "/member", icon: Home },
+    { title: "Discover", url: "/member/home", icon: Home },
     { title: "Live", url: "/member/live", icon: Radio },
     { title: "Watch TV", url: "/watch", icon: Play },
     { title: "Playlists", url: "/member/playlists", icon: ListMusic },

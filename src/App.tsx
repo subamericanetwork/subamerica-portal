@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PlayerProvider, usePlayer } from "@/contexts/PlayerContext";
 import { MiniPlayer } from "@/components/MiniPlayer";
@@ -117,6 +117,7 @@ const AppRoutes = () => {
           <Route path="/test" element={<Test />} />
           
         {/* Member Routes */}
+        <Route path="/member" element={<Navigate to="/member/home" replace />} />
         <Route path="/member/home" element={<ProtectedRoute><MemberHome /></ProtectedRoute>} />
         <Route path="/member/dashboard" element={<ProtectedRoute><MemberDashboard /></ProtectedRoute>} />
         <Route path="/member/profile" element={<ProtectedRoute><MemberProfile /></ProtectedRoute>} />

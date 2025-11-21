@@ -92,7 +92,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   }, [user]);
 
   const navigation = [
-    { name: "Discover", href: "/member", icon: Home },
+    { name: "Discover", href: "/member/home", icon: Home },
     { name: "Portal Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Profile", href: "/profile", icon: User },
     { 
