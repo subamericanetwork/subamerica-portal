@@ -7,6 +7,7 @@ import { usePlaylist } from '@/hooks/usePlaylist';
 import { SearchBar } from './SearchBar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import subamericaLogo from '@/assets/subamerica-logo-small.jpg';
 
 interface MemberSidebarProps {
   onNavigate?: () => void;
@@ -32,6 +33,14 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
   return (
     <div className={isMobile ? "w-full" : "w-80 border-r"} style={{ backgroundColor: 'hsl(var(--card))' }} data-class="bg-card flex flex-col h-full">
       <div className="p-4 space-y-4">
+        <div 
+          className="flex items-center gap-3 px-2 py-3 cursor-pointer hover:opacity-80 transition-opacity"
+          onClick={() => handleNavigation('/member')}
+        >
+          <img src={subamericaLogo} alt="Subamerica" className="h-10 w-10 rounded-md object-cover" />
+          <span className="text-xl font-bold">Subamerica</span>
+        </div>
+
         <SearchBar />
 
         <Separator />
@@ -106,11 +115,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             <Clock className="h-4 w-4 mr-3" />
             Recently Played
           </Button>
-        </div>
 
-        <Separator />
-
-        <div className="space-y-2">
           <Button
             variant="default"
             className="w-full justify-start"
@@ -127,31 +132,6 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           >
             <Compass className="h-4 w-4 mr-3" />
             Browse Catalog
-          </Button>
-        </div>
-
-        <Separator />
-
-        <div className="space-y-2">
-          <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Account
-          </h3>
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={() => handleNavigation('/member/profile')}
-          >
-            <User className="h-4 w-4 mr-3" />
-            Profile
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4 mr-3" />
-            Logout
           </Button>
         </div>
       </div>
@@ -182,6 +162,31 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           )}
         </div>
       </ScrollArea>
+
+      <Separator />
+
+      <div className="p-4 space-y-2">
+        <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+          Account
+        </h3>
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={() => handleNavigation('/member/profile')}
+        >
+          <User className="h-4 w-4 mr-3" />
+          Profile
+        </Button>
+
+        <Button
+          variant="ghost"
+          className="w-full justify-start"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4 mr-3" />
+          Logout
+        </Button>
+      </div>
     </div>
   );
 }
