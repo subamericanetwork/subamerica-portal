@@ -1,0 +1,33 @@
+{
+  "sidebar": {
+    "discover": "Découvrir",
+    "home": "Accueil",
+    "browse": "Parcourir",
+    "live": "En Direct",
+    "audio": "Audio",
+    "videos": "Vidéos",
+    "library": "Bibliothèque",
+    "recentlyPlayed": "Récemment Joué",
+    "liked": "Aimé",
+    "following": "Abonnements",
+    "playlists": "Listes de Lecture",
+    "dashboard": "Tableau de Bord",
+    "portals": "Portails",
+    "account": "Compte",
+    "profile": "Profil",
+    "createPlaylist": "Créer une Liste"
+  },
+  "home": {
+    "title": "Découvrir la Musique",
+    "featuredArtists": "Artistes en Vedette",
+    "recentlyPlayed": "Récemment Joué",
+    "topPicks": "Meilleurs Choix pour Vous"
+  },
+  "playlists": {
+    "myPlaylists": "Mes Listes",
+    "createNew": "Créer une Nouvelle Liste",
+    "playlistName": "Nom de la Liste",
+    "description": "Description",
+    "empty": "Aucune liste pour le moment"
+  }
+}

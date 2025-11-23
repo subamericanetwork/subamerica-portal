@@ -1,0 +1,16 @@
+{
+  "portal": {
+    "title": "Artist Portal",
+    "dashboard": "Dashboard",
+    "content": "Content",
+    "streaming": "Streaming",
+    "analytics": "Analytics",
+    "settings": "Settings"
+  },
+  "streaming": {
+    "goLive": "Go Live",
+    "schedule": "Schedule Stream",
+    "credentials": "Streaming Credentials",
+    "status": "Stream Status"
+  }
+}

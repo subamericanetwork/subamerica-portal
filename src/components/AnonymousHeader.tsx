@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Home, Play, Sparkles, LogIn, ArrowRight, BookOpen, Radio, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import subamericaLogo from "@/assets/subamerica-logo-small.jpg";
 
 export function AnonymousHeader() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { t } = useTranslation('common');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate("/")}>
-          <img src={subamericaLogo} alt="Subamerica" className="h-10 w-10 rounded-full" />
-          <span className="text-xl font-bold">Subamerica</span>
+          <img src={subamericaLogo} alt={t('appName')} className="h-10 w-10 rounded-full" />
+          <span className="text-xl font-bold">{t('appName')}</span>
         </div>
         
         <div className="flex items-center gap-2">
@@ -38,7 +41,7 @@ export function AnonymousHeader() {
                   }}
                 >
                   <Home className="h-4 w-4 mr-2" />
-                  Home
+                  {t('nav.home')}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -49,7 +52,7 @@ export function AnonymousHeader() {
                   }}
                 >
                   <Play className="h-4 w-4 mr-2" />
-                  Watch TV
+                  {t('nav.watchTV')}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -60,7 +63,7 @@ export function AnonymousHeader() {
                   }}
                 >
                   <Radio className="h-4 w-4 mr-2" />
-                  Live
+                  {t('nav.live')}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -71,7 +74,7 @@ export function AnonymousHeader() {
                   }}
                 >
                   <BookOpen className="h-4 w-4 mr-2" />
-                  Blog
+                  {t('nav.blog')}
                 </Button>
                 <Button 
                   variant="ghost" 
@@ -82,21 +85,25 @@ export function AnonymousHeader() {
                   }}
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Features
+                  {t('nav.features')}
                 </Button>
+                <div className="mt-4 pt-4 border-t">
+                  <LanguageSwitcher />
+                </div>
               </nav>
             </SheetContent>
           </Sheet>
 
           {/* Desktop Navigation Links */}
           <nav className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/")}>Home</Button>
-            <Button variant="ghost" onClick={() => navigate("/watch")}>Watch TV</Button>
-            <Button variant="ghost" onClick={() => navigate("/live")}>Live</Button>
-            <Button variant="ghost" onClick={() => navigate("/blog")}>Blog</Button>
-            <Button variant="ghost" onClick={() => navigate("/features")}>Features</Button>
-            <Button variant="ghost" onClick={() => navigate("/auth")}>Login</Button>
-            <Button onClick={() => navigate("/auth")}>Get Started</Button>
+            <Button variant="ghost" onClick={() => navigate("/")}>{t('nav.home')}</Button>
+            <Button variant="ghost" onClick={() => navigate("/watch")}>{t('nav.watchTV')}</Button>
+            <Button variant="ghost" onClick={() => navigate("/live")}>{t('nav.live')}</Button>
+            <Button variant="ghost" onClick={() => navigate("/blog")}>{t('nav.blog')}</Button>
+            <Button variant="ghost" onClick={() => navigate("/features")}>{t('nav.features')}</Button>
+            <LanguageSwitcher />
+            <Button variant="ghost" onClick={() => navigate("/auth")}>{t('nav.login')}</Button>
+            <Button onClick={() => navigate("/auth")}>{t('nav.getStarted')}</Button>
           </nav>
         </div>
       </div>
