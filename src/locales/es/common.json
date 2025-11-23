@@ -1,0 +1,41 @@
+{
+  "appName": "Subamerica",
+  "nav": {
+    "home": "Inicio",
+    "watchTV": "Ver TV",
+    "live": "En Vivo",
+    "blog": "Blog",
+    "features": "Características",
+    "login": "Iniciar Sesión",
+    "getStarted": "Comenzar",
+    "logout": "Cerrar Sesión"
+  },
+  "actions": {
+    "back": "Atrás",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "submit": "Enviar",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "sort": "Ordenar",
+    "create": "Crear",
+    "upload": "Subir",
+    "download": "Descargar"
+  },
+  "status": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "noResults": "No se encontraron resultados",
+    "tryAgain": "Intentar de nuevo"
+  },
+  "date": {
+    "today": "Hoy",
+    "yesterday": "Ayer",
+    "thisWeek": "Esta Semana",
+    "thisMonth": "Este Mes",
+    "allTime": "Todo el Tiempo"
+  }
+}

@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { usePlaylist } from '@/hooks/usePlaylist';
 import { SearchBar } from './SearchBar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/contexts/AuthContext';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import subamericaLogo from '@/assets/subamerica-logo-small.jpg';
 
 interface MemberSidebarProps {
@@ -16,6 +18,7 @@ interface MemberSidebarProps {
 export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
+  const { t } = useTranslation('member');
   const { playlists } = usePlaylist();
   const { signOut } = useAuth();
 
@@ -47,7 +50,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
 
         <div className="space-y-2">
           <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Navigation
+            {t('sidebar.discover')}
           </h3>
           <Button
             variant="ghost"
@@ -55,7 +58,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/member/home')}
           >
             <Sparkles className="h-4 w-4 mr-3" />
-            Discover
+            {t('sidebar.home')}
           </Button>
 
           <Button
@@ -64,7 +67,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/live')}
           >
             <Radio className="h-4 w-4 mr-3" />
-            Live
+            {t('sidebar.live')}
           </Button>
 
           <Button
@@ -73,7 +76,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/watch')}
           >
             <Play className="h-4 w-4 mr-3" />
-            Watch TV
+            {t('sidebar.videos')}
           </Button>
 
           <Button
@@ -82,7 +85,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/member/playlists')}
           >
             <ListMusic className="h-4 w-4 mr-3" />
-            Playlists
+            {t('sidebar.playlists')}
           </Button>
 
           <Button
@@ -91,7 +94,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/dashboard')}
           >
             <LayoutDashboard className="h-4 w-4 mr-3" />
-            Dashboard
+            {t('sidebar.dashboard')}
           </Button>
 
           <Button
@@ -100,7 +103,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/portals')}
           >
             <Grid3x3 className="h-4 w-4 mr-3" />
-            Portals
+            {t('sidebar.portals')}
           </Button>
         </div>
 
@@ -108,7 +111,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
 
         <div className="space-y-2">
           <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Library
+            {t('sidebar.library')}
           </h3>
           <Button
             variant="ghost"
@@ -116,7 +119,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/member/liked')}
           >
             <Heart className="h-4 w-4 mr-3" />
-            Liked Content
+            {t('sidebar.liked')}
           </Button>
 
           <Button
@@ -125,7 +128,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/member/following')}
           >
             <UserPlus className="h-4 w-4 mr-3" />
-            Following
+            {t('sidebar.following')}
           </Button>
 
           <Button
@@ -134,7 +137,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/member/recent')}
           >
             <Clock className="h-4 w-4 mr-3" />
-            Recently Played
+            {t('sidebar.recentlyPlayed')}
           </Button>
 
           <Button
@@ -143,7 +146,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/member/playlists')}
           >
             <Plus className="h-4 w-4 mr-3" />
-            Create Playlist
+            {t('sidebar.createPlaylist')}
           </Button>
 
           <Button
@@ -152,7 +155,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
             onClick={() => handleNavigation('/browse')}
           >
             <Compass className="h-4 w-4 mr-3" />
-            Browse Catalog
+            {t('sidebar.browse')}
           </Button>
         </div>
       </div>
@@ -162,11 +165,11 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
       <ScrollArea className="flex-1 px-4">
         <div className="py-4 space-y-1">
           <h3 className="px-2 text-sm font-semibold text-muted-foreground mb-2">
-            Your Playlists
+            {t('playlists.myPlaylists')}
           </h3>
           {playlists.length === 0 ? (
             <p className="px-2 text-sm text-muted-foreground">
-              No playlists yet
+              {t('playlists.empty')}
             </p>
           ) : (
             playlists.map((playlist) => (
@@ -188,7 +191,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
 
       <div className="p-4 space-y-2">
         <h3 className="px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Account
+          {t('sidebar.account')}
         </h3>
         <Button
           variant="ghost"
@@ -196,8 +199,12 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           onClick={() => handleNavigation('/member/profile')}
         >
           <User className="h-4 w-4 mr-3" />
-          Profile
+          {t('sidebar.profile')}
         </Button>
+        
+        <div className="px-2 py-2">
+          <LanguageSwitcher />
+        </div>
 
         <Button
           variant="ghost"
@@ -205,7 +212,7 @@ export function MemberSidebar({ onNavigate }: MemberSidebarProps) {
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4 mr-3" />
-          Logout
+          {t('common:nav.logout', { ns: 'common' })}
         </Button>
       </div>
     </div>

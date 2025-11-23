@@ -1,0 +1,16 @@
+{
+  "portal": {
+    "title": "Portail Artiste",
+    "dashboard": "Tableau de Bord",
+    "content": "Contenu",
+    "streaming": "Diffusion",
+    "analytics": "Analytiques",
+    "settings": "Paramètres"
+  },
+  "streaming": {
+    "goLive": "Passer en Direct",
+    "schedule": "Planifier une Diffusion",
+    "credentials": "Identifiants de Diffusion",
+    "status": "État de la Diffusion"
+  }
+}

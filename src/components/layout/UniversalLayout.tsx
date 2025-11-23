@@ -1,5 +1,6 @@
 import { ReactNode, useState } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTranslation } from "react-i18next";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
@@ -7,6 +8,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { UniversalSidebar } from "./UniversalSidebar";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface UniversalLayoutProps {
   children: ReactNode;
@@ -14,6 +16,7 @@ interface UniversalLayoutProps {
 
 export function UniversalLayout({ children }: UniversalLayoutProps) {
   const isMobile = useIsMobile();
+  const { t } = useTranslation('common');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -27,19 +30,20 @@ export function UniversalLayout({ children }: UniversalLayoutProps) {
             <div className="flex items-center gap-4">
               {!isMobile && <SidebarTrigger />}
               <button onClick={() => navigate("/")} className="flex items-center gap-2">
-                <img src="/subamerica-logo-small.jpg" alt="Subamerica" className="w-8 h-8 rounded" />
-                <span className="font-bold text-lg">Subamerica</span>
+                <img src="/subamerica-logo-small.jpg" alt={t('appName')} className="w-8 h-8 rounded" />
+                <span className="font-bold text-lg">{t('appName')}</span>
               </button>
             </div>
 
             <div className="flex items-center gap-2">
+              <LanguageSwitcher />
               {!user && (
                 <>
                   <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
-                    Login
+                    {t('nav.login')}
                   </Button>
                   <Button size="sm" onClick={() => navigate("/auth?tab=signup")}>
-                    Get Started
+                    {t('nav.getStarted')}
                   </Button>
                 </>
               )}

@@ -1,0 +1,16 @@
+{
+  "portal": {
+    "title": "Portal de Artista",
+    "dashboard": "Panel",
+    "content": "Contenido",
+    "streaming": "Transmisión",
+    "analytics": "Análisis",
+    "settings": "Configuración"
+  },
+  "streaming": {
+    "goLive": "Transmitir en Vivo",
+    "schedule": "Programar Transmisión",
+    "credentials": "Credenciales de Transmisión",
+    "status": "Estado de Transmisión"
+  }
+}

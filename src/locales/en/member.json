@@ -1,0 +1,33 @@
+{
+  "sidebar": {
+    "discover": "Discover",
+    "home": "Home",
+    "browse": "Browse",
+    "live": "Live",
+    "audio": "Audio",
+    "videos": "Videos",
+    "library": "Library",
+    "recentlyPlayed": "Recently Played",
+    "liked": "Liked",
+    "following": "Following",
+    "playlists": "Playlists",
+    "dashboard": "Dashboard",
+    "portals": "Portals",
+    "account": "Account",
+    "profile": "Profile",
+    "createPlaylist": "Create Playlist"
+  },
+  "home": {
+    "title": "Discover Music",
+    "featuredArtists": "Featured Artists",
+    "recentlyPlayed": "Recently Played",
+    "topPicks": "Top Picks for You"
+  },
+  "playlists": {
+    "myPlaylists": "My Playlists",
+    "createNew": "Create New Playlist",
+    "playlistName": "Playlist Name",
+    "description": "Description",
+    "empty": "No playlists yet"
+  }
+}
