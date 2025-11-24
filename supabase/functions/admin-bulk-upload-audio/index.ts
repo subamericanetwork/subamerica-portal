@@ -195,7 +195,7 @@ serve(async (req) => {
             duration,
             tags: tagArray.length > 0 ? tagArray : null,
             moderation_status: 'approved', // Admin override
-            status: auto_publish ? 'published' : 'draft',
+            status: 'ready', // Audio is processed and ready to play
             published_at: auto_publish ? new Date().toISOString() : null,
             source_type: 'admin_bulk_upload'
           })
