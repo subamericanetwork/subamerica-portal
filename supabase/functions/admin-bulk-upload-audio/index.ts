@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.74.0";
+import { multiParser } from "https://deno.land/x/multiparser@0.114.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,18 +46,38 @@ serve(async (req) => {
       );
     }
 
-    // Parse JSON payload (not FormData anymore)
-    const payload = await req.json();
-    const { artist_id, auto_publish, tags, tracks } = payload;
-
-    if (!artist_id || !tracks || tracks.length === 0) {
+    // Parse multipart form data
+    const form = await multiParser(req);
+    
+    if (!form || !form.fields) {
       return new Response(
-        JSON.stringify({ error: 'Invalid payload: artist_id and tracks required' }),
+        JSON.stringify({ error: 'Invalid form data' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`[Admin Bulk Upload] Processing ${tracks.length} tracks for artist ${artist_id}`);
+    const artist_id = form.fields.artist_id;
+    const auto_publish = form.fields.auto_publish === 'true';
+    const tags = form.fields.tags || '';
+    
+    if (!artist_id) {
+      return new Response(
+        JSON.stringify({ error: 'artist_id is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const files = form.files || {};
+    const fileCount = Object.keys(files).length;
+    
+    if (fileCount === 0) {
+      return new Response(
+        JSON.stringify({ error: 'No files provided' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`[Admin Bulk Upload] Processing ${fileCount} files for artist ${artist_id}`);
 
     // Verify artist exists
     const { data: artist, error: artistError } = await supabase
@@ -75,24 +96,74 @@ serve(async (req) => {
     const tagArray = tags ? tags.split(',').map((t: string) => t.trim()).filter(Boolean) : [];
     const results = [];
 
-    // Process each track (just database inserts now)
-    for (let i = 0; i < tracks.length; i++) {
-      const track = tracks[i];
+    // Get Cloudinary credentials
+    const CLOUDINARY_CLOUD_NAME = Deno.env.get('CLOUDINARY_CLOUD_NAME');
+    const CLOUDINARY_API_KEY = Deno.env.get('CLOUDINARY_API_KEY');
+    const CLOUDINARY_API_SECRET = Deno.env.get('CLOUDINARY_API_SECRET');
+
+    if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
+      return new Response(
+        JSON.stringify({ error: 'Cloudinary credentials not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Process each file
+    let fileIndex = 0;
+    for (const [fieldName, fileData] of Object.entries(files)) {
+      fileIndex++;
       
       try {
-        console.log(`[Admin Bulk Upload] Creating DB entry ${i + 1}/${tracks.length}: ${track.title}`);
+        const file = Array.isArray(fileData) ? fileData[0] : fileData;
+        const title = form.fields[`title_${fieldName}`] || file.filename || `Track ${fileIndex}`;
+        const description = form.fields[`description_${fieldName}`] || null;
+        const duration = form.fields[`duration_${fieldName}`] ? parseInt(form.fields[`duration_${fieldName}`]) : null;
 
-        // Create audio track entry with admin override
+        console.log(`[Admin Bulk Upload] Processing file ${fileIndex}/${fileCount}: ${title}`);
+
+        // Upload to Cloudinary
+        const cloudinaryFormData = new FormData();
+        const fileBlob = new Blob([file.content as BlobPart], { type: file.contentType || 'audio/mpeg' });
+        cloudinaryFormData.append('file', fileBlob, file.filename);
+        cloudinaryFormData.append('upload_preset', 'mobile_recordings');
+        cloudinaryFormData.append('resource_type', 'video');
+        cloudinaryFormData.append('folder', `artists/${artist_id}/audio`);
+
+        console.log(`[Admin Bulk Upload] Uploading to Cloudinary: ${file.filename}`);
+
+        const cloudinaryResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/video/upload`,
+          {
+            method: 'POST',
+            body: cloudinaryFormData,
+          }
+        );
+
+        if (!cloudinaryResponse.ok) {
+          const errorText = await cloudinaryResponse.text();
+          console.error(`[Admin Bulk Upload] Cloudinary upload failed:`, errorText);
+          results.push({
+            title,
+            success: false,
+            error: `Cloudinary upload failed: ${errorText.substring(0, 100)}`
+          });
+          continue;
+        }
+
+        const cloudinaryData = await cloudinaryResponse.json();
+        console.log(`[Admin Bulk Upload] Cloudinary upload successful: ${cloudinaryData.public_id}`);
+
+        // Insert into database
         const { data: audioTrack, error: insertError } = await supabase
           .from('audio_tracks')
           .insert({
             artist_id,
-            title: track.title,
-            description: track.description || null,
-            audio_url: track.audio_url,
-            cloudinary_public_id: track.cloudinary_public_id,
-            cloudinary_resource_type: track.cloudinary_resource_type || 'video',
-            duration: track.duration || null,
+            title,
+            description,
+            audio_url: cloudinaryData.secure_url,
+            cloudinary_public_id: cloudinaryData.public_id,
+            cloudinary_resource_type: 'video',
+            duration,
             tags: tagArray.length > 0 ? tagArray : null,
             moderation_status: 'approved', // Admin override
             status: auto_publish ? 'published' : 'draft',
@@ -103,28 +174,28 @@ serve(async (req) => {
           .single();
 
         if (insertError) {
-          console.error(`[Admin Bulk Upload] DB insert failed for ${track.title}:`, insertError);
+          console.error(`[Admin Bulk Upload] DB insert failed for ${title}:`, insertError);
           results.push({
-            title: track.title,
+            title,
             success: false,
             error: insertError.message
           });
           continue;
         }
 
-        console.log(`[Admin Bulk Upload] Successfully created audio track ${audioTrack.id}: ${track.title}`);
+        console.log(`[Admin Bulk Upload] Successfully created audio track ${audioTrack.id}: ${title}`);
         results.push({
-          title: track.title,
+          title,
           success: true,
           audio_track_id: audioTrack.id
         });
 
-      } catch (trackError) {
-        console.error(`[Admin Bulk Upload] Error processing ${track.title}:`, trackError);
+      } catch (fileError) {
+        console.error(`[Admin Bulk Upload] Error processing file ${fileIndex}:`, fileError);
         results.push({
-          title: track.title,
+          title: `File ${fileIndex}`,
           success: false,
-          error: trackError instanceof Error ? trackError.message : 'Unknown error'
+          error: fileError instanceof Error ? fileError.message : 'Unknown error'
         });
       }
     }
@@ -136,7 +207,7 @@ serve(async (req) => {
       action: 'admin_bulk_upload',
       diff: {
         artist_id,
-        tracks_count: tracks.length,
+        tracks_count: fileCount,
         successful: results.filter(r => r.success).length,
         failed: results.filter(r => !r.success).length
       }
@@ -148,7 +219,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        total: tracks.length,
+        total: fileCount,
         successful: successCount,
         failed: failedCount,
         results
