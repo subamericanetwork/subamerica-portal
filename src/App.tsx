@@ -34,6 +34,7 @@ import Port from "./pages/Port";
 import NotFound from "./pages/NotFound";
 import PWAStatus from "./pages/PWAStatus";
 import AdminVideos from "./pages/admin/AdminVideos";
+import AdminAudio from "./pages/admin/AdminAudio";
 import AdminPayments from "./pages/admin/AdminPayments";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminVerification from "./pages/admin/AdminVerification";
@@ -152,6 +153,7 @@ const AppRoutes = () => {
           {/* Admin Routes */}
           <Route path="/admin/applications" element={<AdminRoute><AdminApplications /></AdminRoute>} />
           <Route path="/admin/videos" element={<AdminRoute><AdminVideos /></AdminRoute>} />
+          <Route path="/admin/audio" element={<AdminRoute><AdminAudio /></AdminRoute>} />
           <Route path="/admin/payments" element={<AdminRoute><AdminPayments /></AdminRoute>} />
           <Route path="/admin/registrations" element={<AdminRoute><AdminRegistrations /></AdminRoute>} />
           <Route path="/admin/verification" element={<AdminRoute><AdminVerification /></AdminRoute>} />
