@@ -7,6 +7,30 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Generate Cloudinary signature for authenticated uploads
+async function generateCloudinarySignature(
+  paramsToSign: string,
+  apiSecret: string
+): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(paramsToSign);
+  const key = encoder.encode(apiSecret);
+  
+  const cryptoKey = await crypto.subtle.importKey(
+    "raw",
+    key,
+    { name: "HMAC", hash: "SHA-1" },
+    false,
+    ["sign"]
+  );
+  
+  const signature = await crypto.subtle.sign("HMAC", cryptoKey, data);
+  const hashArray = Array.from(new Uint8Array(signature));
+  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  
+  return hashHex;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -121,13 +145,24 @@ serve(async (req) => {
 
         console.log(`[Admin Bulk Upload] Processing file ${fileIndex}/${fileCount}: ${title}`);
 
-        // Upload to Cloudinary
+        // Generate signed upload parameters
+        const timestamp = Math.round(Date.now() / 1000).toString();
+        const folder = `artists/${artist_id}/audio`;
+        const resourceType = 'video';
+        
+        // Create the string to sign (alphabetically ordered parameters)
+        const paramsToSign = `folder=${folder}&resource_type=${resourceType}&timestamp=${timestamp}`;
+        const signature = await generateCloudinarySignature(paramsToSign, CLOUDINARY_API_SECRET);
+        
+        // Upload to Cloudinary with signed authentication
         const cloudinaryFormData = new FormData();
         const fileBlob = new Blob([file.content as BlobPart], { type: file.contentType || 'audio/mpeg' });
         cloudinaryFormData.append('file', fileBlob, file.filename);
-        cloudinaryFormData.append('upload_preset', 'mobile_recordings');
-        cloudinaryFormData.append('resource_type', 'video');
-        cloudinaryFormData.append('folder', `artists/${artist_id}/audio`);
+        cloudinaryFormData.append('folder', folder);
+        cloudinaryFormData.append('resource_type', resourceType);
+        cloudinaryFormData.append('api_key', CLOUDINARY_API_KEY);
+        cloudinaryFormData.append('timestamp', timestamp);
+        cloudinaryFormData.append('signature', signature);
 
         console.log(`[Admin Bulk Upload] Uploading to Cloudinary: ${file.filename}`);
 
