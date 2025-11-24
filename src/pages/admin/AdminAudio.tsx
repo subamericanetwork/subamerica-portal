@@ -133,51 +133,6 @@ const AdminAudio = () => {
     ));
   };
 
-  const uploadToCloudinary = async (file: File, artistId: string, index: number) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', 'mobile_recordings');
-    formData.append('resource_type', 'video');
-    formData.append('folder', `artists/${artistId}/audio`);
-
-    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dhyqrcj6t';
-    
-    console.log('Uploading to Cloudinary:', {
-      cloudName,
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-    });
-    
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
-      { method: 'POST', body: formData }
-    );
-
-    if (!response.ok) {
-      // Capture the actual Cloudinary error
-      const errorText = await response.text();
-      console.error('Cloudinary upload failed:', {
-        status: response.status,
-        statusText: response.statusText,
-        error: errorText,
-      });
-      throw new Error(`Cloudinary upload failed: ${errorText.substring(0, 200)}`);
-    }
-
-    const data = await response.json();
-    
-    // Update progress
-    setFiles(prevFiles => prevFiles.map((f, i) => 
-      i === index ? { ...f, progress: 100, status: 'success' } : f
-    ));
-
-    return {
-      secure_url: data.secure_url,
-      public_id: data.public_id,
-    };
-  };
-
   const handleBulkUpload = async () => {
     if (!selectedArtist) {
       toast({
@@ -200,51 +155,7 @@ const AdminAudio = () => {
     setUploading(true);
 
     try {
-      // Step 1: Upload all files to Cloudinary
-      const uploadedTracks = [];
-      
-      for (let i = 0; i < files.length; i++) {
-        const fileUpload = files[i];
-        
-        try {
-          setFiles(prevFiles => prevFiles.map((f, idx) => 
-            idx === i ? { ...f, status: 'uploading' as const, progress: 50 } : f
-          ));
-
-          const cloudinaryResult = await uploadToCloudinary(fileUpload.file, selectedArtist, i);
-          
-          uploadedTracks.push({
-            title: fileUpload.title,
-            description: fileUpload.description || null,
-            duration: fileUpload.duration || null,
-            audio_url: cloudinaryResult.secure_url,
-            cloudinary_public_id: cloudinaryResult.public_id,
-            cloudinary_resource_type: 'video',
-          });
-
-        } catch (error) {
-          console.error(`Failed to upload file ${i}:`, error);
-          setFiles(prevFiles => prevFiles.map((f, idx) => 
-            idx === i ? { ...f, status: 'error' as const, error: 'Cloudinary upload failed' } : f
-          ));
-          toast({
-            title: "Upload Failed",
-            description: `Failed to upload: ${fileUpload.title}`,
-            variant: "destructive",
-          });
-        }
-      }
-
-      if (uploadedTracks.length === 0) {
-        toast({
-          title: "Error",
-          description: "No files were successfully uploaded to Cloudinary",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Step 2: Call edge function to register tracks in database
+      // Get auth session
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         toast({
@@ -255,65 +166,73 @@ const AdminAudio = () => {
         return;
       }
 
-      console.log('Calling edge function with:', {
-        artist_id: selectedArtist,
-        auto_publish: autoPublish,
-        tags: tags,
-        tracks_count: uploadedTracks.length
+      // Build FormData with files and metadata
+      const formData = new FormData();
+      formData.append('artist_id', selectedArtist);
+      formData.append('auto_publish', autoPublish.toString());
+      formData.append('tags', tags);
+
+      // Add each file with its metadata
+      files.forEach((fileUpload, index) => {
+        const fieldName = `file_${index}`;
+        formData.append(fieldName, fileUpload.file);
+        formData.append(`title_${fieldName}`, fileUpload.title);
+        formData.append(`description_${fieldName}`, fileUpload.description || '');
+        formData.append(`duration_${fieldName}`, fileUpload.duration.toString());
+        
+        // Update UI to show uploading status
+        setFiles(prevFiles => prevFiles.map((f, idx) => 
+          idx === index ? { ...f, status: 'uploading' as const, progress: 50 } : f
+        ));
       });
 
+      console.log(`[Admin Audio] Uploading ${files.length} files to edge function`);
+
+      // Send to edge function (handles both Cloudinary upload and DB insert)
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-bulk-upload-audio`,
         {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
-            'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            artist_id: selectedArtist,
-            auto_publish: autoPublish,
-            tags: tags,
-            tracks: uploadedTracks,
-          }),
+          body: formData,
         }
       );
 
       if (!response.ok) {
-        let errorMessage = 'Database registration failed';
-        
-        try {
-          // Try to parse JSON error
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            const error = await response.json();
-            errorMessage = error.error || errorMessage;
-          } else {
-            // Non-JSON response (HTML error page, plain text, etc.)
-            const text = await response.text();
-            errorMessage = `Server error: ${text.substring(0, 100)}`;
-            console.error('Non-JSON error response:', text);
-          }
-        } catch (parseError) {
-          // JSON parsing failed
-          errorMessage = `Failed to parse error response: ${parseError.message}`;
-          console.error('Error parsing response:', parseError);
-        }
-        
-        throw new Error(errorMessage);
+        const errorData = await response.json().catch(() => ({ error: 'Upload failed' }));
+        throw new Error(errorData.error || 'Upload failed');
       }
 
       const result = await response.json();
       
+      // Update file statuses based on results
+      if (result.results) {
+        result.results.forEach((trackResult: any, index: number) => {
+          setFiles(prevFiles => prevFiles.map((f, idx) => {
+            if (idx === index) {
+              return {
+                ...f,
+                status: trackResult.success ? 'success' as const : 'error' as const,
+                progress: trackResult.success ? 100 : f.progress,
+                error: trackResult.success ? undefined : trackResult.error
+              };
+            }
+            return f;
+          }));
+        });
+      }
+      
       toast({
         title: "Upload Complete",
-        description: `Successfully registered ${result.successful} of ${result.total} tracks`,
+        description: `Successfully uploaded ${result.successful} of ${result.total} tracks`,
       });
       
       if (result.failed > 0) {
         toast({
           title: "Warning",
-          description: `${result.failed} tracks failed to register in database`,
+          description: `${result.failed} tracks failed to upload`,
           variant: "destructive",
         });
       }
@@ -522,7 +441,7 @@ const AdminAudio = () => {
                   ) : (
                     <>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload {files.length} File{files.length !== 1 ? 's' : ''} to Cloudinary
+                      Upload & Publish {files.length} Track{files.length !== 1 ? 's' : ''}
                     </>
                   )}
                 </Button>
