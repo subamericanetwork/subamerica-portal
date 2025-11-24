@@ -151,7 +151,7 @@ serve(async (req) => {
         const resourceType = 'video';
         
         // Create the string to sign (alphabetically ordered parameters)
-        const paramsToSign = `folder=${folder}&resource_type=${resourceType}&timestamp=${timestamp}`;
+        const paramsToSign = `folder=${folder}&timestamp=${timestamp}`;
         const signature = await generateCloudinarySignature(paramsToSign, CLOUDINARY_API_SECRET);
         
         // Upload to Cloudinary with signed authentication
@@ -159,7 +159,6 @@ serve(async (req) => {
         const fileBlob = new Blob([file.content as BlobPart], { type: file.contentType || 'audio/mpeg' });
         cloudinaryFormData.append('file', fileBlob, file.filename);
         cloudinaryFormData.append('folder', folder);
-        cloudinaryFormData.append('resource_type', resourceType);
         cloudinaryFormData.append('api_key', CLOUDINARY_API_KEY);
         cloudinaryFormData.append('timestamp', timestamp);
         cloudinaryFormData.append('signature', signature);
