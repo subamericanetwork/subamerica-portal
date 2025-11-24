@@ -120,6 +120,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const adminNavigation = [
     { name: "Admin: Applications", href: "/admin/applications", icon: FileText },
     { name: "Admin: Videos", href: "/admin/videos", icon: Shield },
+    { name: "Admin: Audio", href: "/admin/audio", icon: Music2 },
     { name: "Admin: Payments", href: "/admin/payments", icon: DollarSign },
     { name: "Admin: Registrations", href: "/admin/registrations", icon: User },
     { name: "Admin: Verification", href: "/admin/verification", icon: Shield },
