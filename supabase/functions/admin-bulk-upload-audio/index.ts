@@ -13,19 +13,14 @@ async function generateCloudinarySignature(
   apiSecret: string
 ): Promise<string> {
   const encoder = new TextEncoder();
-  const data = encoder.encode(paramsToSign);
-  const key = encoder.encode(apiSecret);
   
-  const cryptoKey = await crypto.subtle.importKey(
-    "raw",
-    key,
-    { name: "HMAC", hash: "SHA-1" },
-    false,
-    ["sign"]
-  );
+  // Cloudinary uses SHA1 hash of (params + secret), NOT HMAC
+  const stringToHash = paramsToSign + apiSecret;
+  const data = encoder.encode(stringToHash);
   
-  const signature = await crypto.subtle.sign("HMAC", cryptoKey, data);
-  const hashArray = Array.from(new Uint8Array(signature));
+  // Use SHA-1 digest (not HMAC)
+  const hashBuffer = await crypto.subtle.digest("SHA-1", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
   return hashHex;
