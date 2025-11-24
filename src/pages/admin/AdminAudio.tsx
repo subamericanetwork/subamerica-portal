@@ -241,6 +241,13 @@ const AdminAudio = () => {
         return;
       }
 
+      console.log('Calling edge function with:', {
+        artist_id: selectedArtist,
+        auto_publish: autoPublish,
+        tags: tags,
+        tracks_count: uploadedTracks.length
+      });
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-bulk-upload-audio`,
         {
@@ -259,8 +266,27 @@ const AdminAudio = () => {
       );
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Database registration failed');
+        let errorMessage = 'Database registration failed';
+        
+        try {
+          // Try to parse JSON error
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            const error = await response.json();
+            errorMessage = error.error || errorMessage;
+          } else {
+            // Non-JSON response (HTML error page, plain text, etc.)
+            const text = await response.text();
+            errorMessage = `Server error: ${text.substring(0, 100)}`;
+            console.error('Non-JSON error response:', text);
+          }
+        } catch (parseError) {
+          // JSON parsing failed
+          errorMessage = `Failed to parse error response: ${parseError.message}`;
+          console.error('Error parsing response:', parseError);
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
