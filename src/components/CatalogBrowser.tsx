@@ -145,7 +145,7 @@ export const CatalogBrowser = ({
               )
             )
           `)
-          .eq('status', 'active')
+          .eq('status', 'ready')
           .not('published_at', 'is', null)
           .eq('artists.port_settings.publish_status', 'published');
 
