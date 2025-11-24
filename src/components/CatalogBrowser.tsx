@@ -146,6 +146,7 @@ export const CatalogBrowser = ({
             )
           `)
           .eq('status', 'ready')
+          .eq('moderation_status', 'approved')
           .not('published_at', 'is', null)
           .eq('artists.port_settings.publish_status', 'published');
 
