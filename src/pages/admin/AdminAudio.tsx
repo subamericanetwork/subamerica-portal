@@ -142,13 +142,27 @@ const AdminAudio = () => {
 
     const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dhyqrcj6t';
     
+    console.log('Uploading to Cloudinary:', {
+      cloudName,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+    });
+    
     const response = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
       { method: 'POST', body: formData }
     );
 
     if (!response.ok) {
-      throw new Error('Cloudinary upload failed');
+      // Capture the actual Cloudinary error
+      const errorText = await response.text();
+      console.error('Cloudinary upload failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+      });
+      throw new Error(`Cloudinary upload failed: ${errorText.substring(0, 200)}`);
     }
 
     const data = await response.json();
