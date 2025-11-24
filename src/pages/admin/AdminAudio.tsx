@@ -133,6 +133,37 @@ const AdminAudio = () => {
     ));
   };
 
+  const uploadToCloudinary = async (file: File, artistId: string, index: number) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'mobile_recordings');
+    formData.append('resource_type', 'video');
+    formData.append('folder', `artists/${artistId}/audio`);
+
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dhyqrcj6t';
+    
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/video/upload`,
+      { method: 'POST', body: formData }
+    );
+
+    if (!response.ok) {
+      throw new Error('Cloudinary upload failed');
+    }
+
+    const data = await response.json();
+    
+    // Update progress
+    setFiles(prevFiles => prevFiles.map((f, i) => 
+      i === index ? { ...f, progress: 100, status: 'success' } : f
+    ));
+
+    return {
+      secure_url: data.secure_url,
+      public_id: data.public_id,
+    };
+  };
+
   const handleBulkUpload = async () => {
     if (!selectedArtist) {
       toast({
@@ -155,56 +186,106 @@ const AdminAudio = () => {
     setUploading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('artist_id', selectedArtist);
-      formData.append('auto_publish', autoPublish.toString());
-      formData.append('tags', tags);
-
-      files.forEach((fileUpload, index) => {
-        formData.append(`file_${index}`, fileUpload.file);
-        formData.append(`title_${index}`, fileUpload.title);
-        formData.append(`duration_${index}`, fileUpload.duration.toString());
-        formData.append(`description_${index}`, fileUpload.description);
-      });
-
-      const { data: { session } } = await supabase.auth.getSession();
+      // Step 1: Upload all files to Cloudinary
+      const uploadedTracks = [];
       
+      for (let i = 0; i < files.length; i++) {
+        const fileUpload = files[i];
+        
+        try {
+          setFiles(prevFiles => prevFiles.map((f, idx) => 
+            idx === i ? { ...f, status: 'uploading' as const, progress: 50 } : f
+          ));
+
+          const cloudinaryResult = await uploadToCloudinary(fileUpload.file, selectedArtist, i);
+          
+          uploadedTracks.push({
+            title: fileUpload.title,
+            description: fileUpload.description || null,
+            duration: fileUpload.duration || null,
+            audio_url: cloudinaryResult.secure_url,
+            cloudinary_public_id: cloudinaryResult.public_id,
+            cloudinary_resource_type: 'video',
+          });
+
+        } catch (error) {
+          console.error(`Failed to upload file ${i}:`, error);
+          setFiles(prevFiles => prevFiles.map((f, idx) => 
+            idx === i ? { ...f, status: 'error' as const, error: 'Cloudinary upload failed' } : f
+          ));
+          toast({
+            title: "Upload Failed",
+            description: `Failed to upload: ${fileUpload.title}`,
+            variant: "destructive",
+          });
+        }
+      }
+
+      if (uploadedTracks.length === 0) {
+        toast({
+          title: "Error",
+          description: "No files were successfully uploaded to Cloudinary",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Step 2: Call edge function to register tracks in database
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Error",
+          description: "Not authenticated",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/admin-bulk-upload-audio`,
         {
           method: 'POST',
           headers: {
-            Authorization: `Bearer ${session?.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
+            'Content-Type': 'application/json',
           },
-          body: formData,
+          body: JSON.stringify({
+            artist_id: selectedArtist,
+            auto_publish: autoPublish,
+            tags: tags,
+            tracks: uploadedTracks,
+          }),
         }
       );
 
-      const result = await response.json();
-
       if (!response.ok) {
-        throw new Error(result.error || 'Upload failed');
+        const error = await response.json();
+        throw new Error(error.error || 'Database registration failed');
       }
 
+      const result = await response.json();
+      
       toast({
         title: "Upload Complete",
-        description: `${result.successful} of ${result.total} files uploaded successfully`,
+        description: `Successfully registered ${result.successful} of ${result.total} tracks`,
       });
-
-      // Update file statuses based on results
-      setFiles(prev => prev.map((file, index) => ({
-        ...file,
-        status: result.results[index]?.success ? 'success' : 'error',
-        error: result.results[index]?.error,
-        progress: 100
-      })));
+      
+      if (result.failed > 0) {
+        toast({
+          title: "Warning",
+          description: `${result.failed} tracks failed to register in database`,
+          variant: "destructive",
+        });
+      }
 
       // Refresh tracks list
-      fetchData();
+      await fetchData();
 
       // Clear successful uploads after 3 seconds
       setTimeout(() => {
         setFiles(prev => prev.filter(f => f.status !== 'success'));
+        setTags('');
+        setAutoPublish(false);
       }, 3000);
 
     } catch (error) {
