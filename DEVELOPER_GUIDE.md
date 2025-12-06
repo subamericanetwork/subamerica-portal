@@ -121,6 +121,11 @@ Tools designed to empower artists.
 -   **Livepush**: Alternative provider (configurable in `StreamingCredentialsManager`).
 -   **Flow**: App requests Stream Key -> Artist broadcasts to Provider -> Provider hits Webhook -> App updates `status` to 'live'.
 
+### 4. Cloudinary (Content Delivery)
+-   **Optimization**: Used to serve optimized variants of heavy media (Images, Audio, Video snippets).
+-   **Schema**: The `audio_tracks` and `artist_live_streams` tables contain `cloudinary_public_id` fields.
+-   **Usage**: When an Admin approves a track/stream, it may optionally be synced to Cloudinary for better global delivery performance.
+
 ## 6. Development Workflow
 
 ### Adding a New Feature
