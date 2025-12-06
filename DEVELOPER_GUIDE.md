@@ -148,3 +148,206 @@ Tools designed to empower artists.
 -   **Platform**: Lovable / Vercel
 -   **Env Vars**: Must be set in the deployment dashboard.
 -   **Build**: `npm run build` generates `dist/`.
+
+## 8. Database Schema
+
+### 1. Identity & Access
+
+#### `artists`
+The central entity for creators.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `user_id` | `uuid` | References `auth.users` |
+| `display_name` | `text` | Public artist name |
+| `slug` | `text` | Unique URL identifier |
+| `bio_short` | `text` | Short bio for cards |
+| `bio_long` | `text` | Full profile biography |
+| `city` | `text` | Location info |
+| `country` | `text` | Location info |
+| `subscription_tier` | `enum` | Tier: `free`, `pro`, `label` |
+| `stripe_customer_id` | `text` | Stripe Customer ID |
+| `stripe_subscription_id` | `text` | Stripe Subscription ID |
+| `is_verified` | `boolean` | Verification status |
+| `socials` | `json` | Links to external social media |
+
+#### `user_profiles`
+Public profile information for regular users.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `user_id` | `uuid` | References `auth.users` |
+| `display_name` | `text` | Public username |
+| `avatar_url` | `text` | Profile picture URL |
+| `email` | `text` | User email |
+
+#### `user_roles`
+RBAC system for platform administrators.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `user_id` | `uuid` | References `auth.users` |
+| `role` | `enum` | Role: `admin`, `moderator` |
+
+#### `user_follows`
+Tracks follower relationships.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `user_id` | `uuid` | Follower |
+| `artist_id` | `uuid` | Following |
+
+### 2. Streaming Engine
+
+#### `artist_live_streams`
+Live broadcast sessions.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `title` | `text` | Stream title |
+| `status` | `text` | e.g. `live`, `ended` |
+| `stream_key` | `text` | Secret key for OBS |
+| `playback_url` | `text` | HLS Playback URL |
+| `provider` | `text` | `mux` or `livepush` |
+| `viewer_count` | `integer` | Current viewers |
+
+#### `events`
+Scheduled live events.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `title` | `text` | Event name |
+| `starts_at` | `timestamptz` | Scheduled start time |
+| `ticket_price` | `number` | Cost in `ticket_currency` |
+| `stripe_price_id` | `text` | Stripe Price ID for tickets |
+| `venue` | `text` | Physical location (optional) |
+
+#### `stream_playlists`
+Pre-recorded content broadcast as live.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `name` | `text` | Playlist name |
+| `video_ids` | `text[]` | Array of `videos.id` to play |
+| `loop_mode` | `text` | Loop behavior |
+
+### 3. Media Content
+
+#### `audio_tracks`
+Audio files for the music player.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `title` | `text` | Track title |
+| `audio_url` | `text` | Direct file URL |
+| `cloudinary_public_id` | `text` | Cloudinary ID for optimization |
+| `duration` | `integer` | Length in seconds |
+| `is_featured` | `boolean` | Featured on artist profile |
+
+#### `videos`
+Video-on-demand content.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `title` | `text` | Video title |
+| `video_url` | `text` | Source URL |
+| `provider` | `text` | Source provider (e.g., `youtube`) |
+| `kind` | `enum` | Type: `music_video`, `interview`, etc. |
+
+### 4. Social Platform
+
+#### `social_posts`
+Posts syndicated to external platforms.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `platform` | `text` | `tiktok`, `youtube`, `instagram` |
+| `platform_post_id` | `text` | External ID |
+| `caption` | `text` | Post caption |
+| `posted_at` | `timestamptz` | Publication time |
+
+#### `conversations`
+Chat rooms.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `type` | `text` | `direct` or `group` |
+| `updated_at` | `timestamptz` | Last activity |
+
+#### `messages`
+Individual chat messages.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `conversation_id` | `uuid` | FK to `conversations` |
+| `sender_id` | `uuid` | FK to `auth.users` |
+| `content` | `text` | Message body |
+
+### 5. Marketplace
+
+#### `products`
+Merchandise items.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | FK to `artists` |
+| `title` | `text` | Product name |
+| `price` | `number` | Price |
+| `currency` | `text` | Currency code (USD) |
+| `inventory` | `text` | Stock status |
+
+#### `orders`
+Customer purchases.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `artist_id` | `uuid` | Seller |
+| `product_id` | `uuid` | FK to `products` |
+| `total_amount` | `number` | Final price paid |
+| `stripe_session_id` | `text` | Payment reference |
+| `fulfillment_status` | `text` | `pending`, `shipped` |
+
+### 6. System & Config
+
+#### `audit`
+System-wide audit logging.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `action` | `text` | Action name |
+| `actor_id` | `uuid` | User who performed action |
+| `entity` | `text` | Target table |
+| `diff` | `json` | Changes made |
+
+#### `admin_notifications`
+Alerts for admins.
+
+| Column | Type | Description |
+| :--- | :--- | :--- |
+| `id` | `uuid` | Primary Key |
+| `title` | `text` | Notification title |
+| `message` | `text` | Body text |
+| `read_at` | `timestamptz` | When it was read |
+
+
